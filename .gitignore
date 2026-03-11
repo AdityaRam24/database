@@ -1,0 +1,78 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+venv/
+.env/
+.env
+.env.*
+
+# IDEs
+.vscode/
+.idea/
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# macOS
+.DS_Store
+
+# Node
+node_modules/
+pnpm-lock.yaml
+yarn.lock
+package-lock.json
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build
+dist/
+build/
+
+# Database
+*.sqlite3
+*.db
+
+# Secrets / service keys
+serviceAccountKey.json
+*.key
+*.pem
+
+# Model artifacts (large files)
+backend/models/
+*.gguf
+
+# Docker
+docker-compose.override.yml
+
+# Misc
+*.env.local
+*.env.*.local
+
+# Coverage
+.coverage
+.coverage.*
+coverage/
+
+# Temp
+*.tmp
+*.temp
+
+# Generated
+*.pyc
+*.pyo
+*~
+
+# Ignore OS files
+Thumbs.db
+
+# Ignore editor backup files
+*~

@@ -1,0 +1,67 @@
+﻿{
+    "recommendations":  [
+                            {
+                                "table":  "users",
+                                "column":  "username",
+                                "type":  "resize",
+                                "description":  "Column \u0027username\u0027 is TEXT but max length is 8. Resize to VARCHAR(100).",
+                                "explanation":  null,
+                                "impact":  "Medium",
+                                "sql_command":  "ALTER TABLE users ALTER COLUMN username TYPE VARCHAR(100);"
+                            },
+                            {
+                                "table":  "users",
+                                "column":  "email",
+                                "type":  "resize",
+                                "description":  "Column \u0027email\u0027 is TEXT but max length is 5. Resize to VARCHAR(100).",
+                                "explanation":  null,
+                                "impact":  "Medium",
+                                "sql_command":  "ALTER TABLE users ALTER COLUMN email TYPE VARCHAR(100);"
+                            },
+                            {
+                                "table":  "user_profiles",
+                                "column":  "bio",
+                                "type":  "resize",
+                                "description":  "Column \u0027bio\u0027 is TEXT but max length is 0. Resize to VARCHAR(100).",
+                                "explanation":  null,
+                                "impact":  "Medium",
+                                "sql_command":  "ALTER TABLE user_profiles ALTER COLUMN bio TYPE VARCHAR(100);"
+                            },
+                            {
+                                "table":  "categories",
+                                "column":  "name",
+                                "type":  "resize",
+                                "description":  "Column \u0027name\u0027 is TEXT but max length is 4. Resize to VARCHAR(100).",
+                                "explanation":  null,
+                                "impact":  "Medium",
+                                "sql_command":  "ALTER TABLE categories ALTER COLUMN name TYPE VARCHAR(100);"
+                            },
+                            {
+                                "table":  "orders",
+                                "column":  "status",
+                                "type":  "resize",
+                                "description":  "Column \u0027status\u0027 is TEXT but max length is 6. Resize to VARCHAR(100).",
+                                "explanation":  null,
+                                "impact":  "Medium",
+                                "sql_command":  "ALTER TABLE orders ALTER COLUMN status TYPE VARCHAR(100);"
+                            },
+                            {
+                                "table":  "products",
+                                "column":  "name",
+                                "type":  "resize",
+                                "description":  "Column \u0027name\u0027 is TEXT but max length is 4. Resize to VARCHAR(100).",
+                                "explanation":  null,
+                                "impact":  "Medium",
+                                "sql_command":  "ALTER TABLE products ALTER COLUMN name TYPE VARCHAR(100);"
+                            },
+                            {
+                                "table":  "products",
+                                "column":  "description",
+                                "type":  "resize",
+                                "description":  "Column \u0027description\u0027 is TEXT but max length is 11. Resize to VARCHAR(100).",
+                                "explanation":  null,
+                                "impact":  "Medium",
+                                "sql_command":  "ALTER TABLE products ALTER COLUMN description TYPE VARCHAR(100);"
+                            }
+                        ]
+}
