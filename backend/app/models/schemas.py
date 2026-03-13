@@ -11,3 +11,4 @@ class DBConnectionResponse(BaseModel):
     message: str
     table_count: int
     file_path: Optional[str] = None
+    connection_string: Optional[str] = None

@@ -50,7 +50,7 @@ class DBService:
                 env['PGPASSWORD'] = source_parsed.password
 
             logger.info(f"Starting schema dump with: {dump_cmd}")
-            dump_process = subprocess.run(dump_cmd, capture_output=True, text=True, env=env)
+            dump_process = subprocess.run(dump_cmd, capture_output=True, text=True, encoding='utf-8', env=env)
             
             if dump_process.returncode != 0:
                 logger.error(f"pg_dump failed: {dump_process.stderr}")
@@ -77,6 +77,7 @@ class DBService:
                 restore_cmd, 
                 input=restore_commands, 
                 text=True, 
+                encoding='utf-8',
                 capture_output=True,
                 env=restore_env
             )
@@ -122,6 +123,7 @@ class DBService:
                 restore_cmd, 
                 input=restore_commands, 
                 text=True, 
+                encoding='utf-8',
                 capture_output=True,
                 env=restore_env
             )
@@ -161,6 +163,71 @@ class DBService:
 
         except Exception as e:
             logger.error(f"Shadow cloning from SQL error: {e}")
+            raise e
+
+    @staticmethod
+    def create_dedicated_db_from_sql(sql_content: str, project_name: str) -> str:
+        """
+        Creates a new, isolated PostgreSQL database for a specific project
+        and populates it from a provided SQL string.
+        Returns the new connection string.
+        """
+        try:
+            import re
+            import uuid
+            from urllib.parse import urlparse
+
+            # 1. Sanitize project name to create a safe database name
+            safe_name = re.sub(r'[^a-z0-9]', '_', project_name.lower())[:30] # Max 30 chars
+            safe_name = safe_name.strip('_')
+            db_name = f"{safe_name}_{uuid.uuid4().hex[:8]}"
+
+            # 2. Get base connection URL
+            db_url = settings.SHADOW_DB_URL # Defaults to shadow_db connection string
+            if not db_url:
+                raise ValueError("SHADOW_DB_URL must be configured as connection template.")
+            
+            base_url = db_url.rsplit('/', 1)[0] + '/postgres'
+            
+            # 3. Create the database
+            logger.info(f"Creating dedicated database: {db_name}")
+            engine = create_engine(base_url, poolclass=NullPool)
+            with engine.connect().execution_options(isolation_level="AUTOCOMMIT") as connection:
+                connection.execute(text(f"CREATE DATABASE {db_name}"))
+
+            # 4. Construct new connection URL
+            new_db_url = db_url.rsplit('/', 1)[0] + f'/{db_name}'
+            # 5. Populate Database via psycopg2
+            logger.info(f"Restoring SQL file into: {db_name}")
+            try:
+                import psycopg2
+                
+                # Parse new connection URL
+                parsed = urlparse(new_db_url)
+                
+                # Use psycopg2 to run the literal multi-statement .sql file string
+                conn = psycopg2.connect(
+                    dbname=parsed.path.lstrip('/'),
+                    user=parsed.username,
+                    password=parsed.password,
+                    host=parsed.hostname,
+                    port=parsed.port
+                )
+                conn.autocommit = True
+                
+                with conn.cursor() as cur:
+                    cur.execute(sql_content)
+                
+                conn.close()
+                logger.info(f"Dedicated database {db_name} populated successfully.")
+                return new_db_url
+                
+            except Exception as e_sql:
+                logger.error(f"psycopg2 SQL execution failed: {e_sql}")
+                raise Exception(f"Failed to populate database: Invalid SQL or syntax error ({e_sql})")
+
+        except Exception as e:
+            logger.error(f"Dedicated DB creation error: {e}")
             raise e
 
     @staticmethod

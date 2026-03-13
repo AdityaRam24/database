@@ -1,7 +1,10 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
+from typing import Optional
 from app.services.migration_analyzer import simulate_migration_impact
 from app.services.db_service import DBService
+from app.services.ai_service import AIService
+from app.services.schema_analysis import SchemaAnalysisService
 
 router = APIRouter()
 db_service = DBService()
@@ -17,13 +20,37 @@ class ApplyPatchRequest(BaseModel):
     sql_patch: str
 
 
+class GeneratePatchRequest(BaseModel):
+    connection_string: str
+    description: str
+
+
+@router.post("/ai-generate-patch")
+async def ai_generate_patch(req: GeneratePatchRequest):
+    """Generate a SQL patch from natural language using AI."""
+    try:
+        # Get schema context
+        service = SchemaAnalysisService(req.connection_string)
+        graph_data = service.get_schema_graph_data()
+        schema_lines = []
+        for node in graph_data.get("nodes", []):
+            table_name = node["data"]["label"]
+            columns = node["data"].get("columns", [])
+            col_strs = [f"  - {c['name']} ({c['type']}{'  PK' if c['is_pk'] else ''})" for c in columns]
+            schema_lines.append(f"Table: {table_name}")
+            schema_lines.extend(col_strs)
+        schema_context = "\n".join(schema_lines)
+
+        ai = AIService()
+        sql = await ai.generate_governance_patch(req.description, schema_context)
+        return {"sql": sql}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.post("/simulate-migration")
 def simulate_migration(req: SimulateMigrationRequest):
-    """
-    Run safety analysis on SQL patch against the shadow DB.
-    Returns is_safe, warnings, and dependency breakdown.
-    This MUST be called before /apply-patch.
-    """
+    """Run safety analysis on SQL patch against the shadow DB."""
     try:
         result = simulate_migration_impact(req.connection_string, req.sql_patch)
         return {
@@ -44,12 +71,8 @@ def simulate_migration(req: SimulateMigrationRequest):
 
 @router.post("/apply-patch")
 async def apply_patch(req: ApplyPatchRequest):
-    """
-    Apply a SQL patch to the shadow DB — ONLY after passing safety analysis.
-    Re-runs safety check internally to prevent bypassing the UI.
-    """
+    """Apply a SQL patch to the shadow DB — ONLY after passing safety analysis."""
     try:
-        # Mandatory safety gate — re-validate server-side
         safety = simulate_migration_impact(req.connection_string, req.sql_patch)
         if not safety["is_safe"]:
             raise HTTPException(

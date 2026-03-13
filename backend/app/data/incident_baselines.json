@@ -1,0 +1,1025 @@
+{
+  "snapshots": [
+    {
+      "timestamp": "2026-03-11T10:05:16.889781",
+      "metrics": {
+        "queries": [],
+        "query_stats": {
+          "total_calls": 0,
+          "avg_mean_time": 0.0,
+          "max_mean_time": 0.0
+        },
+        "table_sizes": {
+          "user_profiles": 8192,
+          "order_items": 24576,
+          "products": 24576,
+          "orders": 24576,
+          "categories": 24576,
+          "users": 49152
+        },
+        "connection_count": 1,
+        "table_seq_scans": {
+          "user_profiles": 25,
+          "products": 25,
+          "users": 25,
+          "categories": 25,
+          "orders": 25,
+          "order_items": 0
+        },
+        "total_seq_scans": 125,
+        "xact_rollback": 338
+      }
+    },
+    {
+      "timestamp": "2026-03-11T10:05:16.944947",
+      "metrics": {
+        "queries": [],
+        "query_stats": {
+          "total_calls": 0,
+          "avg_mean_time": 0.0,
+          "max_mean_time": 0.0
+        },
+        "table_sizes": {
+          "user_profiles": 8192,
+          "order_items": 24576,
+          "products": 24576,
+          "orders": 24576,
+          "categories": 24576,
+          "users": 49152
+        },
+        "connection_count": 1,
+        "table_seq_scans": {
+          "user_profiles": 25,
+          "products": 25,
+          "users": 25,
+          "categories": 25,
+          "orders": 25,
+          "order_items": 0
+        },
+        "total_seq_scans": 125,
+        "xact_rollback": 341
+      }
+    },
+    {
+      "timestamp": "2026-03-11T10:05:34.911221",
+      "metrics": {
+        "queries": [],
+        "query_stats": {
+          "total_calls": 0,
+          "avg_mean_time": 0.0,
+          "max_mean_time": 0.0
+        },
+        "table_sizes": {
+          "user_profiles": 8192,
+          "order_items": 24576,
+          "products": 24576,
+          "orders": 24576,
+          "categories": 24576,
+          "users": 49152
+        },
+        "connection_count": 1,
+        "table_seq_scans": {
+          "user_profiles": 25,
+          "products": 25,
+          "users": 25,
+          "categories": 25,
+          "orders": 25,
+          "order_items": 0
+        },
+        "total_seq_scans": 125,
+        "xact_rollback": 344
+      }
+    },
+    {
+      "timestamp": "2026-03-11T10:06:14.613106",
+      "metrics": {
+        "queries": [],
+        "query_stats": {
+          "total_calls": 0,
+          "avg_mean_time": 0.0,
+          "max_mean_time": 0.0
+        },
+        "table_sizes": {
+          "user_profiles": 8192,
+          "order_items": 24576,
+          "products": 24576,
+          "orders": 24576,
+          "categories": 24576,
+          "users": 49152
+        },
+        "connection_count": 1,
+        "table_seq_scans": {
+          "user_profiles": 25,
+          "products": 25,
+          "users": 25,
+          "categories": 25,
+          "orders": 25,
+          "order_items": 0
+        },
+        "total_seq_scans": 125,
+        "xact_rollback": 347
+      }
+    },
+    {
+      "timestamp": "2026-03-11T10:06:17.806298",
+      "metrics": {
+        "queries": [],
+        "query_stats": {
+          "total_calls": 0,
+          "avg_mean_time": 0.0,
+          "max_mean_time": 0.0
+        },
+        "table_sizes": {
+          "user_profiles": 8192,
+          "order_items": 24576,
+          "products": 24576,
+          "orders": 24576,
+          "categories": 24576,
+          "users": 49152
+        },
+        "connection_count": 1,
+        "table_seq_scans": {
+          "user_profiles": 25,
+          "products": 25,
+          "users": 25,
+          "categories": 25,
+          "orders": 25,
+          "order_items": 0
+        },
+        "total_seq_scans": 125,
+        "xact_rollback": 350
+      }
+    },
+    {
+      "timestamp": "2026-03-11T10:06:21.009385",
+      "metrics": {
+        "queries": [],
+        "query_stats": {
+          "total_calls": 0,
+          "avg_mean_time": 0.0,
+          "max_mean_time": 0.0
+        },
+        "table_sizes": {
+          "user_profiles": 8192,
+          "order_items": 24576,
+          "products": 24576,
+          "orders": 24576,
+          "categories": 24576,
+          "users": 49152
+        },
+        "connection_count": 1,
+        "table_seq_scans": {
+          "user_profiles": 25,
+          "products": 25,
+          "users": 25,
+          "categories": 25,
+          "orders": 25,
+          "order_items": 0
+        },
+        "total_seq_scans": 125,
+        "xact_rollback": 353
+      }
+    },
+    {
+      "timestamp": "2026-03-11T10:07:23.777075",
+      "metrics": {
+        "queries": [],
+        "query_stats": {
+          "total_calls": 0,
+          "avg_mean_time": 0.0,
+          "max_mean_time": 0.0
+        },
+        "table_sizes": {
+          "user_profiles": 8192,
+          "order_items": 24576,
+          "products": 24576,
+          "orders": 24576,
+          "categories": 24576,
+          "users": 49152
+        },
+        "connection_count": 1,
+        "table_seq_scans": {
+          "user_profiles": 29,
+          "products": 29,
+          "users": 29,
+          "categories": 29,
+          "orders": 29,
+          "order_items": 0
+        },
+        "total_seq_scans": 145,
+        "xact_rollback": 411
+      }
+    },
+    {
+      "timestamp": "2026-03-11T10:07:23.844581",
+      "metrics": {
+        "queries": [],
+        "query_stats": {
+          "total_calls": 0,
+          "avg_mean_time": 0.0,
+          "max_mean_time": 0.0
+        },
+        "table_sizes": {
+          "user_profiles": 8192,
+          "order_items": 24576,
+          "products": 24576,
+          "orders": 24576,
+          "categories": 24576,
+          "users": 49152
+        },
+        "connection_count": 1,
+        "table_seq_scans": {
+          "user_profiles": 29,
+          "products": 29,
+          "users": 29,
+          "categories": 29,
+          "orders": 29,
+          "order_items": 0
+        },
+        "total_seq_scans": 145,
+        "xact_rollback": 414
+      }
+    },
+    {
+      "timestamp": "2026-03-11T10:25:19.698659",
+      "metrics": {
+        "queries": [],
+        "query_stats": {
+          "total_calls": 0,
+          "avg_mean_time": 0.0,
+          "max_mean_time": 0.0
+        },
+        "table_sizes": {
+          "user_profiles": 8192,
+          "order_items": 24576,
+          "products": 24576,
+          "orders": 24576,
+          "categories": 24576,
+          "users": 49152
+        },
+        "connection_count": 1,
+        "table_seq_scans": {
+          "users": 45,
+          "user_profiles": 42,
+          "products": 42,
+          "categories": 42,
+          "orders": 42,
+          "order_items": 1
+        },
+        "total_seq_scans": 214,
+        "xact_rollback": 626
+      }
+    },
+    {
+      "timestamp": "2026-03-11T10:25:19.716665",
+      "metrics": {
+        "queries": [],
+        "query_stats": {
+          "total_calls": 0,
+          "avg_mean_time": 0.0,
+          "max_mean_time": 0.0
+        },
+        "table_sizes": {
+          "user_profiles": 8192,
+          "order_items": 24576,
+          "products": 24576,
+          "orders": 24576,
+          "categories": 24576,
+          "users": 49152
+        },
+        "connection_count": 1,
+        "table_seq_scans": {
+          "users": 45,
+          "user_profiles": 42,
+          "products": 42,
+          "categories": 42,
+          "orders": 42,
+          "order_items": 1
+        },
+        "total_seq_scans": 214,
+        "xact_rollback": 629
+      }
+    },
+    {
+      "timestamp": "2026-03-11T10:25:36.687936",
+      "metrics": {
+        "queries": [],
+        "query_stats": {
+          "total_calls": 0,
+          "avg_mean_time": 0.0,
+          "max_mean_time": 0.0
+        },
+        "table_sizes": {
+          "user_profiles": 8192,
+          "order_items": 24576,
+          "products": 24576,
+          "orders": 24576,
+          "categories": 24576,
+          "users": 49152
+        },
+        "connection_count": 1,
+        "table_seq_scans": {
+          "users": 49,
+          "user_profiles": 46,
+          "products": 46,
+          "categories": 46,
+          "orders": 46,
+          "order_items": 1
+        },
+        "total_seq_scans": 234,
+        "xact_rollback": 678
+      }
+    },
+    {
+      "timestamp": "2026-03-11T10:25:36.916221",
+      "metrics": {
+        "queries": [],
+        "query_stats": {
+          "total_calls": 0,
+          "avg_mean_time": 0.0,
+          "max_mean_time": 0.0
+        },
+        "table_sizes": {
+          "user_profiles": 8192,
+          "order_items": 24576,
+          "products": 24576,
+          "orders": 24576,
+          "categories": 24576,
+          "users": 49152
+        },
+        "connection_count": 1,
+        "table_seq_scans": {
+          "users": 49,
+          "user_profiles": 46,
+          "products": 46,
+          "categories": 46,
+          "orders": 46,
+          "order_items": 1
+        },
+        "total_seq_scans": 234,
+        "xact_rollback": 687
+      }
+    },
+    {
+      "timestamp": "2026-03-11T10:25:44.474572",
+      "metrics": {
+        "queries": [],
+        "query_stats": {
+          "total_calls": 0,
+          "avg_mean_time": 0.0,
+          "max_mean_time": 0.0
+        },
+        "table_sizes": {
+          "user_profiles": 8192,
+          "order_items": 24576,
+          "products": 24576,
+          "orders": 24576,
+          "categories": 24576,
+          "users": 49152
+        },
+        "connection_count": 1,
+        "table_seq_scans": {
+          "users": 49,
+          "user_profiles": 46,
+          "products": 46,
+          "categories": 46,
+          "orders": 46,
+          "order_items": 1
+        },
+        "total_seq_scans": 234,
+        "xact_rollback": 690
+      }
+    },
+    {
+      "timestamp": "2026-03-11T10:25:45.818688",
+      "metrics": {
+        "queries": [],
+        "query_stats": {
+          "total_calls": 0,
+          "avg_mean_time": 0.0,
+          "max_mean_time": 0.0
+        },
+        "table_sizes": {
+          "user_profiles": 8192,
+          "order_items": 24576,
+          "products": 24576,
+          "orders": 24576,
+          "categories": 24576,
+          "users": 49152
+        },
+        "connection_count": 1,
+        "table_seq_scans": {
+          "users": 49,
+          "user_profiles": 46,
+          "products": 46,
+          "categories": 46,
+          "orders": 46,
+          "order_items": 1
+        },
+        "total_seq_scans": 234,
+        "xact_rollback": 693
+      }
+    },
+    {
+      "timestamp": "2026-03-11T13:07:33.580608",
+      "metrics": {
+        "queries": [],
+        "query_stats": {
+          "total_calls": 0,
+          "avg_mean_time": 0.0,
+          "max_mean_time": 0.0
+        },
+        "table_sizes": {
+          "user_profiles": 24576,
+          "order_items": 24576,
+          "products": 24576,
+          "orders": 24576,
+          "categories": 24576,
+          "users": 49152
+        },
+        "connection_count": 1,
+        "table_seq_scans": {
+          "users": 136,
+          "orders": 130,
+          "products": 128,
+          "categories": 103,
+          "user_profiles": 102,
+          "order_items": 8
+        },
+        "total_seq_scans": 607,
+        "xact_rollback": 1551
+      }
+    },
+    {
+      "timestamp": "2026-03-11T13:27:46.262782",
+      "metrics": {
+        "queries": [],
+        "query_stats": {
+          "total_calls": 0,
+          "avg_mean_time": 0.0,
+          "max_mean_time": 0.0
+        },
+        "table_sizes": {
+          "user_profiles": 24576,
+          "order_items": 24576,
+          "products": 24576,
+          "orders": 24576,
+          "categories": 24576,
+          "users": 49152
+        },
+        "connection_count": 1,
+        "table_seq_scans": {
+          "users": 148,
+          "orders": 141,
+          "products": 139,
+          "categories": 114,
+          "user_profiles": 113,
+          "order_items": 8
+        },
+        "total_seq_scans": 663,
+        "xact_rollback": 1709
+      }
+    },
+    {
+      "timestamp": "2026-03-11T18:14:24.571459",
+      "metrics": {
+        "queries": [],
+        "query_stats": {
+          "total_calls": 0,
+          "avg_mean_time": 0.0,
+          "max_mean_time": 0.0
+        },
+        "table_sizes": {
+          "user_profiles": 24576,
+          "order_items": 24576,
+          "products": 24576,
+          "orders": 24576,
+          "categories": 24576,
+          "users": 49152
+        },
+        "connection_count": 1,
+        "table_seq_scans": {
+          "users": 263,
+          "orders": 256,
+          "products": 254,
+          "categories": 229,
+          "user_profiles": 228,
+          "order_items": 8
+        },
+        "total_seq_scans": 1238,
+        "xact_rollback": 3397
+      }
+    },
+    {
+      "timestamp": "2026-03-11T18:14:24.660826",
+      "metrics": {
+        "queries": [],
+        "query_stats": {
+          "total_calls": 0,
+          "avg_mean_time": 0.0,
+          "max_mean_time": 0.0
+        },
+        "table_sizes": {
+          "user_profiles": 24576,
+          "order_items": 24576,
+          "products": 24576,
+          "orders": 24576,
+          "categories": 24576,
+          "users": 49152
+        },
+        "connection_count": 1,
+        "table_seq_scans": {
+          "users": 263,
+          "orders": 256,
+          "products": 254,
+          "categories": 229,
+          "user_profiles": 228,
+          "order_items": 8
+        },
+        "total_seq_scans": 1238,
+        "xact_rollback": 3400
+      }
+    },
+    {
+      "timestamp": "2026-03-11T18:21:38.739065",
+      "metrics": {
+        "queries": [],
+        "query_stats": {
+          "total_calls": 0,
+          "avg_mean_time": 0.0,
+          "max_mean_time": 0.0
+        },
+        "table_sizes": {
+          "user_profiles": 24576,
+          "order_items": 24576,
+          "products": 24576,
+          "orders": 24576,
+          "categories": 24576,
+          "users": 49152
+        },
+        "connection_count": 1,
+        "table_seq_scans": {
+          "users": 274,
+          "orders": 266,
+          "products": 264,
+          "categories": 239,
+          "user_profiles": 238,
+          "order_items": 9
+        },
+        "total_seq_scans": 1290,
+        "xact_rollback": 3624
+      }
+    },
+    {
+      "timestamp": "2026-03-11T18:21:38.949625",
+      "metrics": {
+        "queries": [],
+        "query_stats": {
+          "total_calls": 0,
+          "avg_mean_time": 0.0,
+          "max_mean_time": 0.0
+        },
+        "table_sizes": {
+          "user_profiles": 24576,
+          "order_items": 24576,
+          "products": 24576,
+          "orders": 24576,
+          "categories": 24576,
+          "users": 49152
+        },
+        "connection_count": 1,
+        "table_seq_scans": {
+          "users": 274,
+          "orders": 266,
+          "products": 264,
+          "categories": 239,
+          "user_profiles": 238,
+          "order_items": 9
+        },
+        "total_seq_scans": 1290,
+        "xact_rollback": 3627
+      }
+    },
+    {
+      "timestamp": "2026-03-11T18:21:40.881993",
+      "metrics": {
+        "queries": [],
+        "query_stats": {
+          "total_calls": 0,
+          "avg_mean_time": 0.0,
+          "max_mean_time": 0.0
+        },
+        "table_sizes": {
+          "user_profiles": 24576,
+          "order_items": 24576,
+          "products": 24576,
+          "orders": 24576,
+          "categories": 24576,
+          "users": 49152
+        },
+        "connection_count": 1,
+        "table_seq_scans": {
+          "users": 274,
+          "orders": 266,
+          "products": 264,
+          "categories": 239,
+          "user_profiles": 238,
+          "order_items": 9
+        },
+        "total_seq_scans": 1290,
+        "xact_rollback": 3630
+      }
+    },
+    {
+      "timestamp": "2026-03-12T08:34:54.862819",
+      "metrics": {
+        "queries": [],
+        "query_stats": {
+          "total_calls": 0,
+          "avg_mean_time": 0.0,
+          "max_mean_time": 0.0
+        },
+        "table_sizes": {
+          "user_profiles": 24576,
+          "order_items": 24576,
+          "products": 24576,
+          "orders": 24576,
+          "categories": 24576,
+          "users": 49152
+        },
+        "connection_count": 1,
+        "table_seq_scans": {
+          "users": 290,
+          "orders": 280,
+          "products": 279,
+          "user_profiles": 255,
+          "categories": 254,
+          "order_items": 13
+        },
+        "total_seq_scans": 1371,
+        "xact_rollback": 3915
+      }
+    },
+    {
+      "timestamp": "2026-03-12T08:34:54.913538",
+      "metrics": {
+        "queries": [],
+        "query_stats": {
+          "total_calls": 0,
+          "avg_mean_time": 0.0,
+          "max_mean_time": 0.0
+        },
+        "table_sizes": {
+          "user_profiles": 24576,
+          "order_items": 24576,
+          "products": 24576,
+          "orders": 24576,
+          "categories": 24576,
+          "users": 49152
+        },
+        "connection_count": 1,
+        "table_seq_scans": {
+          "users": 290,
+          "orders": 280,
+          "products": 279,
+          "user_profiles": 255,
+          "categories": 254,
+          "order_items": 13
+        },
+        "total_seq_scans": 1371,
+        "xact_rollback": 3918
+      }
+    },
+    {
+      "timestamp": "2026-03-12T09:34:47.648574",
+      "metrics": {
+        "queries": [],
+        "query_stats": {
+          "total_calls": 0,
+          "avg_mean_time": 0.0,
+          "max_mean_time": 0.0
+        },
+        "table_sizes": {
+          "user_profiles": 1204224,
+          "users": 2007040,
+          "categories": 24576,
+          "order_items": 1925120,
+          "orders": 925696,
+          "products": 172032
+        },
+        "connection_count": 1,
+        "table_seq_scans": {
+          "users": 460,
+          "products": 448,
+          "orders": 369,
+          "user_profiles": 345,
+          "categories": 342,
+          "order_items": 16
+        },
+        "total_seq_scans": 1980,
+        "xact_rollback": 5202
+      }
+    },
+    {
+      "timestamp": "2026-03-12T09:34:47.722736",
+      "metrics": {
+        "queries": [],
+        "query_stats": {
+          "total_calls": 0,
+          "avg_mean_time": 0.0,
+          "max_mean_time": 0.0
+        },
+        "table_sizes": {
+          "user_profiles": 1204224,
+          "users": 2007040,
+          "categories": 24576,
+          "order_items": 1925120,
+          "orders": 925696,
+          "products": 172032
+        },
+        "connection_count": 1,
+        "table_seq_scans": {
+          "users": 460,
+          "products": 448,
+          "orders": 369,
+          "user_profiles": 345,
+          "categories": 342,
+          "order_items": 16
+        },
+        "total_seq_scans": 1980,
+        "xact_rollback": 5205
+      }
+    },
+    {
+      "timestamp": "2026-03-12T09:37:17.131019",
+      "metrics": {
+        "queries": [],
+        "query_stats": {
+          "total_calls": 0,
+          "avg_mean_time": 0.0,
+          "max_mean_time": 0.0
+        },
+        "table_sizes": {
+          "user_profiles": 1204224,
+          "users": 2007040,
+          "categories": 24576,
+          "order_items": 1925120,
+          "orders": 925696,
+          "products": 172032
+        },
+        "connection_count": 1,
+        "table_seq_scans": {
+          "users": 468,
+          "products": 456,
+          "orders": 373,
+          "user_profiles": 349,
+          "categories": 346,
+          "order_items": 16
+        },
+        "total_seq_scans": 2008,
+        "xact_rollback": 5287
+      }
+    },
+    {
+      "timestamp": "2026-03-12T09:37:17.297783",
+      "metrics": {
+        "queries": [],
+        "query_stats": {
+          "total_calls": 0,
+          "avg_mean_time": 0.0,
+          "max_mean_time": 0.0
+        },
+        "table_sizes": {
+          "user_profiles": 1204224,
+          "users": 2007040,
+          "categories": 24576,
+          "order_items": 1925120,
+          "orders": 925696,
+          "products": 172032
+        },
+        "connection_count": 1,
+        "table_seq_scans": {
+          "users": 468,
+          "products": 456,
+          "orders": 373,
+          "user_profiles": 349,
+          "categories": 346,
+          "order_items": 16
+        },
+        "total_seq_scans": 2008,
+        "xact_rollback": 5290
+      }
+    }
+  ],
+  "last_updated": "2026-03-12T09:37:17.297783",
+  "incident_history": [
+    {
+      "id": "INC-1773203843-4561",
+      "type": "High Error Rate",
+      "affected_table": "Global",
+      "detected_at": "2026-03-11T10:07:23.782122",
+      "root_cause": "Transaction rollback spike. 65 new rollbacks detected.",
+      "severity_score": 90,
+      "severity_level": "CRITICAL",
+      "metrics": {
+        "impact_score": 80,
+        "frequency_score": 100,
+        "latency_increase_score": 100,
+        "z_score": 12.78,
+        "deviation_pct": 19.0
+      }
+    },
+    {
+      "id": "INC-1773204919-4561",
+      "type": "High Error Rate",
+      "affected_table": "Global",
+      "detected_at": "2026-03-11T10:25:19.705278",
+      "root_cause": "Transaction rollback spike. 263 new rollbacks detected.",
+      "severity_score": 87,
+      "severity_level": "CRITICAL",
+      "metrics": {
+        "impact_score": 80,
+        "frequency_score": 100,
+        "latency_increase_score": 89,
+        "z_score": 8.98,
+        "deviation_pct": 72.8
+      }
+    },
+    {
+      "id": "INC-1773214653-9664",
+      "type": "High Error Rate",
+      "affected_table": "Global",
+      "detected_at": "2026-03-11T13:07:33.596895",
+      "root_cause": "Transaction rollback spike. 1058 new rollbacks detected.",
+      "severity_score": 83,
+      "severity_level": "CRITICAL",
+      "metrics": {
+        "impact_score": 80,
+        "frequency_score": 100,
+        "latency_increase_score": 68,
+        "z_score": 6.89,
+        "deviation_pct": 214.7
+      }
+    },
+    {
+      "id": "INC-1773215866-9664",
+      "type": "High Error Rate",
+      "affected_table": "Global",
+      "detected_at": "2026-03-11T13:27:46.268370",
+      "root_cause": "Transaction rollback spike. 1145 new rollbacks detected.",
+      "severity_score": 82,
+      "severity_level": "CRITICAL",
+      "metrics": {
+        "impact_score": 80,
+        "frequency_score": 100,
+        "latency_increase_score": 60,
+        "z_score": 3.78,
+        "deviation_pct": 203.3
+      }
+    },
+    {
+      "id": "INC-1773233064-1267",
+      "type": "High Error Rate",
+      "affected_table": "Global",
+      "detected_at": "2026-03-11T18:14:24.625382",
+      "root_cause": "Transaction rollback spike. 2761 new rollbacks detected.",
+      "severity_score": 90,
+      "severity_level": "CRITICAL",
+      "metrics": {
+        "impact_score": 80,
+        "frequency_score": 100,
+        "latency_increase_score": 100,
+        "z_score": 6.84,
+        "deviation_pct": 434.9
+      }
+    },
+    {
+      "id": "INC-1773233064-1267",
+      "type": "High Error Rate",
+      "affected_table": "Global",
+      "detected_at": "2026-03-11T18:14:24.684486",
+      "root_cause": "Transaction rollback spike. 2602 new rollbacks detected.",
+      "severity_score": 87,
+      "severity_level": "CRITICAL",
+      "metrics": {
+        "impact_score": 80,
+        "frequency_score": 100,
+        "latency_increase_score": 85,
+        "z_score": 3.43,
+        "deviation_pct": 326.3
+      }
+    },
+    {
+      "id": "INC-1773288287-2281",
+      "type": "Table Growth Anomaly",
+      "affected_table": "user_profiles",
+      "detected_at": "2026-03-12T09:34:47.682033",
+      "root_cause": "Table user_profiles size jumped to 1.1MB. Baseline: 0.0MB.",
+      "severity_score": 20,
+      "severity_level": "LOW",
+      "metrics": {
+        "impact_score": 1,
+        "frequency_score": 0,
+        "latency_increase_score": 100,
+        "z_score": 148.78,
+        "deviation_pct": 8146.3
+      }
+    },
+    {
+      "id": "INC-1773288287-2281",
+      "type": "Table Growth Anomaly",
+      "affected_table": "user_profiles",
+      "detected_at": "2026-03-12T09:34:47.730406",
+      "root_cause": "Table user_profiles size jumped to 1.1MB. Baseline: 0.1MB.",
+      "severity_score": 20,
+      "severity_level": "LOW",
+      "metrics": {
+        "impact_score": 1,
+        "frequency_score": 0,
+        "latency_increase_score": 100,
+        "z_score": 4.79,
+        "deviation_pct": 1776.6
+      }
+    },
+    {
+      "id": "INC-1773288287-2184",
+      "type": "Table Growth Anomaly",
+      "affected_table": "users",
+      "detected_at": "2026-03-12T09:34:47.730634",
+      "root_cause": "Table users size jumped to 1.9MB. Baseline: 0.1MB.",
+      "severity_score": 20,
+      "severity_level": "LOW",
+      "metrics": {
+        "impact_score": 1,
+        "frequency_score": 0,
+        "latency_increase_score": 100,
+        "z_score": 4.8,
+        "deviation_pct": 1435.2
+      }
+    },
+    {
+      "id": "INC-1773288287-2225",
+      "type": "Table Growth Anomaly",
+      "affected_table": "order_items",
+      "detected_at": "2026-03-12T09:34:47.730837",
+      "root_cause": "Table order_items size jumped to 1.8MB. Baseline: 0.1MB.",
+      "severity_score": 20,
+      "severity_level": "LOW",
+      "metrics": {
+        "impact_score": 1,
+        "frequency_score": 0,
+        "latency_increase_score": 100,
+        "z_score": 4.8,
+        "deviation_pct": 1755.3
+      }
+    },
+    {
+      "id": "INC-1773288437-2281",
+      "type": "Table Growth Anomaly",
+      "affected_table": "user_profiles",
+      "detected_at": "2026-03-12T09:37:17.140795",
+      "root_cause": "Table user_profiles size jumped to 1.1MB. Baseline: 0.1MB.",
+      "severity_score": 20,
+      "severity_level": "LOW",
+      "metrics": {
+        "impact_score": 1,
+        "frequency_score": 0,
+        "latency_increase_score": 100,
+        "z_score": 3.39,
+        "deviation_pct": 997.0
+      }
+    },
+    {
+      "id": "INC-1773288437-2184",
+      "type": "Table Growth Anomaly",
+      "affected_table": "users",
+      "detected_at": "2026-03-12T09:37:17.141027",
+      "root_cause": "Table users size jumped to 1.9MB. Baseline: 0.2MB.",
+      "severity_score": 20,
+      "severity_level": "LOW",
+      "metrics": {
+        "impact_score": 1,
+        "frequency_score": 0,
+        "latency_increase_score": 100,
+        "z_score": 3.39,
+        "deviation_pct": 875.3
+      }
+    },
+    {
+      "id": "INC-1773288437-2225",
+      "type": "Table Growth Anomaly",
+      "affected_table": "order_items",
+      "detected_at": "2026-03-12T09:37:17.141176",
+      "root_cause": "Table order_items size jumped to 1.8MB. Baseline: 0.2MB.",
+      "severity_score": 20,
+      "severity_level": "LOW",
+      "metrics": {
+        "impact_score": 1,
+        "frequency_score": 0,
+        "latency_increase_score": 100,
+        "z_score": 3.39,
+        "deviation_pct": 990.0
+      }
+    }
+  ]
+}

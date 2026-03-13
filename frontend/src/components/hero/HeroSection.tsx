@@ -1,15 +1,10 @@
 'use client';
-import { useRef } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { useScroll } from 'framer-motion';
 import Lighthouse from './Lighthouse';
 import Beam from './Beam';
 import FakeGraph from './FakeGraph';
 import RevealContent from './RevealContent';
-
-// Lighthouse lantern position in viewport (px), anchored to center-bottom of sticky container
-// These match the lantern's SVG cx=100, cy=90 mapped into the DOM layout
-const LANTERN_X = 0;   // beam origin is at the lighthouse element's local (0,0); see Beam positioning
-const LANTERN_Y = 0;
 
 interface HeroSectionProps {
     onGetStarted: () => void;
@@ -24,10 +19,22 @@ export default function HeroSection({ onGetStarted }: HeroSectionProps) {
         offset: ['start start', 'end end'],
     });
 
-    // Lighthouse lantern is centered horizontally, at ~32% from top of the sticky viewport
-    // These are the pixel coords inside the sticky container where the lantern sits
-    const lighthouseOffsetX = typeof window !== 'undefined' ? window.innerWidth / 2 - 10 : 700;
-    const lighthouseOffsetY = typeof window !== 'undefined' ? window.innerHeight * 0.6 - 240 : 150;
+    // Defer window-dependent values to avoid SSR hydration mismatch
+    const [lighthouseOffset, setLighthouseOffset] = useState({ x: 700, y: 150 });
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+        const update = () => {
+            setLighthouseOffset({
+                x: window.innerWidth / 2 - 10,
+                y: window.innerHeight * 0.6 - 240,
+            });
+        };
+        update();
+        window.addEventListener('resize', update);
+        return () => window.removeEventListener('resize', update);
+    }, []);
 
     return (
         <div ref={containerRef} style={{ height: '200vh', position: 'relative' }}>
@@ -72,7 +79,6 @@ export default function HeroSection({ onGetStarted }: HeroSectionProps) {
                 }} />
 
                 {/* ── Fake Graph (mask-revealed) ── */}
-                {/* The graph sits behind with CSS mask that follows the beam */}
                 <div
                     ref={maskTargetRef}
                     style={{
@@ -84,13 +90,15 @@ export default function HeroSection({ onGetStarted }: HeroSectionProps) {
                     <FakeGraph scrollYProgress={scrollYProgress} />
                 </div>
 
-                {/* ── Beam ── */}
-                <Beam
-                    scrollYProgress={scrollYProgress}
-                    originX={lighthouseOffsetX}
-                    originY={lighthouseOffsetY}
-                    maskTargetRef={maskTargetRef}
-                />
+                {/* ── Beam (only render after mount to avoid hydration mismatch) ── */}
+                {mounted && (
+                    <Beam
+                        scrollYProgress={scrollYProgress}
+                        originX={lighthouseOffset.x}
+                        originY={lighthouseOffset.y}
+                        maskTargetRef={maskTargetRef}
+                    />
+                )}
 
                 {/* ── Lighthouse ── */}
                 <div style={{
@@ -109,3 +117,4 @@ export default function HeroSection({ onGetStarted }: HeroSectionProps) {
         </div>
     );
 }
+

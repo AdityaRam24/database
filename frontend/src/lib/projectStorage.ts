@@ -1,52 +1,77 @@
-import { db } from '@/lib/firebase';
-import {
-    collection,
-    addDoc,
-    getDocs,
-    query,
-    orderBy,
-    serverTimestamp,
-    Timestamp,
-} from 'firebase/firestore';
-
 export interface Project {
     id?: string;
     projectName: string;
     connectionType: 'connection' | 'file' | 'ai' | 'github';
     sqlContent: string;
-    connectionString: string; // "SHADOW_DB" or actual pg connection string
-    createdAt?: Timestamp;
+    connectionString: string;
 }
 
-export async function saveProject(uid: string, project: Omit<Project, 'id' | 'createdAt'>) {
+const LOCAL_KEY = 'db_lighthouse_projects';
+const API = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000/api';
+
+function getLocalProjects(): Project[] {
     try {
-        const docRef = await addDoc(collection(db, 'users', uid, 'projects'), {
-            ...project,
-            createdAt: serverTimestamp(),
+        const raw = localStorage.getItem(LOCAL_KEY);
+        return raw ? JSON.parse(raw) : [];
+    } catch {
+        return [];
+    }
+}
+
+function saveLocalProject(project: Omit<Project, 'id'>): string {
+    const projects = getLocalProjects();
+    const id = `local_${Date.now()}`;
+    projects.unshift({ ...project, id });
+    localStorage.setItem(LOCAL_KEY, JSON.stringify(projects));
+    return id;
+}
+
+export async function saveProject(uid: string, project: Omit<Project, 'id'>) {
+    try {
+        const res = await fetch(`${API}/projects`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ uid, ...project }),
         });
-        return docRef.id;
-    } catch (e) {
-        console.error('Failed to save project to Firestore:', e);
-        throw e;
+        if (!res.ok) throw new Error(`Backend error: ${res.status}`);
+        const data = await res.json();
+        return data.id as string;
+    } catch (e: any) {
+        console.warn('Backend unavailable, saving to localStorage:', e?.message);
+        return saveLocalProject(project);
     }
 }
 
 export async function getUserProjects(uid: string): Promise<Project[]> {
     try {
-        // Temporarily bypassed for local testing to avoid Firestore permission errors
-        // const q = query(
-        //     collection(db, 'users', uid, 'projects'),
-        //     orderBy('createdAt', 'desc')
-        // );
-        // const snapshot = await getDocs(q);
-        // return snapshot.docs.map((doc) => ({
-        //     id: doc.id,
-        //     ...(doc.data() as Omit<Project, 'id'>),
-        // }));
-        console.log("Mock getUserProjects called, bypassing Firestore.");
-        return [];
-    } catch (e) {
-        console.error('Failed to load projects from Firestore:', e);
-        return [];
+        const res = await fetch(`${API}/projects/${uid}`);
+        if (!res.ok) throw new Error(`Backend error: ${res.status}`);
+        const data = await res.json();
+        const backendProjects: Project[] = data.projects ?? [];
+        // Merge local-only projects (fallback entries not yet synced)
+        const local = getLocalProjects().filter(
+            lp => !backendProjects.some(bp => bp.projectName === lp.projectName)
+        );
+        return [...backendProjects, ...local];
+    } catch (e: any) {
+        console.warn('Backend unavailable, loading from localStorage:', e?.message);
+        return getLocalProjects();
+    }
+}
+
+export async function deleteProject(uid: string, projectId: string): Promise<void> {
+    // Local-only entry — remove from localStorage directly
+    if (projectId.startsWith('local_')) {
+        const projects = getLocalProjects().filter(p => p.id !== projectId);
+        localStorage.setItem(LOCAL_KEY, JSON.stringify(projects));
+        return;
+    }
+    try {
+        const res = await fetch(`${API}/projects/${uid}/${projectId}`, { method: 'DELETE' });
+        if (!res.ok) throw new Error(`Backend error: ${res.status}`);
+    } catch (e: any) {
+        console.warn('Backend delete failed, removing from localStorage fallback:', e?.message);
+        const projects = getLocalProjects().filter(p => p.id !== projectId);
+        localStorage.setItem(LOCAL_KEY, JSON.stringify(projects));
     }
 }

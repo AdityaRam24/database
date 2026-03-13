@@ -63,21 +63,20 @@ async def upload_sql(
         content = await file.read()
         sql_content = content.decode("utf-8")
         
-        DBService.create_shadow_from_sql(sql_content)
+        # Create dedicated isolated database
+        new_db_url = DBService.create_dedicated_db_from_sql(sql_content, project_name)
         
-        # Verify by getting table count from shadow DB
-        # Note: We use the SHADOW_DB_URL here directly or via settings if available in scope
-        # The existing get_table_count takes a connection string.
-        from app.core.config import settings
-        table_count = DBService.get_table_count(settings.SHADOW_DB_URL)
+        # Verify by getting table count from the new DB
+        table_count = DBService.get_table_count(new_db_url)
         
         project_id = str(uuid.uuid4())
         
         return DBConnectionResponse(
             success=True,
             project_id=project_id,
-            message="Successfully created shadow database from SQL file.",
-            table_count=table_count
+            message="Successfully created dedicated database from SQL file.",
+            table_count=table_count,
+            connection_string=new_db_url
         )
         
     except Exception as e:
@@ -117,21 +116,21 @@ async def generate_schema(request: GenerateSchemaRequest):
             
         logger.info(f"Saved generated schema to: {file_path}")
 
-        # Create shadow DB from generated SQL
-        DBService.create_shadow_from_sql(sql_content)
+        # Create dedicated DB from generated SQL
+        new_db_url = DBService.create_dedicated_db_from_sql(sql_content, request.project_name)
         
         # Verify
-        from app.core.config import settings
-        table_count = DBService.get_table_count(settings.SHADOW_DB_URL)
+        table_count = DBService.get_table_count(new_db_url)
         
         project_id = str(uuid.uuid4())
         
         return DBConnectionResponse(
             success=True,
             project_id=project_id,
-            message="Successfully generated schema and created shadow database.",
+            message="Successfully generated schema and created dedicated database.",
             table_count=table_count,
-            file_path=os.path.abspath(file_path)
+            file_path=os.path.abspath(file_path),
+            connection_string=new_db_url
         )
         
     except Exception as e:
@@ -188,19 +187,19 @@ async def import_from_github(request: GitHubImportRequest):
             f.write(sql_content)
         logger.info(f"Saved GitHub schema to: {file_path}")
 
-        # Create shadow DB
-        DBService.create_shadow_from_sql(sql_content)
+        # Create dedicated DB
+        new_db_url = DBService.create_dedicated_db_from_sql(sql_content, request.project_name)
 
-        from app.core.config import settings
-        table_count = DBService.get_table_count(settings.SHADOW_DB_URL)
+        table_count = DBService.get_table_count(new_db_url)
         project_id = str(uuid.uuid4())
 
         return DBConnectionResponse(
             success=True,
             project_id=project_id,
-            message=f"Successfully imported schema from GitHub and created shadow database.",
+            message=f"Successfully imported schema from GitHub and created dedicated database.",
             table_count=table_count,
-            file_path=os.path.abspath(file_path)
+            file_path=os.path.abspath(file_path),
+            connection_string=new_db_url
         )
 
     except ValueError as e:

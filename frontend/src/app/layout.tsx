@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import "./globals_extra.css";
 import { AuthProvider } from "@/context/AuthContext";
+import LenisProvider from "@/components/LenisProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -14,8 +16,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "DB-Lighthouse AI",
-  description: "PostgreSQL Verification & Optimization Tool",
+  title: "DB-Lighthouse AI — PostgreSQL Intelligence Platform",
+  description: "Optimize storage, visualize relationships, and get AI-powered insights for your PostgreSQL database. Illuminate the blind spots in your data.",
 };
 
 export default function RootLayout({
@@ -24,10 +26,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" data-scroll-behavior="smooth">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <AuthProvider>
-          {children}
+          <LenisProvider>
+            {children}
+          </LenisProvider>
         </AuthProvider>
       </body>
     </html>

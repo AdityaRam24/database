@@ -1,5 +1,6 @@
 import logging
 import os
+import re
 import httpx
 from openai import AsyncOpenAI
 from app.core.config import settings
@@ -15,18 +16,40 @@ logger = logging.getLogger(__name__)
 # Global singleton for the LLM to avoid reloading 3GB on every request
 _LOCAL_LLM_INSTANCE = None
 
+# Dangerous SQL patterns that should be blocked
+DANGEROUS_SQL_PATTERNS = re.compile(
+    r'\b(DROP\s+DATABASE|DROP\s+TABLE|TRUNCATE|DELETE\s+FROM)\b',
+    re.IGNORECASE
+)
+
+def safe_sql_check(sql: str) -> dict:
+    """Returns {is_safe, reason, sanitized_sql, requires_mfa}"""
+    # Block dangerous patterns — flag for MFA instead of hard-block
+    if DANGEROUS_SQL_PATTERNS.search(sql):
+        return {
+            "is_safe": False,
+            "reason": "Dangerous SQL detected. Contains DROP/TRUNCATE/DELETE operations. Requires MFA authorization.",
+            "sanitized_sql": sql,
+            "requires_mfa": True
+        }
+    
+    # Auto-add LIMIT 100 to SELECT queries missing one
+    if re.match(r'^\s*SELECT\b', sql, re.IGNORECASE):
+        if not re.search(r'\bLIMIT\s+\d+\b', sql, re.IGNORECASE):
+            sql = sql.rstrip(';').rstrip() + ' LIMIT 100;'
+    
+    return {"is_safe": True, "reason": None, "sanitized_sql": sql, "requires_mfa": False}
+
+
 class AIService:
     def __init__(self):
         self.ai_mode = getattr(settings, "AI_MODE", "JAN").upper()
         self.local_model_path = settings.LOCAL_MODEL_PATH
         
-        # OLLAMA uses its own native API or OpenAI compat
-        # JAN uses OpenAI protocol
         if self.ai_mode in ["JAN", "OLLAMA"]:
             base_url = settings.JAN_API_URL
             api_key = settings.OPENAI_API_KEY or "ollama"
             
-            # Default fallbacks if env didn't update yet
             if self.ai_mode == "OLLAMA" and "11434" not in base_url:
                 base_url = "http://127.0.0.1:11434/v1"
             
@@ -45,7 +68,6 @@ class AIService:
             if Llama is None:
                 raise ImportError("llama-cpp-python not installed. Please install it to use local LLM mode.")
             
-            # Resolve relative path
             model_path = self.local_model_path
             if not os.path.isabs(model_path):
                 if not os.path.exists(model_path):
@@ -66,14 +88,10 @@ class AIService:
         return _LOCAL_LLM_INSTANCE
 
     async def _call_ai(self, messages, max_tokens=500, temperature=0.7):
-        """
-        Generic helper for JAN, OLLAMA, or LOCAL_LLAMA_CPP.
-        """
+        """Generic helper for JAN, OLLAMA, or LOCAL_LLAMA_CPP."""
         try:
             if self.ai_mode == "OLLAMA":
-                # NATIVE OLLAMA API CALL (Maximum Speed)
-                # Note: self.client.base_url is something like http://127.0.0.1:11434/v1
-                # We need http://127.0.0.1:11434/api/chat
+                # Use native Ollama API for maximum speed
                 base = str(self.client.base_url).split("/v1")[0]
                 url = f"{base}/api/chat"
                 
@@ -104,23 +122,13 @@ class AIService:
                 )
                 return response.choices[0].message.content.strip()
             else:
-                # llama-cpp-python path
                 llm = self._get_local_llm()
-                
                 prompt = ""
                 for msg in messages:
-                    role = msg["role"]
-                    content = msg["content"]
-                    prompt += f"<|im_start|>{role}\n{content}<|im_end|>\n"
+                    prompt += f"<|im_start|>{msg['role']}\n{msg['content']}<|im_end|>\n"
                 prompt += "<|im_start|>assistant\n"
-
-                output = llm(
-                    prompt,
-                    max_tokens=max_tokens,
-                    temperature=temperature,
-                    stop=["<|im_end|>", "<|im_start|>", "assistant"],
-                    echo=False
-                )
+                output = llm(prompt, max_tokens=max_tokens, temperature=temperature,
+                             stop=["<|im_end|>", "<|im_start|>", "assistant"], echo=False)
                 return output["choices"][0]["text"].strip()
         except Exception as e:
             logger.error(f"AI Call failed in mode {self.ai_mode}: {e}")
@@ -145,10 +153,7 @@ class AIService:
                 {"role": "system", "content": "You are a helpful database architect."},
                 {"role": "user", "content": prompt}
             ]
-            # Native Ollama usually adds some markdown text even if asked not to, we'll strip it
             content = await self._call_ai(messages, max_tokens=2000, temperature=0.1)
-            
-            # Cleanup markdown
             for tag in ["```sql", "```"]:
                 if content.startswith(tag): content = content[len(tag):]
             if content.endswith("```"): content = content[:-3]
@@ -157,26 +162,205 @@ class AIService:
             logger.error(f"AI schema generation failed: {e}")
             raise e
 
-    async def answer_database_question(self, question: str, schema_context: str) -> str:
+    async def generate_governance_patch(self, description: str, schema_context: str) -> str:
+        """Generate a SQL patch from a natural language description of what to change."""
         try:
+            prompt = f"""You are a PostgreSQL expert. Generate ONLY the SQL DDL/DML statement (no explanations, no markdown) for the following requested change.
+
+Database Schema:
+{schema_context}
+
+Requested Change: {description}
+
+Rules:
+- Return ONLY valid PostgreSQL SQL
+- No markdown code blocks
+- No explanations
+- One or multiple SQL statements separated by semicolons
+- Prefer ALTER TABLE for column changes"""
+            messages = [
+                {"role": "system", "content": "You are a PostgreSQL DDL expert. Return ONLY valid SQL, no markdown."},
+                {"role": "user", "content": prompt}
+            ]
+            sql = await self._call_ai(messages, max_tokens=500, temperature=0.1)
+            # Strip markdown if present
+            for tag in ["```sql", "```"]:
+                if sql.startswith(tag): sql = sql[len(tag):]
+            if sql.endswith("```"): sql = sql[:-3]
+            return sql.strip()
+        except Exception as e:
+            logger.error(f"AI patch generation failed: {e}")
+            raise e
+
+    async def explain_sql(self, sql: str) -> str:
+        """Translate a SQL query into plain English."""
+        try:
+            messages = [
+                {"role": "system", "content": "You are a helpful database assistant. Explain what a SQL query does in one or two plain English sentences. Be concise and clear."},
+                {"role": "user", "content": f"Explain this SQL query in plain English:\n\n{sql}"}
+            ]
+            return await self._call_ai(messages, max_tokens=200, temperature=0.3)
+        except Exception as e:
+            return f"Could not generate explanation: {e}"
+
+    async def generate_and_heal_sql(
+        self,
+        question: str,
+        schema_context: str,
+        connection_string: str,
+        conversation_history: list = None,
+        language: str = "english",
+        business_rules: str = "",
+        max_retries: int = 3
+    ) -> dict:
+        # Prompt firewall check
+        from app.services.prompt_firewall import scan_prompt
+        firewall_result = scan_prompt(question)
+        if not firewall_result["is_safe"]:
+            return {
+                "sql": None, "rows": [], "columns": [],
+                "error": f"🛡️ Prompt blocked by firewall: {firewall_result['threat_detail']}",
+                "attempts": 0, "chart_type": None, "explanation": None,
+                "firewall_blocked": True, "threat_type": firewall_result["threat_type"]
+            }
+        """
+        Self-healing NLP-to-SQL:
+        1. Generate SQL from question
+        2. Dry-run against DB
+        3. If error, feed it back to AI for fix
+        4. Repeat up to max_retries
+        Returns: {sql, rows, columns, error, attempts, chart_type, explanation}
+        """
+        from sqlalchemy import create_engine, text
+        import sqlalchemy.exc
+
+        # Build system message with multi-language + business rules
+        system_msg = f"""You are an expert PostgreSQL database assistant. 
+The user may write in any language (current: {language}). Always understand their intent and generate valid PostgreSQL SQL.
+
+{f"Business Rules: {business_rules}" if business_rules else ""}
+
+Rules for SQL generation:
+- Generate ONLY the SQL query, no explanations
+- Always add LIMIT 100 to SELECT queries
+- Never generate DROP, DELETE FROM, TRUNCATE, or DROP TABLE
+- Use only tables and columns that exist in the schema"""
+
+        # Build messages with conversation history
+        msgs = [{"role": "system", "content": system_msg}]
+        if conversation_history:
+            msgs.extend(conversation_history[-8:])  # Last 8 messages for context
+
+        # Extract SQL from schema context
+        sql_prompt = f"""Database Schema:
+{schema_context}
+
+User's request: {question}
+
+Generate ONLY the PostgreSQL SELECT query (no markdown, no explanations):"""
+        msgs.append({"role": "user", "content": sql_prompt})
+
+        sql = None
+        last_error = None
+        attempts = 0
+
+        for attempt in range(max_retries):
+            attempts = attempt + 1
+            try:
+                response = await self._call_ai(msgs, max_tokens=500, temperature=0.1)
+                
+                # Extract SQL from response
+                sql_match = re.search(r'(?:```sql\s*)?(SELECT\b.+?)(?:```|$)', response, re.IGNORECASE | re.DOTALL)
+                if sql_match:
+                    sql = sql_match.group(1).strip().rstrip(';') + ';'
+                else:
+                    sql = response.strip().rstrip(';') + ';'
+
+                # Security guardrail
+                guard = safe_sql_check(sql)
+                if not guard["is_safe"]:
+                    return {"sql": sql, "rows": [], "columns": [], "error": guard["reason"], "attempts": attempts, "chart_type": None, "explanation": None}
+                sql = guard["sanitized_sql"]
+
+                # Dry-run
+                engine = create_engine(connection_string)
+                with engine.connect() as conn:
+                    result = conn.execute(text(sql))
+                    columns = list(result.keys())
+                    rows = [list(row) for row in result.fetchall()]
+
+                # Detect if it's time-series (has date col + numeric col)
+                chart_type = None
+                date_cols = [c for c in columns if any(x in c.lower() for x in ['date', 'time', 'created', 'updated', 'at', 'month', 'year'])]
+                num_cols = [c for c in columns if c not in date_cols]
+                if date_cols and num_cols and len(rows) > 1:
+                    chart_type = "line"
+                elif len(columns) == 2 and len(rows) <= 20:
+                    chart_type = "bar"
+
+                # Get explanation
+                try:
+                    explanation = await self.explain_sql(sql)
+                except:
+                    explanation = None
+
+                return {"sql": sql, "rows": rows, "columns": columns, "error": None, "attempts": attempts, "chart_type": chart_type, "explanation": explanation}
+
+            except sqlalchemy.exc.SQLAlchemyError as db_err:
+                last_error = str(db_err).split('\n')[0]
+                logger.warning(f"SQL attempt {attempt+1} failed: {last_error}")
+                
+                if attempt < max_retries - 1:
+                    # Feed error back to AI for self-healing
+                    msgs.append({"role": "assistant", "content": sql or response})
+                    msgs.append({"role": "user", "content": f"That SQL failed with error: {last_error}\n\nPlease fix the SQL and return ONLY the corrected query:"})
+            except Exception as e:
+                last_error = str(e)
+                logger.error(f"Unexpected error: {e}")
+                break
+
+        return {"sql": sql, "rows": [], "columns": [], "error": f"Could not generate valid SQL after {attempts} attempts. Last error: {last_error}", "attempts": attempts, "chart_type": None, "explanation": None}
+
+    async def answer_database_question(
+        self,
+        question: str,
+        schema_context: str,
+        conversation_history: list = None,
+        language: str = "english",
+        business_rules: str = ""
+    ) -> str:
+        # Prompt firewall check
+        from app.services.prompt_firewall import scan_prompt
+        firewall_result = scan_prompt(question)
+        if not firewall_result["is_safe"]:
+            return f"🛡️ Your prompt was blocked by the security firewall. Reason: {firewall_result['threat_detail']}. Please rephrase your question."
+        """Enhanced conversational Q&A with multi-language, history, and execute actions."""
+        try:
+            system_msg = f"""You are a helpful, concise PostgreSQL database assistant.
+The user may write in any language (detected: {language}). Always respond in English.
+{f"Business Rules defined by user: {business_rules}" if business_rules else ""}
+
+When the user requests a schema change (add column, create table, etc.):
+- Confirm what you will do
+- Put the SQL at the end in this exact format: [EXECUTE: <SQL>]
+
+Security rules:
+- Never generate DROP DATABASE, TRUNCATE, or DELETE FROM statements
+- Always add LIMIT 100 to SELECT queries"""
+
+            msgs = [{"role": "system", "content": system_msg}]
+            
+            # Inject conversation history for context
+            if conversation_history:
+                msgs.extend(conversation_history[-8:])
+
             prompt = f"""Database Schema:
 {schema_context}
 
-User Question: {question}
+User: {question}"""
+            msgs.append({"role": "user", "content": prompt})
 
-Instructions:
-1. Provide a clear, concise answer.
-2. If the user wants to make a change (like adding a column or table), provide the SQL command in this exact format at the end of your response: [EXECUTE: <SQL_COMMAND>]
-Example: "I can add that column for you. [EXECUTE: ALTER TABLE users ADD COLUMN age INT;]"
-3. If it's just a question, answer normally."""
-            
-            messages = [
-                {"role": "system", "content": "You are a helpful database assistant. You can suggest schema changes using the [EXECUTE: SQL] format."},
-                {"role": "user", "content": prompt}
-            ]
-            return await self._call_ai(messages, max_tokens=1000)
+            return await self._call_ai(msgs, max_tokens=800)
         except Exception as e:
             logger.warning(f"AI error: {e}. Using offline fallback.")
-            if "table" in question.lower():
-                return f"I can confirm your database has the following schema context loaded:\n\n{schema_context}"
             return f"The AI system ({self.ai_mode}) is having trouble responding: {str(e)[:100]}. Please check your model or connection."

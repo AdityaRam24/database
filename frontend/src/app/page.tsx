@@ -2,93 +2,157 @@
 
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
+import { BackgroundPaths } from "@/components/ui/background-paths";
+import { ChatInput, ChatInputTextArea, ChatInputSubmit } from "@/components/ui/chat-input";
+import { GlowCard } from "@/components/ui/spotlight-card";
+import { DitheringShader } from "@/components/ui/dithering-shader";
+import { CyberneticBentoGrid } from "@/components/ui/cybernetic-bento-grid";
+import { Sparkles, Database, Shield, Zap, Search, BarChart3 } from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
+import { motion } from "framer-motion";
 
 export default function Home() {
-  const { user, loading, signInWithGoogle } = useAuth();
-  const router = useRouter();
+    const { user, signInWithGoogle } = useAuth();
+    const router = useRouter();
+    const [prompt, setPrompt] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
 
-  return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-24 bg-zinc-950 text-white">
-      <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-zinc-800 bg-zinc-950/75 pb-6 pt-8 backdrop-blur-2xl lg:static lg:w-auto lg:rounded-xl lg:border lg:bg-zinc-800/50 lg:p-4">
-          DB-Lighthouse AI
-        </p>
-      </div>
+    const handlePromptSubmit = () => {
+        if (!prompt.trim()) return;
+        setIsLoading(true);
+        setTimeout(() => {
+            toast.success("Query understood! Sign in to execute.", {
+                description: "Connecting to the database engine..."
+            });
+            setIsLoading(false);
+            if (!user) {
+                setTimeout(signInWithGoogle, 1500);
+            } else {
+                router.push("/connect");
+            }
+        }, 1200);
+    };
 
-      <div className="relative flex flex-col place-items-center gap-8 mt-16">
-        <h1 className="text-5xl font-bold text-center bg-gradient-to-r from-violet-400 to-indigo-400 text-transparent bg-clip-text">
-          The Lighthouse for Your Database
-        </h1>
-        <p className="text-xl text-zinc-400 text-center max-w-2xl">
-          Optimize storage, visualize relationships, and get AI-powered insights for your PostgreSQL database.
-        </p>
+    return (
+        <div className="relative w-full h-[100dvh] overflow-hidden bg-black text-white selection:bg-purple-500/30 font-sans">
+            {/* Top Navigation */}
+            <nav className="absolute top-0 w-full z-50 flex items-center justify-between px-6 py-5 md:px-12 backdrop-blur-sm border-b border-white/5">
+                <div className="flex items-center gap-3 font-semibold text-xl tracking-tight">
+                    <Database className="text-purple-500" strokeWidth={2.5} />
+                    <span className="hidden sm:inline">DB-Lighthouse</span>
+                </div>
+                <div className="flex gap-4">
+                    {user ? (
+                        <button onClick={() => router.push('/dashboard')} className="px-5 py-2 rounded-full border border-white/10 hover:bg-white/10 transition-colors text-sm font-medium">
+                            Dashboard
+                        </button>
+                    ) : (
+                        <button onClick={signInWithGoogle} className="px-5 py-2 rounded-full bg-white text-black hover:bg-zinc-200 transition-colors text-sm font-bold">
+                            Sign In
+                        </button>
+                    )}
+                </div>
+            </nav>
 
-        <div className="flex gap-4 mt-8">
-          {loading ? (
-            <Button size="lg" disabled className="bg-violet-700 py-6 px-8 text-lg">
-              <Loader2 className="animate-spin mr-2" /> Loading...
-            </Button>
-          ) : user ? (
-            /* Signed in — show Get Started */
-            <Button
-              size="lg"
-              className="bg-violet-600 hover:bg-violet-700 text-white font-bold py-6 px-8 text-lg"
-              onClick={() => router.push("/connect")}
-            >
-              Get Started →
-            </Button>
-          ) : (
-            /* Not signed in — show Google login */
-            <Button
-              size="lg"
-              className="bg-white hover:bg-gray-100 text-gray-900 font-bold py-6 px-8 text-lg flex items-center gap-3"
-              onClick={signInWithGoogle}
-            >
-              {/* Google "G" logo */}
-              <svg width="20" height="20" viewBox="0 0 48 48">
-                <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" />
-                <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" />
-                <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" />
-                <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" />
-              </svg>
-              Sign in with Google
-            </Button>
-          )}
+            <BackgroundPaths>
+                <div className="flex flex-col items-center justify-center w-full min-h-[80vh] pt-12">
+                    
+                    {/* Hero Text */}
+                    <div className="text-center mb-16 max-w-4xl z-20 flex flex-col items-center mt-6">
+                        <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-purple-500/20 bg-purple-500/10 text-purple-300 text-sm font-semibold mb-6 backdrop-blur-sm">
+                            <Sparkles size={16} /> <span className="tracking-wide">THE AUTONOMOUS DATABASE AGENT</span>
+                        </div>
+                        <h1 className="text-5xl sm:text-7xl lg:text-8xl font-black tracking-tighter mb-8 bg-clip-text text-transparent bg-gradient-to-br from-white via-zinc-200 to-zinc-500 pb-2">
+                            Command your data<br />with natural language.
+                        </h1>
+                        <p className="text-lg md:text-xl text-zinc-400 font-medium max-w-2xl mx-auto leading-relaxed">
+                            Stop writing complex SQL. Start conversing with your database using enterprise-grade AI, auto-healing queries, and real-time semantic analysis.
+                        </p>
+                    </div>
 
-          <a href="https://github.com" target="_blank" rel="noopener noreferrer">
-            <Button variant="outline" size="lg" className="border-zinc-700 hover:bg-zinc-800 text-white font-bold py-6 px-8 text-lg">
-              View on GitHub
-            </Button>
-          </a>
+                    {/* Interactive Showcase */}
+                    <div className="relative w-full max-w-6xl mx-auto flex flex-col lg:flex-row gap-8 items-center lg:items-center justify-center z-20 px-4">
+                        
+                        {/* Governance Card - Left */}
+                        <div className="hidden lg:flex mt-8 drop-shadow-2xl">
+                            <GlowCard size="sm" glowColor="purple" className="flex flex-col items-start gap-4 bg-zinc-950/80 border-white/10 p-6 rounded-[2rem]">
+                                <div className="p-3 bg-purple-500/20 rounded-xl mb-2">
+                                    <Shield className="text-purple-400" size={28} strokeWidth={2.5} />
+                                </div>
+                                <h3 className="font-bold text-lg text-zinc-100 uppercase tracking-wide">Governance</h3>
+                                <p className="text-sm text-zinc-400 leading-relaxed font-medium">Auto-limit rules, PII masking, and multi-factor execution controls keep your data safe.</p>
+                            </GlowCard>
+                        </div>
+
+                        {/* Center Stage: Chat Input & Dithering */}
+                        <div className="w-full max-w-2xl flex-1 relative flex flex-col items-center group perspective-1000">
+                            {/* Accent Shader Behind Chat */}
+                            <div 
+                                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140%] h-[250%] -z-10 opacity-40 group-hover:opacity-70 transition-opacity duration-1000 pointer-events-none mix-blend-screen"
+                                style={{ maskImage: 'radial-gradient(circle at center, black, transparent 60%)', WebkitMaskImage: 'radial-gradient(circle at center, black, transparent 60%)' }}
+                            >
+                                <DitheringShader 
+                                    shape="wave" 
+                                    type="8x8" 
+                                    colorBack="#000000" 
+                                    colorFront="#c084fc" 
+                                    pxSize={2} 
+                                    speed={0.3} 
+                                    className="w-full h-full"
+                                />
+                            </div>
+
+                            <div className="w-full bg-black/60 border border-white/20 p-2 sm:p-3 rounded-[2.5rem] shadow-[0_0_80px_rgba(168,85,247,0.15)] backdrop-blur-2xl transition-all duration-300 hover:shadow-[0_0_100px_rgba(168,85,247,0.25)] hover:border-purple-500/40">
+                                <ChatInput
+                                    variant="unstyled"
+                                    value={prompt}
+                                    onChange={(e) => setPrompt(e.target.value)}
+                                    onSubmit={handlePromptSubmit}
+                                    loading={isLoading}
+                                    onStop={() => setIsLoading(false)}
+                                    className="px-4 py-3 sm:py-4 flex gap-3"
+                                >
+                                    <ChatInputTextArea 
+                                        placeholder="Ask your database anything... e.g., 'Show me users who churned last month'" 
+                                        className="text-white placeholder:text-zinc-500 font-semibold text-lg sm:text-xl leading-relaxed bg-transparent border-none outline-none resize-none px-2"
+                                        rows={2}
+                                    />
+                                    <div className="flex items-end h-full py-1">
+                                        <ChatInputSubmit className="bg-white text-black hover:bg-zinc-200 transition-transform hover:scale-105 active:scale-95 w-12 h-12 shadow-xl shrink-0 rounded-full" />
+                                    </div>
+                                </ChatInput>
+                            </div>
+
+                            <motion.div 
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ delay: 1 }}
+                                className="mt-8 flex gap-6 sm:gap-8 text-xs sm:text-sm text-zinc-400 font-bold uppercase tracking-wider"
+                            >
+                                <span className="flex items-center gap-2"><Zap size={16} className="text-white/60"/> Instant Queries</span>
+                                <span className="flex items-center gap-2"><Search size={16} className="text-white/60"/> Deep Insights</span>
+                            </motion.div>
+                        </div>
+
+                        {/* Performance Card - Right */}
+                        <div className="hidden lg:flex -mt-16 drop-shadow-2xl">
+                            <GlowCard size="sm" glowColor="blue" className="flex flex-col items-start gap-4 bg-zinc-950/80 border-white/10 p-6 rounded-[2rem]">
+                                <div className="p-3 bg-blue-500/20 rounded-xl mb-2">
+                                    <BarChart3 className="text-blue-400" size={28} strokeWidth={2.5} />
+                                </div>
+                                <h3 className="font-bold text-lg text-zinc-100 uppercase tracking-wide">Performance</h3>
+                                <p className="text-sm text-zinc-400 leading-relaxed font-medium">Identify zombie indexes, fix bottleneck queries, and optimize storage instantly.</p>
+                            </GlowCard>
+                        </div>
+
+                    </div>
+                </div>
+            </BackgroundPaths>
+
+            <div className="relative z-20 w-full pb-24 border-t border-white/5 bg-gradient-to-b from-black to-[#050508] pt-20">
+                <CyberneticBentoGrid />
+            </div>
         </div>
-
-        {user && (
-          <p className="text-sm text-zinc-500 mt-2">
-            Signed in as <span className="text-violet-400">{user.displayName}</span>
-          </p>
-        )}
-      </div>
-
-      <div className="mb-32 grid text-center lg:max-w-5xl lg:w-full lg:mb-0 lg:grid-cols-4 lg:text-left mt-24 gap-4">
-        <FeatureCard title="Connect" desc="Securely connect to your local or remote PostgreSQL database." />
-        <FeatureCard title="Visualize" desc="Interactive node-graph visualization of your schema relationships." />
-        <FeatureCard title="Optimize" desc="Heuristic analysis to detect storage inefficiencies." />
-        <FeatureCard title="Ask AI" desc="Chat with a local LLM about your schema in plain English." />
-      </div>
-    </main>
-  );
-}
-
-function FeatureCard({ title, desc }: { title: string; desc: string }) {
-  return (
-    <div className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-zinc-700 hover:bg-zinc-800/30">
-      <h2 className="mb-3 text-2xl font-semibold">
-        {title}{" "}
-        <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">→</span>
-      </h2>
-      <p className="m-0 max-w-[30ch] text-sm opacity-50">{desc}</p>
-    </div>
-  );
+    );
 }

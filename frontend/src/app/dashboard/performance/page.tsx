@@ -8,6 +8,7 @@ import {
     XCircle, Search, ShieldCheck, AlertCircle, Info,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import DashboardShell from '@/components/DashboardShell';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -159,22 +160,20 @@ export default function PerformancePage() {
 
     // ── Render ───────────────────────────────────────────────────────────────
     return (
-        <div style={{ minHeight: '100vh', background: '#08080f', color: '#e2e8f0', fontFamily: 'Inter, sans-serif' }}>
+        <DashboardShell>
+            <div className="flex flex-col h-full w-full max-w-[1400px] mx-auto pb-10">
 
             {/* ── Top bar ── */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 28px', borderBottom: '1px solid #1e1e2e', background: '#0f0f1a' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-                    <button onClick={() => router.push('/dashboard')} style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}>
-                        <ArrowLeft size={15} /> Dashboard
-                    </button>
-                    <h1 style={{ margin: 0, fontSize: 19, fontWeight: 700, color: '#e2e8f0', display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <Zap size={19} style={{ color: '#f59e0b' }} /> Predictive Indexing
+            <div className="flex items-center justify-between p-6 px-4 md:px-8 bg-transparent">
+                <div className="flex items-center gap-4">
+                    <h1 className="m-0 text-xl font-bold text-slate-100 flex items-center gap-2">
+                        <Zap size={22} className="text-amber-500" /> Predictive Indexing
                     </h1>
-                    <button onClick={() => router.push('/dashboard/data')} style={{ marginLeft: 8, display: 'flex', alignItems: 'center', gap: 5, padding: '4px 10px', background: 'rgba(16,185,129,0.08)', border: '1px solid rgba(16,185,129,0.15)', borderRadius: 6, cursor: 'pointer', color: '#34d399', fontSize: 11, fontWeight: 600 }}>
-                        <Database size={12} /> View Data
+                    <button onClick={() => router.push('/dashboard/data')} className="ml-2 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold cursor-pointer hover:bg-emerald-500/20 transition-colors">
+                        <Database size={14} /> View Data
                     </button>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                <div className="flex items-center gap-3">
                     <button onClick={() => setShowLearn(v => !v)} style={{ background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.25)', borderRadius: 6, padding: '5px 11px', cursor: 'pointer', color: '#818cf8', fontSize: 12, display: 'flex', alignItems: 'center', gap: 5 }}>
                         <BookOpen size={12} /> How Indexing Works
                     </button>
@@ -250,14 +249,14 @@ export default function PerformancePage() {
                     return (
                         <button key={tab.id} onClick={() => setActiveTab(tab.id as any)}
                             style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '12px 18px', background: 'none', border: 'none', cursor: 'pointer', color: active ? '#a78bfa' : '#4b5563', fontWeight: active ? 700 : 400, fontSize: 13, borderBottom: active ? '2px solid #7c3aed' : '2px solid transparent', transition: 'all 0.15s' }}>
-                            <Icon size={13} /> {tab.label}
+                            <Icon size={14} /> {tab.label}
                         </button>
                     );
                 })}
             </div>
 
             {/* ── Content ── */}
-            <div style={{ padding: '28px', maxWidth: 1000, margin: '0 auto' }}>
+            <div className="px-4 md:px-8 pt-6">
 
                 {loading ? (
                     <div style={{ textAlign: 'center', marginTop: 80 }}>
@@ -291,25 +290,25 @@ export default function PerformancePage() {
                                         <p style={{ color: '#86efac' }}>No bottleneck columns detected.</p>
                                     </div>
                                 ) : (
-                                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 12 }}>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                                         {filteredCols.map((col, i) => (
-                                            <div key={i} style={{ background: '#0f0f1a', border: `1px solid ${STATUS_COLOR[col.status]}40`, borderRadius: 10, padding: 14, position: 'relative', overflow: 'hidden' }}>
+                                            <div key={i} className={`glass glow-border card-hover relative overflow-hidden rounded-xl p-4 border border-${STATUS_COLOR[col.status] === '#ef4444' ? 'red-500/30' : STATUS_COLOR[col.status] === '#f59e0b' ? 'amber-500/30' : 'emerald-500/30'}`}>
                                                 {/* status accent bar */}
                                                 <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: STATUS_COLOR[col.status] }} />
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                                                <div className="flex items-center gap-2 mb-2">
                                                     <span style={{ width: 8, height: 8, borderRadius: '50%', background: STATUS_COLOR[col.status], flexShrink: 0, boxShadow: `0 0 6px ${STATUS_COLOR[col.status]}` }} />
-                                                    <span style={{ fontWeight: 700, fontSize: 13, color: '#e2e8f0' }}>{col.column_name}</span>
+                                                    <span className="font-bold text-sm text-slate-200">{col.column_name}</span>
                                                     {col.is_indexed && (
-                                                        <span style={{ marginLeft: 'auto', fontSize: 10, color: '#4ade80', background: '#052e16', padding: '1px 6px', borderRadius: 4 }}>indexed</span>
+                                                        <span className="ml-auto text-[10px] text-emerald-400 bg-emerald-950 px-1.5 py-0.5 rounded">indexed</span>
                                                     )}
                                                 </div>
-                                                <p style={{ margin: 0, fontSize: 11, color: '#4b5563', fontFamily: 'monospace' }}>{col.data_type}</p>
-                                                <div style={{ display: 'flex', gap: 10, marginTop: 8, fontSize: 11, color: '#6b7280' }}>
+                                                <p className="m-0 text-xs text-slate-400 font-mono">{col.data_type}</p>
+                                                <div className="flex gap-3 mt-3 text-xs text-slate-500">
                                                     <span>🔍 {col.seq_scan_count} scans</span>
                                                     <span>📦 {col.row_count.toLocaleString()} rows</span>
                                                 </div>
                                                 {col.status !== 'healthy' && (
-                                                    <p style={{ margin: '8px 0 0', fontSize: 11, color: STATUS_COLOR[col.status], lineHeight: 1.4 }}>{col.suggestion}</p>
+                                                    <p style={{ color: STATUS_COLOR[col.status] }} className="mt-3 text-xs leading-relaxed">{col.suggestion}</p>
                                                 )}
                                             </div>
                                         ))}
@@ -460,6 +459,7 @@ export default function PerformancePage() {
                     </>
                 )}
             </div>
-        </div>
+            </div>
+        </DashboardShell>
     );
 }
