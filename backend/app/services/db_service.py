@@ -106,11 +106,15 @@ class DBService:
             
             # Strip CREATE/DROP DATABASE commands as we provision our own container DB
             import re
-            sql_content = re.sub(r'(?i)^\s*DROP\s+DATABASE\s+.*?;', '-- Dropped DB command removed', sql_content, flags=re.MULTILINE)
-            sql_content = re.sub(r'(?i)^\s*CREATE\s+DATABASE\s+.*?;', '-- Created DB command removed', sql_content, flags=re.MULTILINE)
-            sql_content = re.sub(r'(?i)^\s*USE\s+.*?;', '-- USE command removed', sql_content, flags=re.MULTILINE)
+            sql_content = re.sub(r'(?i)^\s*DROP\s+DATABASE\s+.*?;', '', sql_content, flags=re.MULTILINE)
+            sql_content = re.sub(r'(?i)^\s*CREATE\s+DATABASE\s+.*?;', '', sql_content, flags=re.MULTILINE)
+            sql_content = re.sub(r'(?i)^\s*USE\s+.*?;', '', sql_content, flags=re.MULTILINE)
             # Strip psql meta-commands (\c, \connect, \i, \set, \echo, \copy, etc.)
             sql_content = re.sub(r'^\\[^\n]*', '', sql_content, flags=re.MULTILINE)
+            
+            # Remove all SQL comments while preserving strings/identifiers
+            pattern = r"('[^']*'|\"[^\"]*\")|(--[^\n]*|/\*[\s\S]*?\*/)"
+            sql_content = re.sub(pattern, lambda m: m.group(1) if m.group(1) else "", sql_content)
             
             # 0. Ensure target DB exists
             DBService._ensure_shadow_db_exists()
@@ -192,11 +196,15 @@ class DBService:
             sql_content = sql_content.replace('`', '"')
             
             # Strip CREATE/DROP DATABASE commands as we provision our own container DB
-            sql_content = re.sub(r'(?i)^\s*DROP\s+DATABASE\s+.*?;', '-- Dropped DB command removed', sql_content, flags=re.MULTILINE)
-            sql_content = re.sub(r'(?i)^\s*CREATE\s+DATABASE\s+.*?;', '-- Created DB command removed', sql_content, flags=re.MULTILINE)
-            sql_content = re.sub(r'(?i)^\s*USE\s+.*?;', '-- USE command removed', sql_content, flags=re.MULTILINE)
+            sql_content = re.sub(r'(?i)^\s*DROP\s+DATABASE\s+.*?;', '', sql_content, flags=re.MULTILINE)
+            sql_content = re.sub(r'(?i)^\s*CREATE\s+DATABASE\s+.*?;', '', sql_content, flags=re.MULTILINE)
+            sql_content = re.sub(r'(?i)^\s*USE\s+.*?;', '', sql_content, flags=re.MULTILINE)
             # Strip psql meta-commands (\c, \connect, \i, \set, \echo, \copy, etc.)
             sql_content = re.sub(r'^\\[^\n]*', '', sql_content, flags=re.MULTILINE)
+
+            # Remove all SQL comments while preserving strings/identifiers
+            pattern = r"('[^']*'|\"[^\"]*\")|(--[^\n]*|/\*[\s\S]*?\*/)"
+            sql_content = re.sub(pattern, lambda m: m.group(1) if m.group(1) else "", sql_content)
 
             # 1. Sanitize project name to create a safe database name
             safe_name = re.sub(r'[^a-z0-9]', '_', project_name.lower())[:30] # Max 30 chars

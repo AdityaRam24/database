@@ -14,8 +14,13 @@ class DialectConverter:
     @classmethod
     def convert(cls, sql: str, source_dialect: str) -> str:
         dialect = source_dialect.lower().strip()
+        
+        # Remove all SQL comments while preserving strings/identifiers
+        pattern = r"('[^']*'|\"[^\"]*\")|(--[^\n]*|/\*[\s\S]*?\*/)"
+        sql = re.sub(pattern, lambda m: m.group(1) if m.group(1) else "", sql)
+
         if dialect == "postgresql":
-            return sql
+            return sql.strip()
         if dialect == "mysql":
             return cls._from_mysql(sql)
         if dialect == "sqlite":
