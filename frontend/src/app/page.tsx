@@ -2,259 +2,292 @@
 
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
-import { BackgroundPaths } from "@/components/ui/background-paths";
-import { ChatInput, ChatInputTextArea, ChatInputSubmit } from "@/components/ui/chat-input";
-import { GlowCard } from "@/components/ui/spotlight-card";
-import { DitheringShader } from "@/components/ui/dithering-shader";
-import { CyberneticBentoGrid } from "@/components/ui/cybernetic-bento-grid";
-import { Sparkles, Database, Shield, Zap, Search, BarChart3, ChevronDown } from "lucide-react";
-import { useState, useRef } from "react";
-import { toast } from "sonner";
-import { motion, useScroll, useTransform } from "framer-motion";
-
-// Landing Page Modules
-import SchemaAssemblyHero from "@/components/landing/SchemaAssemblyHero";
-import SelfHealingScrubber from "@/components/landing/SelfHealingScrubber";
-import StorageHeatmapSection from "@/components/landing/StorageHeatmapSection";
-import RelationshipPulseSection from "@/components/landing/RelationshipPulseSection";
-import QueryStreamParallax from "@/components/landing/QueryStreamParallax";
+import Link from "next/link";
+import { Database, Zap, Shield, BarChart3, ArrowRight, Github, Twitter } from "lucide-react";
 
 export default function Home() {
     const { user, signInWithGoogle } = useAuth();
     const router = useRouter();
-    const [prompt, setPrompt] = useState("");
-    const [isLoading, setIsLoading] = useState(false);
-
-    // ── Apple-like unified scroll for 4 feature sections ──────────────────────
-    const featuresRef = useRef<HTMLDivElement>(null);
-    const { scrollYProgress: featuresProgress } = useScroll({
-        target: featuresRef,
-        offset: ["start start", "end end"]
-    });
-
-    // Each section occupies 25 % of the 400 vh block.
-    // Incoming: scales 1.1 → 1.0 + unblurs. Outgoing: scales 1.0 → 0.9 + blurs.
-    const scrubberProgress = useTransform(featuresProgress, [0, 0.25], [0, 1]);
-    const scrubberOpacity = useTransform(featuresProgress, [0, 0.15, 0.25], [1, 1, 0]);
-    const scrubberScale = useTransform(featuresProgress, [0.2, 0.25], [1, 0.9]);
-    const scrubberBlur = useTransform(featuresProgress, [0.2, 0.25], ["blur(0px)", "blur(20px)"]);
-
-    const pulseProgress = useTransform(featuresProgress, [0.25, 0.5], [0, 1]);
-    const pulseOpacity = useTransform(featuresProgress, [0.2, 0.25, 0.45, 0.5], [0, 1, 1, 0]);
-    const pulseScale = useTransform(featuresProgress, [0.2, 0.25, 0.45, 0.5], [1.1, 1, 1, 0.9]);
-    const pulseBlur = useTransform(featuresProgress, [0.2, 0.25, 0.45, 0.5], ["blur(20px)", "blur(0px)", "blur(0px)", "blur(20px)"]);
-
-    const heatmapProgress = useTransform(featuresProgress, [0.5, 0.75], [0, 1]);
-    const heatmapOpacity = useTransform(featuresProgress, [0.45, 0.5, 0.7, 0.75], [0, 1, 1, 0]);
-    const heatmapScale = useTransform(featuresProgress, [0.45, 0.5, 0.7, 0.75], [1.1, 1, 1, 0.9]);
-    const heatmapBlur = useTransform(featuresProgress, [0.45, 0.5, 0.7, 0.75], ["blur(20px)", "blur(0px)", "blur(0px)", "blur(20px)"]);
-
-    const streamProgress = useTransform(featuresProgress, [0.75, 1], [0, 1]);
-    const streamOpacity = useTransform(featuresProgress, [0.7, 0.75, 1], [0, 1, 1]);
-    const streamScale = useTransform(featuresProgress, [0.7, 0.75, 1], [1.1, 1, 1]);
-    const streamBlur = useTransform(featuresProgress, [0.7, 0.75, 1], ["blur(20px)", "blur(0px)", "blur(0px)"]);
-    // ──────────────────────────────────────────────────────────────────────────
-
-    const handlePromptSubmit = () => {
-        if (!prompt.trim()) return;
-        setIsLoading(true);
-        setTimeout(() => {
-            toast.success("Query understood! Sign in to execute.", {
-                description: "Connecting to the database engine..."
-            });
-            setIsLoading(false);
-            if (!user) {
-                setTimeout(signInWithGoogle, 1500);
-            } else {
-                router.push("/connect");
-            }
-        }, 1200);
-    };
-
-    const scrollToInteractive = () => {
-        const el = document.getElementById("interactive-chat");
-        if (el) el.scrollIntoView({ behavior: 'smooth' });
-    };
 
     return (
-        <div className="relative w-full overflow-hidden bg-black text-white selection:bg-purple-500/30 font-sans">
+        <div className="min-h-screen bg-white text-gray-900 font-sans">
 
-            {/* ── Fixed Navigation Bar ──────────────────────────────────────── */}
-            <nav className="fixed top-0 w-full z-50 flex items-center justify-between px-6 py-5 md:px-12 backdrop-blur-md border-b border-white/5 bg-black/50">
-                <div className="flex items-center gap-3 font-semibold text-xl tracking-tight">
-                    <Database className="text-purple-500" strokeWidth={2.5} />
-                    <span className="hidden sm:inline">DB-Lighthouse</span>
-                </div>
-                <div className="flex gap-4">
-                    {user ? (
-                        <button
-                            onClick={() => router.push('/dashboard')}
-                            className="px-5 py-2 rounded-full border border-white/10 hover:bg-white/10 transition-colors text-sm font-medium"
-                        >
-                            Dashboard
-                        </button>
-                    ) : (
-                        <button
-                            onClick={signInWithGoogle}
-                            className="px-5 py-2 rounded-full bg-white text-black hover:bg-zinc-200 transition-colors text-sm font-bold"
-                        >
-                            Sign In
-                        </button>
-                    )}
+            {/* ── Navigation ─────────────────────────────────────────────────── */}
+            <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100">
+                <div className="max-w-7xl mx-auto px-6 md:px-12 h-16 flex items-center justify-between">
+                    {/* Logo */}
+                    <div className="flex items-center gap-2.5 font-bold text-xl tracking-tight text-gray-900">
+                        <div className="w-8 h-8 rounded-lg bg-gray-900 flex items-center justify-center">
+                            <Database size={16} className="text-white" strokeWidth={2.5} />
+                        </div>
+                        <span>Lighthouse <span className="text-gray-400 font-normal">AI</span></span>
+                    </div>
+
+                    {/* Nav links */}
+                    <div className="hidden md:flex items-center gap-8 text-sm font-medium text-gray-500">
+                        <a href="#" className="hover:text-gray-900 transition-colors">Schema</a>
+                        <a href="#" className="hover:text-gray-900 transition-colors">Queries</a>
+                        <Link href="/features" className="hover:text-gray-900 transition-colors">Features</Link>
+                        <a href="#" className="hover:text-gray-900 transition-colors">API</a>
+                    </div>
+
+                    {/* CTA */}
+                    <div className="flex items-center gap-3">
+                        {user ? (
+                            <button
+                                onClick={() => router.push('/dashboard')}
+                                className="px-5 py-2 rounded-full bg-gray-900 text-white text-sm font-semibold hover:bg-gray-700 transition-colors"
+                            >
+                                Dashboard
+                            </button>
+                        ) : (
+                            <>
+                                <button
+                                    onClick={signInWithGoogle}
+                                    className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
+                                >
+                                    Sign in
+                                </button>
+                                <button
+                                    onClick={signInWithGoogle}
+                                    className="px-5 py-2 rounded-full bg-gray-900 text-white text-sm font-semibold hover:bg-gray-700 transition-colors"
+                                >
+                                    Get started
+                                </button>
+                            </>
+                        )}
+                    </div>
                 </div>
             </nav>
 
-            {/* ── 1. Schema Assembly Hero (scroll-driven graph snap) ─────────── */}
-            <SchemaAssemblyHero />
+            {/* ── Hero Section ────────────────────────────────────────────────── */}
+            <section className="relative overflow-hidden bg-white pt-24 pb-32">
+                {/* Subtle grid background */}
+                <div
+                    className="absolute inset-0 pointer-events-none opacity-[0.03]"
+                    style={{
+                        backgroundImage: `linear-gradient(#000 1px, transparent 1px), linear-gradient(to right, #000 1px, transparent 1px)`,
+                        backgroundSize: '60px 60px'
+                    }}
+                />
 
-            {/* Animated scroll-down chevron */}
-            <div
-                className="flex justify-center -mt-[50vh] pb-[20vh] relative z-40 cursor-pointer pointer-events-auto"
-                onClick={scrollToInteractive}
-            >
-                <motion.div
-                    animate={{ y: [0, 10, 0] }}
-                    transition={{ repeat: Infinity, duration: 2 }}
-                    className="p-4 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 backdrop-blur-md transition-colors"
-                >
-                    <ChevronDown size={24} className="text-zinc-400" />
-                </motion.div>
-            </div>
+                {/* Gradient orb */}
+                <div className="absolute top-[-10%] right-[-5%] w-[600px] h-[600px] rounded-full bg-gradient-to-br from-indigo-100 via-purple-50 to-transparent opacity-70 blur-3xl pointer-events-none" />
 
-            {/* ── 2. Interactive Chat Prompt Showcase ───────────────────────── */}
-            <section id="interactive-chat" className="relative w-full bg-black py-32 z-30">
-                <BackgroundPaths>
-                    <div className="flex flex-col items-center justify-center w-full min-h-[60vh]">
-                        <div className="relative w-full max-w-6xl mx-auto flex flex-col lg:flex-row gap-8 items-center justify-center px-4">
+                <div className="relative max-w-7xl mx-auto px-6 md:px-12 text-center">
+                    {/* Badge */}
+                    <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gray-100 text-xs font-semibold text-gray-600 tracking-wide uppercase mb-8">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />
+                        Now in public beta
+                    </div>
 
-                            {/* Governance card — Left */}
-                            <div className="hidden lg:flex mt-8 drop-shadow-2xl">
-                                <GlowCard size="sm" glowColor="purple" className="flex flex-col items-start gap-4 bg-zinc-950/80 border-white/10 p-6 rounded-[2rem]">
-                                    <div className="p-3 bg-purple-500/20 rounded-xl mb-2">
-                                        <Shield className="text-purple-400" size={28} strokeWidth={2.5} />
+                    {/* Headline */}
+                    <h1 className="text-5xl md:text-7xl font-bold tracking-tight text-gray-900 leading-[1.05] mb-6">
+                        Orchestrate your<br />
+                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-purple-600 to-violet-600">
+                            Information
+                        </span>
+                    </h1>
+
+                    {/* Sub headline */}
+                    <p className="max-w-2xl mx-auto text-lg md:text-xl text-gray-500 leading-relaxed mb-12">
+                        Lighthouse AI transforms complex database structures into breathable, visual insights.
+                        Optimize indexing, secure anomalies, and write queries with AI-assisted clarity.
+                    </p>
+
+                    {/* CTA buttons */}
+                    <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                        <button
+                            onClick={() => user ? router.push('/dashboard') : signInWithGoogle()}
+                            className="group flex items-center gap-2 px-8 py-4 rounded-2xl bg-gray-900 text-white font-semibold text-base hover:bg-gray-700 transition-all shadow-xl shadow-gray-900/20 hover:shadow-gray-900/30"
+                        >
+                            Launch Dashboard
+                            <ArrowRight size={18} className="group-hover:translate-x-0.5 transition-transform" />
+                        </button>
+                        <Link
+                            href="/features"
+                            className="flex items-center gap-2 px-8 py-4 rounded-2xl border border-gray-200 text-gray-700 font-semibold text-base hover:border-gray-300 hover:bg-gray-50 transition-all"
+                        >
+                            Explore Features
+                        </Link>
+                    </div>
+
+                    {/* Social proof */}
+                    <p className="mt-10 text-sm text-gray-400">
+                        Trusted by <span className="font-semibold text-gray-600">2,400+</span> engineering teams worldwide
+                    </p>
+                </div>
+
+                {/* Hero dashboard preview */}
+                <div className="relative max-w-6xl mx-auto mt-20 px-6 md:px-12">
+                    <div className="rounded-3xl overflow-hidden border border-gray-200 shadow-2xl shadow-gray-900/10 bg-gray-950">
+                        {/* Mock toolbar */}
+                        <div className="flex items-center gap-2 px-6 py-4 bg-gray-900 border-b border-white/5">
+                            <div className="w-3 h-3 rounded-full bg-red-500/70" />
+                            <div className="w-3 h-3 rounded-full bg-amber-400/70" />
+                            <div className="w-3 h-3 rounded-full bg-emerald-500/70" />
+                            <div className="flex-1 mx-4 h-7 rounded-lg bg-white/5 flex items-center px-3">
+                                <span className="text-xs text-gray-500 font-mono">app.lighthouse.ai/dashboard</span>
+                            </div>
+                        </div>
+                        {/* Mock dashboard body */}
+                        <div className="grid grid-cols-3 gap-4 p-6 min-h-[280px] bg-gray-950">
+                            {/* Sidebar */}
+                            <div className="col-span-1 space-y-2">
+                                {['Schema Graph', 'AI Queries', 'Indexing', 'Security', 'Performance'].map((item, i) => (
+                                    <div key={i} className={`h-9 rounded-xl flex items-center px-4 text-xs font-medium ${i === 0 ? 'bg-indigo-600/20 text-indigo-400' : 'bg-white/5 text-gray-500'}`}>
+                                        {item}
                                     </div>
-                                    <h3 className="font-bold text-lg text-zinc-100 uppercase tracking-wide">Governance</h3>
-                                    <p className="text-sm text-zinc-400 leading-relaxed font-medium">
-                                        Auto-limit rules, PII masking, and multi-factor execution controls keep your data safe.
-                                    </p>
-                                </GlowCard>
+                                ))}
                             </div>
-
-                            {/* Centre: Chat input + dithering shader */}
-                            <div className="w-full max-w-2xl flex-1 relative flex flex-col items-center group perspective-1000">
-                                {/* Accent shader behind chat */}
-                                <div
-                                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140%] h-[250%] -z-10 opacity-40 group-hover:opacity-70 transition-opacity duration-1000 pointer-events-none mix-blend-screen"
-                                    style={{
-                                        maskImage: 'radial-gradient(circle at center, black, transparent 60%)',
-                                        WebkitMaskImage: 'radial-gradient(circle at center, black, transparent 60%)',
-                                    }}
-                                >
-                                    <DitheringShader
-                                        shape="wave"
-                                        type="8x8"
-                                        colorBack="#000000"
-                                        colorFront="#c084fc"
-                                        pxSize={2}
-                                        speed={0.3}
-                                        className="w-full h-full"
-                                    />
+                            {/* Main panel */}
+                            <div className="col-span-2 space-y-3">
+                                <div className="h-32 rounded-2xl bg-gradient-to-br from-indigo-600/20 to-purple-600/10 border border-white/5 flex items-center justify-center">
+                                    <span className="text-indigo-400 text-sm font-mono opacity-60">schema_graph.render()</span>
                                 </div>
-
-                                <div className="w-full bg-black/60 border border-white/20 p-2 sm:p-3 rounded-[2.5rem] shadow-[0_0_80px_rgba(168,85,247,0.15)] backdrop-blur-2xl transition-all duration-300 hover:shadow-[0_0_100px_rgba(168,85,247,0.25)] hover:border-purple-500/40">
-                                    <ChatInput
-                                        variant="unstyled"
-                                        value={prompt}
-                                        onChange={(e) => setPrompt(e.target.value)}
-                                        onSubmit={handlePromptSubmit}
-                                        loading={isLoading}
-                                        onStop={() => setIsLoading(false)}
-                                        className="px-4 py-3 sm:py-4 flex gap-3"
-                                    >
-                                        <ChatInputTextArea
-                                            placeholder="Ask your database anything… e.g., 'Show me users who churned last month'"
-                                            className="text-white placeholder:text-zinc-500 font-semibold text-lg sm:text-xl leading-relaxed bg-transparent border-none outline-none resize-none px-2"
-                                            rows={2}
-                                        />
-                                        <div className="flex items-end h-full py-1">
-                                            <ChatInputSubmit className="bg-white text-black hover:bg-zinc-200 transition-transform hover:scale-105 active:scale-95 w-12 h-12 shadow-xl shrink-0 rounded-full" />
-                                        </div>
-                                    </ChatInput>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div className="h-20 rounded-2xl bg-white/5 border border-white/5" />
+                                    <div className="h-20 rounded-2xl bg-white/5 border border-white/5" />
                                 </div>
-
-                                <motion.div
-                                    initial={{ opacity: 0, y: 10 }}
-                                    whileInView={{ opacity: 1, y: 0 }}
-                                    viewport={{ once: true }}
-                                    className="mt-8 flex gap-6 sm:gap-8 text-xs sm:text-sm text-zinc-400 font-bold uppercase tracking-wider"
-                                >
-                                    <span className="flex items-center gap-2"><Zap size={16} className="text-white/60" /> Instant Queries</span>
-                                    <span className="flex items-center gap-2"><Search size={16} className="text-white/60" /> Deep Insights</span>
-                                    <span className="flex items-center gap-2"><Sparkles size={16} className="text-white/60" /> AI-Powered</span>
-                                </motion.div>
                             </div>
-
-                            {/* Performance card — Right */}
-                            <div className="hidden lg:flex -mt-16 drop-shadow-2xl">
-                                <GlowCard size="sm" glowColor="blue" className="flex flex-col items-start gap-4 bg-zinc-950/80 border-white/10 p-6 rounded-[2rem]">
-                                    <div className="p-3 bg-blue-500/20 rounded-xl mb-2">
-                                        <BarChart3 className="text-blue-400" size={28} strokeWidth={2.5} />
-                                    </div>
-                                    <h3 className="font-bold text-lg text-zinc-100 uppercase tracking-wide">Performance</h3>
-                                    <p className="text-sm text-zinc-400 leading-relaxed font-medium">
-                                        Identify zombie indexes, fix bottleneck queries, and optimize storage instantly.
-                                    </p>
-                                </GlowCard>
-                            </div>
-
                         </div>
                     </div>
-                </BackgroundPaths>
+                    {/* Shadow bottom fade */}
+                    <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-white to-transparent pointer-events-none" />
+                </div>
             </section>
 
-            {/* ── 3-6. Seamless Apple-style 4-section scroll sequence (400 vh) ── */}
-            <div ref={featuresRef} className="relative w-full h-[400vh] bg-black">
-                <div className="sticky top-0 w-full h-screen overflow-hidden bg-black">
+            {/* ── Feature Modules ─────────────────────────────────────────────── */}
+            <section className="bg-gray-50 py-28">
+                <div className="max-w-7xl mx-auto px-6 md:px-12">
+                    <div className="text-center mb-16">
+                        <p className="text-sm font-semibold text-indigo-600 uppercase tracking-widest mb-3">Core Modules</p>
+                        <h2 className="text-4xl md:text-5xl font-bold text-gray-900 tracking-tight">
+                            Powerful Core Modules
+                        </h2>
+                        <p className="mt-4 text-lg text-gray-500 max-w-xl mx-auto">
+                            Everything you need to manage distributed clusters with surgical precision.
+                        </p>
+                    </div>
 
-                    {/* 3. Self-Healing Security Scrubber */}
-                    <motion.div
-                        style={{ opacity: scrubberOpacity, scale: scrubberScale, filter: scrubberBlur }}
-                        className="absolute inset-0"
-                    >
-                        <SelfHealingScrubber scrollProgress={scrubberProgress} />
-                    </motion.div>
+                    <div className="grid md:grid-cols-3 gap-6">
+                        {/* Card 1 */}
+                        <div className="group bg-white rounded-3xl p-8 border border-gray-100 hover:border-indigo-200 hover:shadow-xl hover:shadow-indigo-500/10 transition-all duration-300">
+                            <div className="w-12 h-12 rounded-2xl bg-indigo-50 flex items-center justify-center mb-6 group-hover:bg-indigo-100 transition-colors">
+                                <Zap size={22} className="text-indigo-600" strokeWidth={2} />
+                            </div>
+                            <h3 className="text-xl font-bold text-gray-900 mb-3">Auto-Indexing Engine</h3>
+                            <p className="text-gray-500 leading-relaxed text-sm">
+                                Our AI analyzes query patterns in real-time to suggest and implement optimal indexes, reducing latency by up to 85%.
+                            </p>
+                            <Link href="/features" className="inline-flex items-center gap-1 mt-6 text-sm font-semibold text-indigo-600 hover:gap-2 transition-all">
+                                Learn More <ArrowRight size={14} />
+                            </Link>
+                        </div>
 
-                    {/* 4. Live Relationship Graph Pulse */}
-                    <motion.div
-                        style={{ opacity: pulseOpacity, scale: pulseScale, filter: pulseBlur }}
-                        className="absolute inset-0 z-10"
-                    >
-                        <RelationshipPulseSection scrollProgress={pulseProgress} />
-                    </motion.div>
+                        {/* Card 2 */}
+                        <div className="group bg-white rounded-3xl p-8 border border-gray-100 hover:border-purple-200 hover:shadow-xl hover:shadow-purple-500/10 transition-all duration-300">
+                            <div className="w-12 h-12 rounded-2xl bg-purple-50 flex items-center justify-center mb-6 group-hover:bg-purple-100 transition-colors">
+                                <Shield size={22} className="text-purple-600" strokeWidth={2} />
+                            </div>
+                            <h3 className="text-xl font-bold text-gray-900 mb-3">Security Guard</h3>
+                            <p className="text-gray-500 leading-relaxed text-sm">
+                                Real-time anomaly detection using machine learning to block suspicious injection attempts before they reach the execution layer.
+                            </p>
+                            <Link href="/features" className="inline-flex items-center gap-1 mt-6 text-sm font-semibold text-purple-600 hover:gap-2 transition-all">
+                                Learn More <ArrowRight size={14} />
+                            </Link>
+                        </div>
 
-                    {/* 5. Storage Heatmap / Space Shrinker */}
-                    <motion.div
-                        style={{ opacity: heatmapOpacity, scale: heatmapScale, filter: heatmapBlur }}
-                        className="absolute inset-0 z-20"
-                    >
-                        <StorageHeatmapSection scrollProgress={heatmapProgress} />
-                    </motion.div>
+                        {/* Card 3 */}
+                        <div className="group bg-white rounded-3xl p-8 border border-gray-100 hover:border-violet-200 hover:shadow-xl hover:shadow-violet-500/10 transition-all duration-300">
+                            <div className="w-12 h-12 rounded-2xl bg-violet-50 flex items-center justify-center mb-6 group-hover:bg-violet-100 transition-colors">
+                                <BarChart3 size={22} className="text-violet-600" strokeWidth={2} />
+                            </div>
+                            <h3 className="text-xl font-bold text-gray-900 mb-3">AI Optimization</h3>
+                            <p className="text-gray-500 leading-relaxed text-sm">
+                                Automated partition management and memory allocation for high-traffic relational nodes.
+                            </p>
+                            <Link href="/features" className="inline-flex items-center gap-1 mt-6 text-sm font-semibold text-violet-600 hover:gap-2 transition-all">
+                                Learn More <ArrowRight size={14} />
+                            </Link>
+                        </div>
+                    </div>
 
-                    {/* 6. Incident Detection / Query Stream Parallax */}
-                    <motion.div
-                        style={{ opacity: streamOpacity, scale: streamScale, filter: streamBlur }}
-                        className="absolute inset-0 z-30"
-                    >
-                        <QueryStreamParallax scrollProgress={streamProgress} />
-                    </motion.div>
-
+                    {/* SQL Playground card — full width */}
+                    <div className="mt-6 bg-gray-900 rounded-3xl p-8 md:p-10 flex flex-col md:flex-row items-start md:items-center gap-8">
+                        <div className="flex-1">
+                            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-xs font-semibold text-gray-300 mb-4">
+                                ✨ Powered by GPT-4
+                            </div>
+                            <h3 className="text-2xl font-bold text-white mb-3">SQL Playground</h3>
+                            <p className="text-gray-400 leading-relaxed">
+                                Write complex SQL with natural language prompts. Our engine interprets intent and builds schema-aware queries in seconds.
+                            </p>
+                        </div>
+                        <div className="shrink-0 w-full md:w-96 bg-black/40 rounded-2xl p-4 font-mono text-sm border border-white/10">
+                            <p className="text-gray-500 text-xs mb-3">▶ Natural language → SQL</p>
+                            <p className="text-emerald-400">"Show me users who churned last month"</p>
+                            <p className="text-gray-600 mt-2">→ Generating query...</p>
+                            <p className="text-blue-400 mt-1">SELECT * FROM users WHERE churned_at &gt;= ...</p>
+                        </div>
+                    </div>
                 </div>
-            </div>
+            </section>
 
-            {/* ── Footer / Bento Grid ───────────────────────────────────────── */}
-            <div className="relative z-20 w-full pb-24 border-t border-white/5 bg-[#050508] pt-32">
-                <CyberneticBentoGrid />
-            </div>
+            {/* ── CTA Section ─────────────────────────────────────────────────── */}
+            <section className="bg-white py-28">
+                <div className="max-w-4xl mx-auto px-6 md:px-12 text-center">
+                    <h2 className="text-4xl md:text-5xl font-bold text-gray-900 tracking-tight mb-6">
+                        Ready to illuminate<br />your data?
+                    </h2>
+                    <p className="text-lg text-gray-500 mb-10 max-w-xl mx-auto">
+                        Join the elite engineering teams optimizing their infrastructure with Lighthouse AI. Free cluster for 14 days.
+                    </p>
+                    <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                        <button
+                            onClick={() => user ? router.push('/dashboard') : signInWithGoogle()}
+                            className="group flex items-center gap-2 px-8 py-4 rounded-2xl bg-gray-900 text-white font-semibold text-base hover:bg-gray-700 transition-all shadow-xl shadow-gray-900/20"
+                        >
+                            Launch Dashboard
+                            <ArrowRight size={18} className="group-hover:translate-x-0.5 transition-transform" />
+                        </button>
+                        <Link
+                            href="/features"
+                            className="flex items-center gap-2 px-8 py-4 rounded-2xl border border-gray-200 text-gray-700 font-semibold text-base hover:border-gray-300 hover:bg-gray-50 transition-all"
+                        >
+                            View all Features
+                        </Link>
+                    </div>
+                    <p className="mt-6 text-sm text-gray-400">No credit card required · 14-day free trial · Cancel anytime</p>
+                </div>
+            </section>
+
+            {/* ── Footer ──────────────────────────────────────────────────────── */}
+            <footer className="bg-gray-50 border-t border-gray-100 py-12">
+                <div className="max-w-7xl mx-auto px-6 md:px-12 flex flex-col md:flex-row items-center justify-between gap-6">
+                    <div className="flex items-center gap-2 font-bold text-gray-900">
+                        <div className="w-6 h-6 rounded-md bg-gray-900 flex items-center justify-center">
+                            <Database size={12} className="text-white" strokeWidth={2.5} />
+                        </div>
+                        Database Lighthouse AI
+                    </div>
+                    <div className="flex items-center gap-6 text-sm text-gray-500">
+                        <a href="#" className="hover:text-gray-900 transition-colors">Privacy Policy</a>
+                        <a href="#" className="hover:text-gray-900 transition-colors">Terms of Service</a>
+                        <a href="#" className="hover:text-gray-900 transition-colors">Status</a>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <a href="#" className="w-9 h-9 rounded-full border border-gray-200 flex items-center justify-center hover:bg-gray-100 transition-colors">
+                            <Github size={16} className="text-gray-600" />
+                        </a>
+                        <a href="#" className="w-9 h-9 rounded-full border border-gray-200 flex items-center justify-center hover:bg-gray-100 transition-colors">
+                            <Twitter size={16} className="text-gray-600" />
+                        </a>
+                    </div>
+                    <p className="text-sm text-gray-400">© 2024 Database Lighthouse AI. Architecting clarity.</p>
+                </div>
+            </footer>
 
         </div>
     );

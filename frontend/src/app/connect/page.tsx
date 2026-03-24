@@ -27,6 +27,15 @@ export default function ConnectPage() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [success, setSuccess] = useState(false);
+    const [sqlDialect, setSqlDialect] = useState("postgresql");
+
+    const SQL_DIALECTS = [
+        { value: "postgresql", label: "PostgreSQL",  icon: "🐘" },
+        { value: "mysql",      label: "MySQL / MariaDB", icon: "🐬" },
+        { value: "sqlite",     label: "SQLite",      icon: "🗃️" },
+        { value: "mssql",      label: "SQL Server (MSSQL)", icon: "🪟" },
+        { value: "oracle",     label: "Oracle",      icon: "🔴" },
+    ];
 
     const defaultNames: Record<Tab, string> = {
         connection: "My PostgreSQL DB",
@@ -57,6 +66,7 @@ export default function ConnectPage() {
                 formData.append("file", file);
                 const url = new URL(`${process.env.NEXT_PUBLIC_API_URL}/connect-db/upload-sql`);
                 url.searchParams.append("project_name", projectName || file.name.replace(".sql", ""));
+                url.searchParams.append("dialect", sqlDialect);
                 res = await fetch(url.toString(), { method: "POST", body: formData });
             } else if (activeTab === "ai") {
                 if (!aiDescription) throw new Error("Please describe your database.");
@@ -222,28 +232,60 @@ export default function ConnectPage() {
                         )}
 
                         {activeTab === "file" && (
-                            <div>
-                                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
-                                    SQL Schema File
-                                </label>
-                                <label className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${file ? "border-violet-500/50 bg-violet-600/10" : "border-white/10 hover:border-white/20 bg-white/3"}`}>
-                                    <input type="file" accept=".sql" className="hidden" onChange={(e) => setFile(e.target.files?.[0] || null)} required />
-                                    {file ? (
-                                        <div className="flex items-center gap-3 text-violet-300">
-                                            <FileCode2 size={20} />
-                                            <div>
-                                                <p className="text-sm font-semibold">{file.name}</p>
-                                                <p className="text-xs text-slate-400">{(file.size / 1024).toFixed(1)} KB — click to change</p>
+                            <div className="space-y-4">
+                                {/* File picker */}
+                                <div>
+                                    <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+                                        SQL Schema File
+                                    </label>
+                                    <label className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${file ? "border-violet-500/50 bg-violet-600/10" : "border-white/10 hover:border-white/20 bg-white/3"}`}>
+                                        <input type="file" accept=".sql" className="hidden" onChange={(e) => setFile(e.target.files?.[0] || null)} required />
+                                        {file ? (
+                                            <div className="flex items-center gap-3 text-violet-300">
+                                                <FileCode2 size={20} />
+                                                <div>
+                                                    <p className="text-sm font-semibold">{file.name}</p>
+                                                    <p className="text-xs text-slate-400">{(file.size / 1024).toFixed(1)} KB — click to change</p>
+                                                </div>
                                             </div>
-                                        </div>
-                                    ) : (
-                                        <div className="text-center">
-                                            <FileCode2 size={24} className="mx-auto mb-2 text-slate-600" />
-                                            <p className="text-sm text-slate-400">Drop or click to select a <span className="text-violet-400 font-semibold">.sql</span> file</p>
-                                        </div>
+                                        ) : (
+                                            <div className="text-center">
+                                                <FileCode2 size={24} className="mx-auto mb-2 text-slate-600" />
+                                                <p className="text-sm text-slate-400">Drop or click to select a <span className="text-violet-400 font-semibold">.sql</span> file</p>
+                                            </div>
+                                        )}
+                                    </label>
+                                </div>
+
+                                {/* Dialect selector */}
+                                <div>
+                                    <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+                                        SQL Dialect
+                                    </label>
+                                    <div className="grid grid-cols-1 gap-2">
+                                        <select
+                                            value={sqlDialect}
+                                            onChange={(e) => setSqlDialect(e.target.value)}
+                                            className="w-full bg-[#0d0d1a] border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-violet-500/60 transition-colors appearance-none cursor-pointer"
+                                            style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238b8fa8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 16px center' }}
+                                        >
+                                            {SQL_DIALECTS.map((d) => (
+                                                <option key={d.value} value={d.value} style={{ backgroundColor: '#0d0d1a' }}>
+                                                    {d.icon}  {d.label}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    {sqlDialect !== "postgresql" && (
+                                        <p className="text-xs text-amber-400/80 mt-2 flex items-center gap-1">
+                                            <span>⚡</span>
+                                            Your {SQL_DIALECTS.find(d => d.value === sqlDialect)?.label} SQL will be automatically converted to PostgreSQL before import.
+                                        </p>
                                     )}
-                                </label>
-                                <p className="text-xs text-slate-400 mt-2 font-medium">Don't worry — we will automatically create a secure, dedicated PostgreSQL database to store and analyze this file for you.</p>
+                                    {sqlDialect === "postgresql" && (
+                                        <p className="text-xs text-slate-500 mt-2">We will automatically create a secure, dedicated PostgreSQL database for this schema.</p>
+                                    )}
+                                </div>
                             </div>
                         )}
 

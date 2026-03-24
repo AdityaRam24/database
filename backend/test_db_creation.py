@@ -4,7 +4,7 @@ from sqlalchemy.pool import NullPool
 import uuid
 
 db_name = f"test_{uuid.uuid4().hex[:8]}"
-base_url = "postgresql://postgres:postgres@127.0.0.1:5432/postgres"
+base_url = "postgresql://postgres:root@127.0.0.1:5432/postgres"
 
 print(f"Testing DB creation for {db_name}...")
 engine = create_engine(base_url, poolclass=NullPool)
@@ -17,7 +17,7 @@ try:
     conn = psycopg2.connect(
         dbname=db_name,
         user="postgres",
-        password="password",  # Let's try password "postgres" later if this fails, or use from URL
+        password="root",
         host="127.0.0.1",
         port=5432
     )

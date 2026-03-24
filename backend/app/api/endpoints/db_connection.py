@@ -1,7 +1,8 @@
-from fastapi import APIRouter, HTTPException, Depends, UploadFile, File
+from fastapi import APIRouter, HTTPException, Depends, UploadFile, File, Query
 from app.models.schemas import DBConnectionRequest, DBConnectionResponse
 from app.services.db_service import DBService
 from app.services.ai_service import AIService
+from app.services.dialect_converter import DialectConverter
 from pydantic import BaseModel
 import logging
 import uuid
@@ -49,36 +50,58 @@ async def connect_db(request: DBConnectionRequest):
 @router.post("/upload-sql", response_model=DBConnectionResponse)
 async def upload_sql(
     project_name: str,
-    file: UploadFile = File(...)
+    file: UploadFile = File(...),
+    dialect: str = Query(default="postgresql", description="Source SQL dialect: postgresql, mysql, sqlite, mssql, oracle")
 ):
     """
-    Accepts a .sql file and creates a shadow clone from it.
+    Accepts a .sql file and creates a dedicated PostgreSQL database from it.
+    If the file is not in PostgreSQL dialect, it will be converted automatically.
     """
-    logger.info(f"Received SQL file upload for project: {project_name}")
-    
+    logger.info(f"Received SQL file upload for project: {project_name}, dialect: {dialect}")
+
+    if dialect.lower() not in DialectConverter.SUPPORTED:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unsupported dialect '{dialect}'. Supported: {', '.join(DialectConverter.SUPPORTED)}"
+        )
+
     if not file.filename.endswith('.sql'):
-         raise HTTPException(status_code=400, detail="Only .sql files are allowed.")
-    
+        raise HTTPException(status_code=400, detail="Only .sql files are allowed.")
+
     try:
         content = await file.read()
         sql_content = content.decode("utf-8")
-        
+
+        # Convert to PostgreSQL if needed
+        if dialect.lower() != "postgresql":
+            logger.info(f"Converting SQL from '{dialect}' dialect to PostgreSQL...")
+            try:
+                sql_content = DialectConverter.convert(sql_content, dialect)
+                logger.info("Dialect conversion successful.")
+            except Exception as conv_err:
+                raise HTTPException(
+                    status_code=422,
+                    detail=f"Dialect conversion failed: {str(conv_err)}"
+                )
+
         # Create dedicated isolated database
         new_db_url = DBService.create_dedicated_db_from_sql(sql_content, project_name)
-        
+
         # Verify by getting table count from the new DB
         table_count = DBService.get_table_count(new_db_url)
-        
+
         project_id = str(uuid.uuid4())
-        
+
         return DBConnectionResponse(
             success=True,
             project_id=project_id,
-            message="Successfully created dedicated database from SQL file.",
+            message=f"Successfully created dedicated database from {dialect.upper()} SQL file.",
             table_count=table_count,
             connection_string=new_db_url
         )
-        
+
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"SQL upload failed: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to process SQL file: {str(e)}")
