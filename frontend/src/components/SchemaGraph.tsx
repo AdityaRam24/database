@@ -54,22 +54,22 @@ interface TableNodeData {
 
 const TableNode = memo(({ id, data }: NodeProps<TableNodeData>) => {
     const formattedSize = data.size_bytes ? (data.size_bytes / 1024).toFixed(1) + ' KB' : '';
-    
+
     // Bottleneck logic: scale and glow if highly connected
     const isBottleneck = data.connectionDegree > 4;
     const bottleneckStyle = isBottleneck ? {
-        boxShadow: '0 0 20px rgba(139, 92, 246, 0.4)',
+        boxShadow: '0 0 20px hsla(266, 100%, 51%, 0.89)',
         transform: 'scale(1.05)',
         border: '1px solid rgba(139, 92, 246, 0.8)'
     } : {};
 
     // Heatmap Overlay (Storage size based coloring)
     const heatmapColor = data.overlayMode && data.size_bytes !== undefined
-        ? `rgba(239, 68, 68, ${Math.min(data.size_bytes / (1024 * 500) * 0.5, 0.8)})` 
+        ? `rgba(239, 68, 68, ${Math.min(data.size_bytes / (1024 * 500) * 0.5, 0.8)})`
         : 'transparent';
 
-    let containerClasses = `schema-node transition-all duration-300 relative`;
-    if (data.isFocused) containerClasses += ` ring-2 ring-violet-500 ring-offset-2 ring-offset-[#0a0a0f] z-10`;
+    let containerClasses = `schema-node transition-all duration-300 relative rounded-lg border border-gray-200 overflow-hidden bg-white shadow-sm`;
+    if (data.isFocused) containerClasses += ` ring-2 ring-violet-500 ring-offset-2 ring-offset-gray-50 z-10`;
     if (data.isDimmed) containerClasses += ` opacity-25 grayscale`;
     if (data.isSearchHighlighted) containerClasses += ` ring-2 ring-amber-400 z-10`;
 
@@ -79,9 +79,9 @@ const TableNode = memo(({ id, data }: NodeProps<TableNodeData>) => {
         : {};
 
     return (
-        <div 
-            className={containerClasses} 
-            style={{ 
+        <div
+            className={containerClasses}
+            style={{
                 animationDelay: `${(data.index || 0) * 50}ms`,
                 backgroundColor: heatmapColor !== 'transparent' ? heatmapColor : undefined,
                 ...bottleneckStyle,
@@ -89,47 +89,47 @@ const TableNode = memo(({ id, data }: NodeProps<TableNodeData>) => {
             }}
             onClick={(e) => {
                 e.stopPropagation();
-                data.onFocusNode(id);
+                data.onFocusNode?.(id);
             }}
-            onMouseEnter={() => data.onToggleExpand(id, true)}
-            onMouseLeave={() => data.onToggleExpand(id, false)}
+            onMouseEnter={() => data.onToggleExpand?.(id, true)}
+            onMouseLeave={() => data.onToggleExpand?.(id, false)}
         >
-            <Handle type="target" position={Position.Left} className="schema-handle !w-3 !h-3 !border-2 !border-[#0f0f19] !bg-violet-400" />
+            <Handle type="target" position={Position.Left} className="schema-handle !w-3 !h-3 !border-2 !border-white !bg-violet-500" />
 
             {/* Header */}
-            <div className="schema-node-header flex items-center justify-between p-3 bg-white/5 border-b border-white/10 rounded-t-lg backdrop-blur-md cursor-pointer">
-                <div className="schema-node-title flex items-center gap-2 font-semibold text-sm text-slate-100">
-                    <Table size={16} className={isBottleneck ? "text-amber-400" : "text-violet-400"} />
+            <div className={`schema-node-header flex items-center justify-between p-3 border-b cursor-pointer transition-colors ${data.isFocused ? 'bg-violet-700 border-violet-800' : 'bg-violet-600 border-violet-700'}`}>
+                <div className="schema-node-title flex items-center gap-2 font-bold text-sm text-white">
+                    <Table size={16} className={isBottleneck ? "text-amber-300" : "text-violet-200"} />
                     <span>{data.label}</span>
                 </div>
-                <div className="flex flex-col items-end gap-1 ml-4">
-                    <span className="schema-node-badge text-[10px] px-2 py-0.5 rounded-full bg-slate-800 text-slate-300 border border-slate-700">{data.rows} rows</span>
-                    {formattedSize && <span className="text-[9px] text-slate-500 font-medium">{formattedSize}</span>}
+                <div className="flex flex-col items-end gap-1 ml-4 shadow-sm">
+                    <span className="schema-node-badge text-[10px] px-2 py-0.5 rounded-full bg-violet-900/40 border border-violet-400/30 text-white font-medium">{data.rows} rows</span>
+                    {formattedSize && <span className="text-[9px] text-violet-200 font-medium">{formattedSize}</span>}
                 </div>
             </div>
 
             {/* Progressive Detail: Columns */}
-            <div className={`schema-node-body p-2 bg-[#0f0f19]/90 rounded-b-lg backdrop-blur-md overflow-hidden transition-all duration-300 ${data.isExpanded || data.isFocused || data.isSearchHighlighted ? 'max-h-96' : 'max-h-0 !p-0'}`}>
+            <div className={`schema-node-body p-2 bg-white rounded-b-lg overflow-hidden transition-all duration-300 ${data.isExpanded || data.isFocused || data.isSearchHighlighted ? 'max-h-96' : 'max-h-0 !p-0'}`}>
                 {(data.columns || []).map((col) => {
                     const isColHighlighted = data.isSearchHighlighted && col.name.includes("searchQuery_placeholder"); // We'll highlight via CSS or generic if needed
                     return (
-                        <div key={col.name} className={`schema-col-row flex items-center justify-between py-1.5 px-2 text-xs rounded-md ${col.is_pk ? 'bg-amber-500/10' : 'hover:bg-white/5'} ${col.is_fk ? 'text-violet-300' : 'text-slate-300'}`}>
+                        <div key={col.name} className={`schema-col-row flex items-center justify-between py-1.5 px-2 text-xs rounded-md ${col.is_pk ? 'bg-amber-50' : 'hover:bg-gray-50'} ${col.is_fk ? 'text-violet-600 font-medium' : 'text-gray-600'}`}>
                             <div className="schema-col-name flex items-center gap-2 font-medium">
                                 {col.is_pk ? <Key size={12} className="text-amber-500 shrink-0" /> : <div className="w-3 shrink-0" />}
                                 <span className="truncate max-w-[120px]" title={col.name}>{col.name}</span>
                             </div>
-                            <span className="schema-col-type text-[10px] text-slate-500 ml-4 font-mono">{col.type}</span>
+                            <span className="schema-col-type text-[10px] text-gray-400 font-bold ml-4 font-mono">{col.type}</span>
                         </div>
                     );
                 })}
                 {(!data.columns || data.columns.length === 0) && (
-                    <div className="px-4 py-3 text-xs text-slate-500 flex items-center gap-2 italic">
+                    <div className="px-4 py-3 text-xs text-gray-400 flex items-center gap-2 italic font-medium">
                         <Database size={12} /> No cols
                     </div>
                 )}
             </div>
 
-            <Handle type="source" position={Position.Right} className="schema-handle !w-3 !h-3 !border-2 !border-[#0f0f19] !bg-violet-400" />
+            <Handle type="source" position={Position.Right} className="schema-handle !w-3 !h-3 !border-2 !border-white !bg-violet-500" />
         </div>
     );
 });
@@ -176,8 +176,8 @@ const CustomEdge = ({
     }), [style, isHovered, isFocused, isDimmed]);
 
     return (
-        <g 
-            onMouseEnter={() => data?.onHoverToggle?.(id, true)} 
+        <g
+            onMouseEnter={() => data?.onHoverToggle?.(id, true)}
             onMouseLeave={() => data?.onHoverToggle?.(id, false)}
             className="react-flow__edge-custom group"
         >
@@ -198,12 +198,11 @@ const CustomEdge = ({
                             transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
                             pointerEvents: 'all',
                         }}
-                        className={`schema-edge-label nodrag nopan text-[10px] px-2 py-1 bg-[#0f0f19] border rounded-full transition-colors ${
-                            isHovered || isFocused 
-                            ? 'border-violet-400 text-violet-200 z-20 shadow-lg shadow-violet-500/20' 
-                            : 'border-white/10 text-slate-400 z-10'
-                        }`}
-                        onMouseEnter={() => data?.onHoverToggle?.(id, true)} 
+                        className={`schema-edge-label nodrag nopan text-[10px] px-2 py-1 bg-white border rounded-full transition-colors font-bold ${isHovered || isFocused
+                                ? 'border-violet-500 text-violet-700 z-20 shadow-md shadow-violet-500/10'
+                                : 'border-gray-200 text-gray-500 z-10 shadow-sm'
+                            }`}
+                        onMouseEnter={() => data?.onHoverToggle?.(id, true)}
                         onMouseLeave={() => data?.onHoverToggle?.(id, false)}
                     >
                         {label}
@@ -250,14 +249,14 @@ const SchemaGraph: React.FC<SchemaGraphProps> = ({ connectionString }) => {
 
     // Feature States
     const [focusedNodeId, setFocusedNodeId] = useState<string | null>(null);
-    const [breadcrumbs, setBreadcrumbs] = useState<{id: string, label: string}[]>([]);
+    const [breadcrumbs, setBreadcrumbs] = useState<{ id: string, label: string }[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [overlayMode, setOverlayMode] = useState(false);
     const [hoveredEdgeId, setHoveredEdgeId] = useState<string | null>(null);
     const [expandedNodeIds, setExpandedNodeIds] = useState<Set<string>>(new Set());
 
     // Original graph data reference for filtering
-    const [graphData, setGraphData] = useState<{nodes: any[], edges: any[]}>({nodes: [], edges: []});
+    const [graphData, setGraphData] = useState<{ nodes: any[], edges: any[] }>({ nodes: [], edges: [] });
 
     // Handle expand/collapse toggle
     const handleToggleExpand = useCallback((id: string, expanded: boolean) => {
@@ -275,7 +274,7 @@ const SchemaGraph: React.FC<SchemaGraphProps> = ({ connectionString }) => {
             if (prev === id) return null; // toggle off
             return id;
         });
-        
+
         // Update breadcrumbs
         const node = graphData.nodes.find(n => n.id === id);
         if (node) {
@@ -301,7 +300,7 @@ const SchemaGraph: React.FC<SchemaGraphProps> = ({ connectionString }) => {
     }, []);
 
     // ─── Data Fetching & D3 Force Layout ────────────────────────────────────
-    
+
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -356,37 +355,46 @@ const SchemaGraph: React.FC<SchemaGraphProps> = ({ connectionString }) => {
                     .stop();
 
                 // Run simulation synchronously
-                for (let i = 0; i < 300; ++i) simulation.tick();
+                let ticks = 0;
+                const runChunk = () => {
+                    for (let i = 0; i < 50; ++i) simulation.tick();
+                    ticks += 50;
+                    
+                    if (ticks < 300) {
+                        requestAnimationFrame(runChunk);
+                    } else {
+                        // Format for ReactFlow
+                        const flowNodes = layoutNodes.map((node: any) => ({
+                            id: node.id,
+                            type: 'tableNode',
+                            position: { x: node.x, y: node.y },
+                            data: node.data
+                        }));
 
-                // Format for ReactFlow
-                const flowNodes = layoutNodes.map((node: any) => ({
-                    id: node.id,
-                    type: 'tableNode',
-                    position: { x: node.x, y: node.y },
-                    data: node.data
-                }));
+                        const flowEdges = data.edges.map((e: any) => ({
+                            ...e,
+                            type: 'custom',
+                            animated: true,
+                            data: {
+                                onHoverToggle: handleEdgeHoverToggle
+                            },
+                            markerEnd: {
+                                type: MarkerType.ArrowClosed,
+                                width: 15,
+                                height: 15,
+                                color: '#8b5cf6',
+                            },
+                        }));
 
-                const flowEdges = data.edges.map((e: any) => ({
-                    ...e,
-                    type: 'custom',
-                    animated: true,
-                    data: {
-                        onHoverToggle: handleEdgeHoverToggle
-                    },
-                    markerEnd: {
-                        type: MarkerType.ArrowClosed,
-                        width: 15,
-                        height: 15,
-                        color: '#8b5cf6',
-                    },
-                }));
-
-                setNodes(flowNodes);
-                setEdges(flowEdges);
+                        setNodes(flowNodes);
+                        setEdges(flowEdges);
+                        setLoading(false);
+                    }
+                };
+                requestAnimationFrame(runChunk);
 
             } catch (error) {
                 console.error('Failed to fetch graph data:', error);
-            } finally {
                 setLoading(false);
             }
         };
@@ -401,23 +409,16 @@ const SchemaGraph: React.FC<SchemaGraphProps> = ({ connectionString }) => {
 
     // ─── Update Node & Edge States based on Current Features ───────────────
 
+    // Nodes Update
     useEffect(() => {
         if (!graphData.nodes.length) return;
 
-        // Determine Ego-Graph scope
         let focusedScope = new Set<string>();
-        let focusedEdgesScope = new Set<string>();
-
         if (focusedNodeId) {
             focusedScope.add(focusedNodeId);
             graphData.edges.forEach((e: any) => {
-                if (e.source === focusedNodeId) {
-                    focusedScope.add(e.target);
-                    focusedEdgesScope.add(e.id);
-                } else if (e.target === focusedNodeId) {
-                    focusedScope.add(e.source);
-                    focusedEdgesScope.add(e.id);
-                }
+                if (e.source === focusedNodeId) focusedScope.add(e.target);
+                else if (e.target === focusedNodeId) focusedScope.add(e.source);
             });
         }
 
@@ -429,37 +430,71 @@ const SchemaGraph: React.FC<SchemaGraphProps> = ({ connectionString }) => {
                 node.data.columns?.some((c: any) => c.name.toLowerCase().includes(searchQuery.toLowerCase()))
             );
 
+            const newData = {
+                ...node.data,
+                isExpanded: expandedNodeIds.has(node.id),
+                onToggleExpand: handleToggleExpand,
+                onFocusNode: handleFocusNode,
+                isFocused,
+                isDimmed,
+                isSearchHighlighted,
+                overlayMode,
+            };
+
+            const isChanged = 
+                node.data.isExpanded !== newData.isExpanded ||
+                node.data.isFocused !== newData.isFocused ||
+                node.data.isDimmed !== newData.isDimmed ||
+                node.data.isSearchHighlighted !== newData.isSearchHighlighted ||
+                node.data.overlayMode !== newData.overlayMode;
+
+            if (!isChanged) return node;
+
             return {
                 ...node,
-                data: {
-                    ...node.data,
-                    isExpanded: expandedNodeIds.has(node.id),
-                    onToggleExpand: handleToggleExpand,
-                    onFocusNode: handleFocusNode,
-                    isFocused,
-                    isDimmed,
-                    isSearchHighlighted,
-                    overlayMode,
-                }
+                data: newData
             };
         }));
+    }, [focusedNodeId, searchQuery, overlayMode, expandedNodeIds, graphData, setNodes, handleToggleExpand, handleFocusNode]);
+
+    // Edges Update
+    useEffect(() => {
+        if (!graphData.edges.length) return;
+
+        let focusedEdgesScope = new Set<string>();
+        if (focusedNodeId) {
+            graphData.edges.forEach((e: any) => {
+                if (e.source === focusedNodeId || e.target === focusedNodeId) {
+                    focusedEdgesScope.add(e.id);
+                }
+            });
+        }
 
         setEdges((eds) => eds.map((edge) => {
             const isDimmed = focusedNodeId ? !focusedEdgesScope.has(edge.id) : false;
             const isHovered = edge.id === hoveredEdgeId;
             const isFocused = focusedNodeId && focusedEdgesScope.has(edge.id);
 
+            const newData = {
+                ...edge.data,
+                isDimmed,
+                isHovered,
+                isFocused
+            };
+
+            const isChanged = 
+                edge.data.isDimmed !== newData.isDimmed ||
+                edge.data.isHovered !== newData.isHovered ||
+                edge.data.isFocused !== newData.isFocused;
+
+            if (!isChanged) return edge;
+
             return {
                 ...edge,
-                data: {
-                    ...edge.data,
-                    isDimmed,
-                    isHovered,
-                    isFocused
-                }
+                data: newData
             };
         }));
-    }, [focusedNodeId, searchQuery, overlayMode, hoveredEdgeId, expandedNodeIds, graphData, setNodes, setEdges, handleToggleExpand, handleFocusNode]);
+    }, [focusedNodeId, hoveredEdgeId, graphData, setEdges]);
 
 
     const onConnect = useCallback(
@@ -469,8 +504,8 @@ const SchemaGraph: React.FC<SchemaGraphProps> = ({ connectionString }) => {
 
     if (loading) {
         return (
-            <div style={{ width: '100%', height: '700px', display: 'flex', alignItems: 'center', justifyContent: 'center' }} className="bg-[#0a0a0f]/50 backdrop-blur-sm relative outline-none border-none rounded-b-xl overflow-hidden">
-                <div className="text-violet-500 animate-pulse font-medium text-sm flex items-center gap-2">
+            <div style={{ width: '100%', height: '700px', display: 'flex', alignItems: 'center', justifyContent: 'center' }} className="bg-white relative outline-none border border-gray-100 rounded-b-3xl overflow-hidden">
+                <div className="text-violet-600 animate-pulse font-bold text-sm flex items-center gap-2">
                     <Database size={16} className="animate-spin" /> Analyzing & Clustering Schema...
                 </div>
             </div>
@@ -479,8 +514,8 @@ const SchemaGraph: React.FC<SchemaGraphProps> = ({ connectionString }) => {
 
     if (!nodes || nodes.length === 0) {
         return (
-            <div style={{ width: '100%', height: '700px', display: 'flex', alignItems: 'center', justifyContent: 'center' }} className="bg-[#0a0a0f]/50 backdrop-blur-sm relative outline-none border-none rounded-b-xl overflow-hidden">
-                <div className="text-slate-500 font-medium text-sm flex flex-col items-center gap-3">
+            <div style={{ width: '100%', height: '700px', display: 'flex', alignItems: 'center', justifyContent: 'center' }} className="bg-white relative outline-none border border-gray-100 rounded-b-3xl overflow-hidden">
+                <div className="text-gray-400 font-bold text-sm flex flex-col items-center gap-3">
                     <Database size={48} className="opacity-20" /> No schema tables found
                 </div>
             </div>
@@ -488,27 +523,26 @@ const SchemaGraph: React.FC<SchemaGraphProps> = ({ connectionString }) => {
     }
 
     return (
-        <div className="relative bg-[#0a0a0f]/50 backdrop-blur-sm block rounded-b-xl overflow-hidden border-t-0 border border-white/5">
-            
+        <div className="relative bg-gray-50/50 block rounded-b-3xl overflow-hidden border-t border-gray-100">
+
             {/* Top Navigation & Filters Bar */}
             <div className="absolute top-4 left-4 right-4 z-20 flex flex-wrap items-center justify-between gap-4 pointer-events-none">
-                
+
                 {/* Breadcrumbs for Focus Mode */}
-                <div className="flex items-center gap-2 bg-[#0f0f19]/80 backdrop-blur-md px-4 py-2 rounded-lg border border-white/10 shadow-xl pointer-events-auto">
-                    <button 
+                <div className="flex items-center gap-2 bg-white/90 backdrop-blur-md px-4 py-2 rounded-xl border border-gray-200 shadow-sm pointer-events-auto">
+                    <button
                         onClick={handleClearFocus}
-                        className={`text-sm font-medium transition-colors ${!focusedNodeId ? 'text-violet-400' : 'text-slate-400 hover:text-white'}`}
+                        className={`text-sm font-bold transition-colors ${!focusedNodeId ? 'text-violet-700' : 'text-gray-500 hover:text-gray-900'}`}
                     >
                         All Tables
                     </button>
                     {breadcrumbs.map((crumb, idx) => (
                         <div key={crumb.id} className="flex items-center gap-2">
-                            <ChevronRight size={14} className="text-slate-600" />
+                            <ChevronRight size={14} className="text-gray-400" />
                             <button
                                 onClick={() => handleFocusNode(crumb.id)}
-                                className={`text-sm tracking-tight transition-colors ${
-                                    idx === breadcrumbs.length - 1 ? 'text-violet-400 font-semibold' : 'text-slate-400 hover:text-white'
-                                }`}
+                                className={`text-sm tracking-tight transition-colors ${idx === breadcrumbs.length - 1 ? 'text-violet-600 font-bold' : 'text-gray-500 font-medium hover:text-gray-900'
+                                    }`}
                             >
                                 {crumb.label}
                             </button>
@@ -519,25 +553,24 @@ const SchemaGraph: React.FC<SchemaGraphProps> = ({ connectionString }) => {
                 {/* Right side controls (Search & Overlay) */}
                 <div className="flex items-center gap-3 pointer-events-auto">
                     {/* Search Bar */}
-                    <div className="relative group">
-                        <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-amber-400 transition-colors" />
-                        <input 
-                            type="text" 
-                            placeholder="Find table or column..." 
+                    <div className="relative group shadow-sm">
+                        <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-amber-500 transition-colors" />
+                        <input
+                            type="text"
+                            placeholder="Find table or column..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
-                            className="bg-[#0f0f19]/80 backdrop-blur-md border border-white/10 text-white text-sm rounded-lg pl-9 pr-4 py-2 w-64 focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500/50 transition-all placeholder:text-slate-600 shadow-xl"
+                            className="bg-white/90 backdrop-blur-md border border-gray-200 text-gray-900 font-medium text-sm rounded-xl pl-9 pr-4 py-2 w-64 focus:outline-none focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition-all placeholder:text-gray-400 shadow-sm"
                         />
                     </div>
-                    
+
                     {/* Storage Heatmap Toggle */}
                     <button
                         onClick={() => setOverlayMode(!overlayMode)}
-                        className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-sm transition-all shadow-xl ${
-                            overlayMode 
-                            ? 'bg-rose-500/20 border-rose-500/50 text-rose-300' 
-                            : 'bg-[#0f0f19]/80 backdrop-blur-md border-white/10 text-slate-400 hover:text-white'
-                        }`}
+                        className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-sm font-bold transition-all shadow-sm ${overlayMode
+                                ? 'bg-rose-50 border-rose-200 text-rose-600'
+                                : 'bg-white/90 backdrop-blur-md border-gray-200 text-gray-500 hover:text-gray-900'
+                            }`}
                         title="Toggle Storage Heatmap overlay"
                     >
                         <Layers size={14} />
@@ -561,34 +594,34 @@ const SchemaGraph: React.FC<SchemaGraphProps> = ({ connectionString }) => {
                 >
                     <Controls
                         showInteractive={false}
-                        className="bg-[#0f0f19] border border-white/10 rounded-lg overflow-hidden fill-slate-300 pointer-events-auto"
+                        className="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden fill-gray-500 pointer-events-auto"
                     />
                     <MiniMap
-                        nodeColor={(n: any) => n.data?.isFocused ? '#8b5cf6' : n.data?.moduleColor || '#475569'}
-                        maskColor="rgba(10, 10, 15, 0.8)"
-                        className="bg-[#0f0f19] border border-white/10 rounded-xl overflow-hidden hidden lg:block !w-48 !h-32"
+                        nodeColor={(n: any) => n.data?.isFocused ? '#8b5cf6' : n.data?.moduleColor || '#94a3b8'}
+                        maskColor="rgba(255, 255, 255, 0.6)"
+                        className="bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden hidden lg:block !w-48 !h-32"
                     />
-                    <Background color="rgba(139, 92, 246, 0.1)" gap={32} size={1} />
+                    <Background color="#cbd5e1" gap={32} size={1.5} />
                 </ReactFlow>
             </div>
-            
+
             {/* Visual Legend */}
             <div className="absolute bottom-4 left-4 z-20 pointer-events-none hidden md:block">
-                <div className="bg-[#0f0f19]/80 backdrop-blur-md border border-white/10 rounded-lg p-3 shadow-xl">
-                    <div className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-2">Legend</div>
+                <div className="bg-white/90 backdrop-blur-md border border-gray-200 rounded-xl p-4 shadow-sm">
+                    <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2.5">Legend</div>
                     <div className="flex flex-col gap-2">
-                        <div className="flex items-center gap-2 text-xs text-slate-300">
-                            <div className="w-3 h-3 rounded-full bg-violet-500/20 border border-violet-500"></div> Focal Node
+                        <div className="flex items-center gap-2 text-xs text-gray-600 font-medium">
+                            <div className="w-3 h-3 rounded-full bg-violet-100 border border-violet-500"></div> Focal Node
                         </div>
-                        <div className="flex items-center gap-2 text-xs text-slate-300">
-                            <div className="w-3 h-3 rounded bg-amber-400/20 border border-amber-400"></div> Search Match
+                        <div className="flex items-center gap-2 text-xs text-gray-600 font-medium">
+                            <div className="w-3 h-3 rounded bg-amber-100 border border-amber-400"></div> Search Match
                         </div>
-                        <div className="flex items-center gap-2 text-xs text-slate-300">
-                            <Zap size={12} className="text-amber-400" /> High-Degree Node
+                        <div className="flex items-center gap-2 text-xs text-gray-600 font-medium">
+                            <Zap size={12} className="text-amber-500" /> High-Degree Node
                         </div>
                         {overlayMode && (
-                            <div className="flex items-center gap-2 text-xs text-slate-300 mt-1 pt-1 border-t border-white/5">
-                                <div className="w-full h-1.5 rounded-full bg-gradient-to-r from-transparent to-red-600"></div> Size Heatmap
+                            <div className="flex items-center gap-2 text-xs text-gray-600 font-bold mt-1.5 pt-1.5 border-t border-gray-100">
+                                <div className="w-full h-1.5 rounded-full bg-gradient-to-r from-gray-100 to-rose-600"></div> Size Heatmap
                             </div>
                         )}
                     </div>

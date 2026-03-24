@@ -55,9 +55,9 @@ interface SimResult {
 // ── Colour maps ──────────────────────────────────────────────────────────────
 
 const RISK = {
-    high: { bg: '#450a0a', text: '#fca5a5', label: 'HIGH' },
-    medium: { bg: '#422006', text: '#fdba74', label: 'MEDIUM' },
-    low: { bg: '#052e16', text: '#86efac', label: 'LOW' },
+    high: { bg: '#fef2f2', text: '#dc2626', label: 'HIGH' },
+    medium: { bg: '#fff7ed', text: '#ea580c', label: 'MEDIUM' },
+    low: { bg: '#f0fdf4', text: '#16a34a', label: 'LOW' },
 };
 
 const STATUS_COLOR: Record<string, string> = {
@@ -164,27 +164,27 @@ export default function PerformancePage() {
             <div className="flex flex-col h-full w-full max-w-[1400px] mx-auto pb-10">
 
             {/* ── Top bar ── */}
-            <div className="flex items-center justify-between p-6 px-4 md:px-8 bg-transparent">
+            <div className="flex items-center justify-between p-6 px-4 md:px-8 bg-transparent border-b border-gray-200">
                 <div className="flex items-center gap-4">
-                    <h1 className="m-0 text-xl font-bold text-slate-100 flex items-center gap-2">
+                    <h1 className="m-0 text-xl font-bold text-gray-900 flex items-center gap-2">
                         <Zap size={22} className="text-amber-500" /> Predictive Indexing
                     </h1>
-                    <button onClick={() => router.push('/dashboard/data')} className="ml-2 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold cursor-pointer hover:bg-emerald-500/20 transition-colors">
+                    <button onClick={() => router.push('/dashboard/data')} className="ml-2 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold cursor-pointer hover:bg-emerald-100 transition-colors shadow-sm">
                         <Database size={14} /> View Data
                     </button>
                 </div>
                 <div className="flex items-center gap-3">
-                    <button onClick={() => setShowLearn(v => !v)} style={{ background: 'rgba(99,102,241,0.1)', border: '1px solid rgba(99,102,241,0.25)', borderRadius: 6, padding: '5px 11px', cursor: 'pointer', color: '#818cf8', fontSize: 12, display: 'flex', alignItems: 'center', gap: 5 }}>
-                        <BookOpen size={12} /> How Indexing Works
+                    <button onClick={() => setShowLearn(v => !v)} className="bg-indigo-50 border border-indigo-200 rounded-lg px-3 py-1.5 cursor-pointer text-indigo-700 text-xs flex items-center gap-1.5 hover:bg-indigo-100 transition-colors shadow-sm">
+                        <BookOpen size={14} /> How Indexing Works
                     </button>
-                    <label style={{ display: 'flex', alignItems: 'center', gap: 5, cursor: 'pointer', fontSize: 12, color: '#6b7280' }}>
-                        <input type="checkbox" checked={withAI} onChange={e => setWithAI(e.target.checked)} style={{ accentColor: '#7c3aed' }} />
+                    <label style={{ display: 'flex', alignItems: 'center', gap: 5, cursor: 'pointer', fontSize: 13, color: '#4b5563', fontWeight: 500 }}>
+                        <input type="checkbox" checked={withAI} onChange={e => setWithAI(e.target.checked)} className="accent-violet-600" />
                         AI insights
                     </label>
                     <Button size="sm" disabled={!connectionString || loading}
                         onClick={() => connectionString && runAnalysis(connectionString, withAI)}
-                        style={{ background: '#7c3aed', color: 'white', fontSize: 12 }}>
-                        {loading ? <Loader2 size={13} className="animate-spin mr-1" /> : <Zap size={13} className="mr-1" />}
+                        className="bg-violet-600 hover:bg-violet-700 text-white shadow-sm font-semibold">
+                        {loading ? <Loader2 size={14} className="animate-spin mr-1.5" /> : <Zap size={14} className="mr-1.5" />}
                         {loading ? 'Scanning…' : 'Re-scan'}
                     </Button>
                 </div>
@@ -192,30 +192,32 @@ export default function PerformancePage() {
 
             {/* ── Learn panel ──────────────────────────────────────────────── */}
             {showLearn && (
-                <div style={{ background: '#0a0a1a', borderBottom: '1px solid #1e1e2e', padding: '20px 28px' }}>
+                <div style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0', padding: '24px 28px' }}>
                     <div style={{ maxWidth: 860, margin: '0 auto' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 14 }}>
-                            <h2 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: '#a78bfa' }}>📚 Why Indexing Matters</h2>
-                            <button onClick={() => setShowLearn(false)} style={{ background: 'none', border: 'none', color: '#4b5563', cursor: 'pointer' }}><XCircle size={16} /></button>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
+                            <h2 style={{ margin: 0, fontSize: 16, fontWeight: 700, color: '#6d28d9', display: 'flex', alignItems: 'center', gap: 8 }}>
+                                <BookOpen size={18} /> Why Indexing Matters
+                            </h2>
+                            <button onClick={() => setShowLearn(false)} style={{ background: 'none', border: 'none', color: '#64748b', cursor: 'pointer' }} className="hover:text-gray-900 transition-colors"><XCircle size={18} /></button>
                         </div>
-                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14, fontSize: 13, lineHeight: 1.6 }}>
-                            <div style={{ background: '#0f0f1a', border: '1px solid #2e2e4e', borderRadius: 10, padding: '14px 16px' }}>
-                                <p style={{ color: '#f59e0b', fontWeight: 700, margin: '0 0 6px', fontSize: 13 }}>📖 The Library Analogy</p>
-                                <p style={{ color: '#9ca3af', margin: 0 }}><strong style={{ color: '#e2e8f0' }}>Without index:</strong> Read every page to find "Deep Learning". In databases = Full Table Scan across every row.</p>
-                                <p style={{ color: '#9ca3af', margin: '8px 0 0' }}><strong style={{ color: '#e2e8f0' }}>With index:</strong> Flip to the back, find page 452, jump there. Turns O(n) into O(log n).</p>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16, fontSize: 13, lineHeight: 1.6 }}>
+                            <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 12, padding: '16px 20px', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}>
+                                <p style={{ color: '#d97706', fontWeight: 700, margin: '0 0 8px', fontSize: 14, display: 'flex', alignItems: 'center', gap: 6 }}><BookOpen size={14}/> The Library Analogy</p>
+                                <p style={{ color: '#475569', margin: 0 }}><strong style={{ color: '#1e293b' }}>Without index:</strong> Read every page to find "Deep Learning". In databases = Full Table Scan across every row.</p>
+                                <p style={{ color: '#475569', margin: '8px 0 0' }}><strong style={{ color: '#1e293b' }}>With index:</strong> Flip to the back, find page 452, jump there. Turns O(n) into O(log n).</p>
                             </div>
-                            <div style={{ background: '#0f0f1a', border: '1px solid #2e2e4e', borderRadius: 10, padding: '14px 16px' }}>
-                                <p style={{ color: '#60a5fa', fontWeight: 700, margin: '0 0 6px', fontSize: 13 }}>⚖️ Space vs Speed Trade-off</p>
-                                <p style={{ color: '#9ca3af', margin: 0 }}>Indexes <strong style={{ color: '#e2e8f0' }}>take up storage</strong> and slow down INSERT/UPDATE (the index must also be updated).</p>
-                                <p style={{ color: '#9ca3af', margin: '8px 0 0' }}><strong style={{ color: '#ef4444' }}>Zombie indexes</strong> — unused for 30+ days — waste space with zero benefit. Drop them.</p>
+                            <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 12, padding: '16px 20px', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}>
+                                <p style={{ color: '#2563eb', fontWeight: 700, margin: '0 0 8px', fontSize: 14, display: 'flex', alignItems: 'center', gap: 6 }}>⚖️ Space vs Speed Trade-off</p>
+                                <p style={{ color: '#475569', margin: 0 }}>Indexes <strong style={{ color: '#1e293b' }}>take up storage</strong> and slow down INSERT/UPDATE (the index must also be updated).</p>
+                                <p style={{ color: '#475569', margin: '8px 0 0' }}><strong style={{ color: '#dc2626' }}>Zombie indexes</strong> — unused for 30+ days — waste space with zero benefit. Drop them.</p>
                             </div>
-                            <div style={{ background: '#0f0f1a', border: '1px solid #2e2e4e', borderRadius: 10, padding: '14px 16px' }}>
-                                <p style={{ color: '#4ade80', fontWeight: 700, margin: '0 0 6px', fontSize: 13 }}>🔄 Index Lifecycle</p>
-                                <ul style={{ color: '#9ca3af', margin: 0, paddingLeft: 16 }}>
-                                    <li><strong style={{ color: '#e2e8f0' }}>Identify</strong> — Bottleneck Map shows hot unindexed columns</li>
-                                    <li><strong style={{ color: '#e2e8f0' }}>Create</strong> — AI generates the exact SQL</li>
-                                    <li><strong style={{ color: '#e2e8f0' }}>Simulate</strong> — Test on shadow DB before production</li>
-                                    <li><strong style={{ color: '#e2e8f0' }}>Clean up</strong> — Remove zombie indexes</li>
+                            <div style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 12, padding: '16px 20px', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}>
+                                <p style={{ color: '#16a34a', fontWeight: 700, margin: '0 0 8px', fontSize: 14, display: 'flex', alignItems: 'center', gap: 6 }}>🔄 Index Lifecycle</p>
+                                <ul style={{ color: '#475569', margin: 0, paddingLeft: 18, display: 'flex', flexDirection: 'column', gap: 4 }}>
+                                    <li><strong style={{ color: '#1e293b' }}>Identify</strong> — Bottleneck Map shows hot unindexed columns</li>
+                                    <li><strong style={{ color: '#1e293b' }}>Create</strong> — AI generates the exact SQL</li>
+                                    <li><strong style={{ color: '#1e293b' }}>Simulate</strong> — Test on shadow DB before production</li>
+                                    <li><strong style={{ color: '#1e293b' }}>Clean up</strong> — Remove zombie indexes</li>
                                 </ul>
                             </div>
                         </div>
@@ -225,31 +227,33 @@ export default function PerformancePage() {
 
             {/* ── Summary bar ── */}
             {!loading && (
-                <div style={{ display: 'flex', gap: 0, borderBottom: '1px solid #1e1e2e', background: '#0a0a14' }}>
+                <div style={{ display: 'flex', gap: 0, borderBottom: '1px solid #e2e8f0', background: '#f8fafc' }}>
                     {[
-                        { label: 'Critical Columns', value: criticalCount, color: '#ef4444', sub: 'unindexed + high traffic' },
-                        { label: 'Zombie Indexes', value: zombies.length, color: '#f59e0b', sub: `${zombieSizeMB} MB wasted` },
-                        { label: 'Recommendations', value: recommendations.length, color: '#a78bfa', sub: 'CREATE INDEX suggestions' },
-                        { label: 'Tables Scanned', value: tableNames.length, color: '#60a5fa', sub: 'in public schema' },
+                        { label: 'Critical Columns', value: criticalCount, color: '#dc2626', sub: 'unindexed + high traffic' },
+                        { label: 'Zombie Indexes', value: zombies.length, color: '#d97706', sub: `${zombieSizeMB} MB wasted` },
+                        { label: 'Recommendations', value: recommendations.length, color: '#7c3aed', sub: 'CREATE INDEX suggestions' },
+                        { label: 'Tables Scanned', value: tableNames.length, color: '#2563eb', sub: 'in public schema' },
                     ].map(s => (
-                        <div key={s.label} style={{ flex: 1, padding: '14px 20px', borderRight: '1px solid #1e1e2e', textAlign: 'center' }}>
-                            <p style={{ margin: 0, fontSize: 26, fontWeight: 800, color: s.color, lineHeight: 1 }}>{s.value}</p>
-                            <p style={{ margin: '3px 0 0', fontSize: 12, fontWeight: 600, color: '#d1d5db' }}>{s.label}</p>
-                            <p style={{ margin: 0, fontSize: 10, color: '#4b5563' }}>{s.sub}</p>
+                        <div key={s.label} style={{ flex: 1, padding: '16px 24px', borderRight: '1px solid #e2e8f0', textAlign: 'center' }}>
+                            <p style={{ margin: 0, fontSize: 28, fontWeight: 800, color: s.color, lineHeight: 1 }}>{s.value}</p>
+                            <p style={{ margin: '6px 0 2px', fontSize: 13, fontWeight: 700, color: '#1e293b' }}>{s.label}</p>
+                            <p style={{ margin: 0, fontSize: 11, color: '#64748b' }}>{s.sub}</p>
                         </div>
                     ))}
                 </div>
             )}
 
             {/* ── Tab bar ── */}
-            <div style={{ display: 'flex', gap: 0, borderBottom: '1px solid #1e1e2e', background: '#0f0f1a', padding: '0 28px' }}>
+            <div style={{ display: 'flex', gap: 0, borderBottom: '1px solid #e2e8f0', background: '#ffffff', padding: '0 28px' }}>
                 {TABS.map(tab => {
                     const Icon = tab.icon;
                     const active = activeTab === tab.id;
                     return (
                         <button key={tab.id} onClick={() => setActiveTab(tab.id as any)}
-                            style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '12px 18px', background: 'none', border: 'none', cursor: 'pointer', color: active ? '#a78bfa' : '#4b5563', fontWeight: active ? 700 : 400, fontSize: 13, borderBottom: active ? '2px solid #7c3aed' : '2px solid transparent', transition: 'all 0.15s' }}>
-                            <Icon size={14} /> {tab.label}
+                            style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '14px 20px', background: 'none', border: 'none', cursor: 'pointer', color: active ? '#6d28d9' : '#64748b', fontWeight: active ? 700 : 500, fontSize: 14, borderBottom: active ? '2px solid #7c3aed' : '2px solid transparent', transition: 'all 0.15s' }}
+                            className="hover:text-gray-900 hover:bg-gray-50/50"
+                        >
+                            <Icon size={16} /> {tab.label}
                         </button>
                     );
                 })}
@@ -260,24 +264,25 @@ export default function PerformancePage() {
 
                 {loading ? (
                     <div style={{ textAlign: 'center', marginTop: 80 }}>
-                        <Loader2 size={32} style={{ color: '#7c3aed', animation: 'spin 1s linear infinite' }} />
-                        <p style={{ color: '#6b7280', marginTop: 12 }}>Scanning schema for index patterns…</p>
+                        <Loader2 size={36} style={{ color: '#7c3aed', animation: 'spin 1s linear infinite', margin: '0 auto' }} />
+                        <p style={{ color: '#64748b', marginTop: 16, fontSize: 15, fontWeight: 500 }}>Scanning schema for index patterns…</p>
                     </div>
                 ) : (
                     <>
                         {/* ─── Tab A: Bottleneck Map ─── */}
                         {activeTab === 'map' && (
                             <div>
-                                <p style={{ color: '#6b7280', fontSize: 13, marginBottom: 18 }}>
-                                    Columns highlighted in <span style={{ color: '#ef4444', fontWeight: 700 }}>red</span> are frequently scanned without an index — potential bottlenecks. <span style={{ color: '#f59e0b', fontWeight: 700 }}>Amber</span> = moderate risk. <span style={{ color: '#22c55e', fontWeight: 700 }}>Green</span> = healthy.
+                                <p style={{ color: '#475569', fontSize: 14, marginBottom: 20 }}>
+                                    Columns highlighted in <span style={{ color: '#dc2626', fontWeight: 700 }}>red</span> are frequently scanned without an index — potential bottlenecks. <span style={{ color: '#d97706', fontWeight: 700 }}>Amber</span> = moderate risk. <span style={{ color: '#16a34a', fontWeight: 700 }}>Green</span> = healthy.
                                 </p>
 
                                 {/* Table selector */}
                                 {tableNames.length > 1 && (
-                                    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 18 }}>
+                                    <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginBottom: 20 }}>
                                         {tableNames.map(t => (
                                             <button key={t} onClick={() => setSelectedTable(t)}
-                                                style={{ padding: '4px 12px', borderRadius: 6, border: '1px solid', borderColor: selectedTable === t ? '#7c3aed' : '#2e2e4e', background: selectedTable === t ? 'rgba(124,58,237,0.15)' : 'transparent', color: selectedTable === t ? '#a78bfa' : '#6b7280', cursor: 'pointer', fontSize: 12, fontWeight: selectedTable === t ? 700 : 400 }}>
+                                                style={{ padding: '6px 14px', borderRadius: 8, border: '1px solid', borderColor: selectedTable === t ? '#7c3aed' : '#e2e8f0', background: selectedTable === t ? '#f5f3ff' : '#ffffff', color: selectedTable === t ? '#6d28d9' : '#475569', cursor: 'pointer', fontSize: 13, fontWeight: selectedTable === t ? 600 : 500, boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}
+                                                className="hover:border-violet-400 transition-colors">
                                                 {t}
                                             </button>
                                         ))}
@@ -285,30 +290,33 @@ export default function PerformancePage() {
                                 )}
 
                                 {filteredCols.length === 0 ? (
-                                    <div style={{ textAlign: 'center', marginTop: 60 }}>
-                                        <CheckCircle size={36} style={{ color: '#22c55e', margin: '0 auto 10px' }} />
-                                        <p style={{ color: '#86efac' }}>No bottleneck columns detected.</p>
+                                    <div style={{ textAlign: 'center', marginTop: 60, background: '#f0fdf4', border: '1px solid #bbf7d0', padding: 40, borderRadius: 16 }}>
+                                        <CheckCircle size={48} style={{ color: '#22c55e', margin: '0 auto 16px' }} />
+                                        <p style={{ color: '#166534', fontSize: 16, fontWeight: 600, margin: 0 }}>No bottleneck columns detected.</p>
                                     </div>
                                 ) : (
-                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
                                         {filteredCols.map((col, i) => (
-                                            <div key={i} className={`glass glow-border card-hover relative overflow-hidden rounded-xl p-4 border border-${STATUS_COLOR[col.status] === '#ef4444' ? 'red-500/30' : STATUS_COLOR[col.status] === '#f59e0b' ? 'amber-500/30' : 'emerald-500/30'}`}>
+                                            <div key={i} className={`bg-white relative overflow-hidden rounded-xl p-5 border shadow-sm hover:shadow-md transition-shadow`} style={{ borderColor: STATUS_COLOR[col.status] === '#ef4444' ? '#fecaca' : STATUS_COLOR[col.status] === '#f59e0b' ? '#fde68a' : '#bbf7d0' }}>
                                                 {/* status accent bar */}
-                                                <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: STATUS_COLOR[col.status] }} />
-                                                <div className="flex items-center gap-2 mb-2">
-                                                    <span style={{ width: 8, height: 8, borderRadius: '50%', background: STATUS_COLOR[col.status], flexShrink: 0, boxShadow: `0 0 6px ${STATUS_COLOR[col.status]}` }} />
-                                                    <span className="font-bold text-sm text-slate-200">{col.column_name}</span>
+                                                <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 4, background: STATUS_COLOR[col.status] }} />
+                                                <div className="flex items-center gap-3 mb-3">
+                                                    <span style={{ width: 10, height: 10, borderRadius: '50%', background: STATUS_COLOR[col.status], flexShrink: 0 }} />
+                                                    <span className="font-bold text-sm text-gray-900">{col.column_name}</span>
                                                     {col.is_indexed && (
-                                                        <span className="ml-auto text-[10px] text-emerald-400 bg-emerald-950 px-1.5 py-0.5 rounded">indexed</span>
+                                                        <span className="ml-auto text-[10px] text-emerald-700 bg-emerald-100 border border-emerald-200 px-2 py-0.5 rounded font-bold uppercase tracking-wider">indexed</span>
                                                     )}
                                                 </div>
-                                                <p className="m-0 text-xs text-slate-400 font-mono">{col.data_type}</p>
-                                                <div className="flex gap-3 mt-3 text-xs text-slate-500">
-                                                    <span>🔍 {col.seq_scan_count} scans</span>
-                                                    <span>📦 {col.row_count.toLocaleString()} rows</span>
+                                                <p className="m-0 text-xs text-gray-500 font-mono bg-gray-50 p-1.5 rounded border border-gray-100 inline-block">{col.data_type}</p>
+                                                <div className="flex gap-4 mt-4 py-3 border-t border-b border-gray-100 text-xs text-gray-600 font-medium">
+                                                    <span className="flex items-center gap-1.5"><Search size={14} className="text-gray-400"/> {col.seq_scan_count} scans</span>
+                                                    <span className="flex items-center gap-1.5"><Database size={14} className="text-gray-400"/> {col.row_count.toLocaleString()} rows</span>
                                                 </div>
                                                 {col.status !== 'healthy' && (
-                                                    <p style={{ color: STATUS_COLOR[col.status] }} className="mt-3 text-xs leading-relaxed">{col.suggestion}</p>
+                                                    <div className="mt-4 flex items-start gap-2">
+                                                        <AlertCircle size={14} style={{ color: STATUS_COLOR[col.status], flexShrink: 0, marginTop: 2 }} />
+                                                        <p style={{ color: STATUS_COLOR[col.status] === '#ef4444' ? '#991b1b' : '#92400e', margin: 0 }} className="text-xs leading-relaxed font-medium">{col.suggestion}</p>
+                                                    </div>
                                                 )}
                                             </div>
                                         ))}
@@ -320,47 +328,50 @@ export default function PerformancePage() {
                         {/* ─── Tab B: Zombie Indexes ─── */}
                         {activeTab === 'zombies' && (
                             <div>
-                                <p style={{ color: '#6b7280', fontSize: 13, marginBottom: 18 }}>
-                                    These indexes have <strong style={{ color: '#f87171' }}>0 scans</strong> — they have never been used to answer a query. Each one wastes storage and slows down every INSERT/UPDATE on its table.
+                                <p style={{ color: '#475569', fontSize: 14, marginBottom: 20 }}>
+                                    These indexes have <strong style={{ color: '#dc2626' }}>0 scans</strong> — they have never been used to answer a query. Each one wastes storage and slows down every INSERT/UPDATE on its table.
                                 </p>
                                 {zombies.length === 0 ? (
-                                    <div style={{ textAlign: 'center', marginTop: 60 }}>
-                                        <CheckCircle size={36} style={{ color: '#22c55e', margin: '0 auto 10px' }} />
-                                        <p style={{ color: '#86efac' }}>No zombie indexes found — your schema is lean!</p>
+                                    <div style={{ textAlign: 'center', marginTop: 60, background: '#f0fdf4', border: '1px solid #bbf7d0', padding: 40, borderRadius: 16 }}>
+                                        <CheckCircle size={48} style={{ color: '#22c55e', margin: '0 auto 16px' }} />
+                                        <p style={{ color: '#166534', fontSize: 16, fontWeight: 600, margin: 0 }}>No zombie indexes found — your schema is lean!</p>
                                     </div>
                                 ) : (
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                                         {/* Aggregate saving banner */}
-                                        <div style={{ display: 'flex', gap: 16, padding: '14px 18px', background: '#1a0f00', border: '1px solid #92400e', borderRadius: 10, alignItems: 'center' }}>
-                                            <Trash2 size={22} style={{ color: '#f59e0b', flexShrink: 0 }} />
+                                        <div style={{ display: 'flex', gap: 16, padding: '16px 20px', background: '#fffbeb', border: '1px solid #fde68a', borderRadius: 12, alignItems: 'center', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}>
+                                            <Trash2 size={24} style={{ color: '#d97706', flexShrink: 0 }} />
                                             <div>
-                                                <p style={{ margin: 0, fontWeight: 700, color: '#fbbf24' }}>Drop all {zombies.length} zombie indexes to reclaim {zombieSizeMB} MB</p>
-                                                <p style={{ margin: 0, fontSize: 12, color: '#92400e' }}>Each dropped index also speeds up write operations (INSERT / UPDATE) on its table.</p>
+                                                <p style={{ margin: 0, fontWeight: 700, color: '#92400e', fontSize: 15 }}>Drop all {zombies.length} zombie indexes to reclaim {zombieSizeMB} MB</p>
+                                                <p style={{ margin: '4px 0 0', fontSize: 13, color: '#b45309' }}>Each dropped index also speeds up write operations (INSERT / UPDATE) on its table.</p>
                                             </div>
                                         </div>
 
                                         {zombies.map((z, i) => (
-                                            <div key={i} style={{ background: '#0f0f1a', border: '1px solid #2e2e4e', borderRadius: 10, padding: '16px 18px' }}>
-                                                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12 }}>
+                                            <div key={i} style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 12, padding: '20px 24px', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}>
+                                                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16 }}>
                                                     <div style={{ flex: 1 }}>
-                                                        <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 4 }}>
-                                                            <span style={{ fontWeight: 700, fontSize: 14, color: '#fbbf24' }}>{z.index_name}</span>
-                                                            <span style={{ fontSize: 11, color: '#6b7280' }}>on {z.table_name}</span>
+                                                        <div style={{ display: 'flex', gap: 10, alignItems: 'center', marginBottom: 8 }}>
+                                                            <span style={{ fontWeight: 700, fontSize: 15, color: '#111827' }}>{z.index_name}</span>
+                                                            <span style={{ fontSize: 12, color: '#64748b', background: '#f8fafc', padding: '2px 8px', borderRadius: 6, border: '1px solid #e2e8f0' }}>on {z.table_name}</span>
                                                         </div>
-                                                        <code style={{ fontSize: 11, color: '#6ee7b7', fontFamily: 'monospace', display: 'block', marginBottom: 8 }}>{z.index_def}</code>
-                                                        <p style={{ margin: 0, fontSize: 12, color: '#9ca3af', lineHeight: 1.5 }}>{z.saving_note}</p>
+                                                        <code style={{ fontSize: 12, color: '#475569', fontFamily: 'monospace', display: 'block', marginBottom: 12, background: '#f1f5f9', padding: '6px 10px', borderRadius: 6, border: '1px solid #e2e8f0' }}>{z.index_def}</code>
+                                                        <p style={{ margin: 0, fontSize: 13, color: '#64748b', lineHeight: 1.6, display: 'flex', gap: 6 }}>
+                                                            <Info size={16} /> {z.saving_note}
+                                                        </p>
                                                     </div>
-                                                    <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                                                        <p style={{ margin: 0, fontSize: 18, fontWeight: 800, color: '#fbbf24' }}>{z.size_human}</p>
-                                                        <p style={{ margin: 0, fontSize: 10, color: '#4b5563', textTransform: 'uppercase' }}>wasted</p>
+                                                    <div style={{ textAlign: 'right', flexShrink: 0, background: '#f8fafc', padding: '12px 16px', borderRadius: 8, border: '1px solid #e2e8f0' }}>
+                                                        <p style={{ margin: 0, fontSize: 24, fontWeight: 800, color: '#d97706' }}>{z.size_human}</p>
+                                                        <p style={{ margin: '4px 0 0', fontSize: 11, color: '#64748b', textTransform: 'uppercase', fontWeight: 600 }}>wasted</p>
                                                     </div>
                                                 </div>
-                                                <div style={{ marginTop: 12, background: '#0d1117', border: '1px solid #1e2d3d', borderRadius: 6, padding: '8px 12px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                                                    <code style={{ fontSize: 12, color: '#f87171', fontFamily: 'monospace' }}>{z.drop_sql}</code>
+                                                <div style={{ marginTop: 20, background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 8, padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                                                    <code style={{ fontSize: 13, color: '#991b1b', fontFamily: 'monospace', fontWeight: 600 }}>{z.drop_sql}</code>
                                                     <button
                                                         onClick={() => navigator.clipboard.writeText(z.drop_sql)}
-                                                        style={{ background: 'none', border: 'none', color: '#4b5563', cursor: 'pointer', fontSize: 11, flexShrink: 0 }}>
-                                                        Copy
+                                                        className="hover:bg-red-100 transition-colors"
+                                                        style={{ background: 'white', border: '1px solid #fca5a5', color: '#dc2626', cursor: 'pointer', fontSize: 12, fontWeight: 600, flexShrink: 0, padding: '6px 12px', borderRadius: 6, boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}>
+                                                        Copy SQL
                                                     </button>
                                                 </div>
                                             </div>
@@ -373,81 +384,88 @@ export default function PerformancePage() {
                         {/* ─── Tab C: SQL Recommendations ─── */}
                         {activeTab === 'recs' && (
                             <div>
-                                <p style={{ color: '#6b7280', fontSize: 13, marginBottom: 18 }}>
-                                    Ranked by estimated impact. Click <strong style={{ color: '#a78bfa' }}>Simulate on Shadow DB</strong> to measure before/after query time without touching production.
+                                <p style={{ color: '#475569', fontSize: 14, marginBottom: 20 }}>
+                                    Ranked by estimated impact. Click <strong style={{ color: '#6d28d9' }}>Simulate on Shadow DB</strong> to measure before/after query time without touching production.
                                 </p>
                                 {recommendations.length === 0 ? (
-                                    <div style={{ textAlign: 'center', marginTop: 60 }}>
-                                        <CheckCircle size={36} style={{ color: '#22c55e', margin: '0 auto 10px' }} />
-                                        <p style={{ color: '#86efac' }}>No missing indexes detected.</p>
+                                    <div style={{ textAlign: 'center', marginTop: 60, background: '#f0fdf4', border: '1px solid #bbf7d0', padding: 40, borderRadius: 16 }}>
+                                        <CheckCircle size={48} style={{ color: '#22c55e', margin: '0 auto 16px' }} />
+                                        <p style={{ color: '#166534', fontSize: 16, fontWeight: 600, margin: 0 }}>No missing indexes detected.</p>
                                     </div>
                                 ) : (
-                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                                    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
                                         {recommendations.map((rec, idx) => {
                                             const risk = RISK[rec.risk_level] ?? RISK.low;
                                             const sim = simResults[idx];
                                             return (
-                                                <div key={idx} style={{ background: '#0f0f1a', border: '1px solid #2e2e4e', borderRadius: 12, padding: 20 }}>
+                                                <div key={idx} style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 16, padding: 24, boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)' }}>
                                                     {/* Header */}
-                                                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, marginBottom: 10 }}>
+                                                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, marginBottom: 16 }}>
                                                         <div style={{ flex: 1 }}>
-                                                            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
-                                                                <span style={{ fontSize: 11, fontWeight: 700, padding: '2px 8px', borderRadius: 4, background: risk.bg, color: risk.text }}>{risk.label}</span>
-                                                                <span style={{ color: '#7c3aed', fontWeight: 600, fontSize: 13 }}>{rec.table_name}.{rec.column_names.join(', ')}</span>
+                                                            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 10 }}>
+                                                                <span style={{ fontSize: 12, fontWeight: 700, padding: '4px 10px', borderRadius: 6, background: risk.bg, color: risk.text, border: `1px solid ${risk.text}30` }}>{risk.label}</span>
+                                                                <span style={{ color: '#6d28d9', fontWeight: 700, fontSize: 16 }}>{rec.table_name}.{rec.column_names.join(', ')}</span>
                                                                 {rec.query_frequency_pct > 0 && (
-                                                                    <span style={{ fontSize: 11, color: '#f59e0b', marginLeft: 8 }}>~{rec.query_frequency_pct.toFixed(0)}% of queries affected</span>
+                                                                    <span style={{ fontSize: 12, color: '#b45309', background: '#fffbeb', padding: '2px 8px', borderRadius: 6, border: '1px solid #fde68a' }}>~{rec.query_frequency_pct.toFixed(0)}% of queries affected</span>
                                                                 )}
                                                             </div>
-                                                            <p style={{ color: '#94a3b8', fontSize: 13, margin: 0, lineHeight: 1.5 }}>{rec.ai_explanation}</p>
+                                                            <p style={{ color: '#475569', fontSize: 14, margin: 0, lineHeight: 1.6 }}>{rec.ai_explanation}</p>
                                                         </div>
                                                         {/* Impact score */}
-                                                        <div style={{ width: 58, textAlign: 'center', flexShrink: 0 }}>
-                                                            <p style={{ fontSize: 22, fontWeight: 800, color: rec.impact_score > 60 ? '#f87171' : rec.impact_score > 30 ? '#fdba74' : '#86efac', margin: 0, lineHeight: 1 }}>{rec.impact_score}</p>
-                                                            <p style={{ fontSize: 10, color: '#4b5563', margin: 0, textTransform: 'uppercase', letterSpacing: '0.05em' }}>impact</p>
+                                                        <div style={{ width: 80, textAlign: 'center', flexShrink: 0, background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 12, padding: '12px 8px' }}>
+                                                            <p style={{ fontSize: 32, fontWeight: 800, color: rec.impact_score > 60 ? '#dc2626' : rec.impact_score > 30 ? '#d97706' : '#16a34a', margin: 0, lineHeight: 1 }}>{rec.impact_score}</p>
+                                                            <p style={{ fontSize: 11, color: '#64748b', margin: '4px 0 0', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>impact</p>
                                                         </div>
                                                     </div>
 
                                                     {/* Impact bar */}
-                                                    <div style={{ height: 4, background: '#1e1e2e', borderRadius: 99, marginBottom: 12, overflow: 'hidden' }}>
+                                                    <div style={{ height: 6, background: '#f1f5f9', borderRadius: 99, marginBottom: 20, overflow: 'hidden' }}>
                                                         <div style={{ height: '100%', width: `${rec.impact_score}%`, background: rec.impact_score > 60 ? '#ef4444' : rec.impact_score > 30 ? '#f59e0b' : '#22c55e', borderRadius: 99, transition: 'width 0.6s ease' }} />
                                                     </div>
 
                                                     {/* Generated SQL */}
-                                                    <div style={{ background: '#0d1117', border: '1px solid #1e2d3d', borderRadius: 6, padding: '8px 12px', marginBottom: 12, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-                                                        <code style={{ font: '11px/1.5 monospace', color: '#6ee7b7', wordBreak: 'break-all', flex: 1 }}>
-                                                            {`-- Generated by DB-Lighthouse AI\n${rec.index_sql}`}
+                                                    <div style={{ background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: 8, padding: '12px 16px', marginBottom: 16, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+                                                        <code style={{ font: '13px/1.6 monospace', color: '#0f172a', wordBreak: 'break-all', flex: 1, fontWeight: 500 }}>
+                                                            <span style={{ color: '#64748b', display: 'block', marginBottom: 4 }}>-- Generated by DB-Lighthouse AI</span>
+                                                            {rec.index_sql}
                                                         </code>
-                                                        <button onClick={() => navigator.clipboard.writeText(rec.index_sql)} style={{ background: 'none', border: 'none', color: '#4b5563', cursor: 'pointer', fontSize: 11, flexShrink: 0 }}>Copy</button>
+                                                        <button 
+                                                            onClick={() => navigator.clipboard.writeText(rec.index_sql)} 
+                                                            className="hover:bg-white hover:shadow-sm transition-all"
+                                                            style={{ background: 'transparent', border: '1px solid #cbd5e1', color: '#475569', cursor: 'pointer', fontSize: 12, fontWeight: 600, flexShrink: 0, padding: '6px 12px', borderRadius: 6 }}>
+                                                            Copy
+                                                        </button>
                                                     </div>
 
                                                     {/* Simulation result */}
                                                     {sim && (
-                                                        <div style={{ display: 'flex', gap: 16, marginBottom: 12, padding: '10px 14px', background: '#0a1628', borderRadius: 8, border: '1px solid #1e3a5f' }}>
+                                                        <div style={{ display: 'flex', gap: 20, marginBottom: 16, padding: '16px 20px', background: '#f0f9ff', borderRadius: 10, border: '1px solid #bae6fd' }}>
                                                             <div>
-                                                                <p style={{ fontSize: 11, color: '#6b7280', margin: 0 }}>Before</p>
-                                                                <p style={{ fontSize: 16, fontWeight: 700, color: '#f87171', margin: 0 }}>{sim.before_ms} ms</p>
+                                                                <p style={{ fontSize: 12, color: '#0369a1', margin: 0, fontWeight: 600 }}>Before</p>
+                                                                <p style={{ fontSize: 20, fontWeight: 800, color: '#dc2626', margin: '4px 0 0' }}>{sim.before_ms} <span style={{fontSize: 14, fontWeight: 600}}>ms</span></p>
                                                             </div>
-                                                            <div style={{ display: 'flex', alignItems: 'center', color: '#3b82f6' }}><TrendingUp size={18} /></div>
+                                                            <div style={{ display: 'flex', alignItems: 'center', color: '#0284c7' }}><TrendingUp size={24} /></div>
                                                             <div>
-                                                                <p style={{ fontSize: 11, color: '#6b7280', margin: 0 }}>After</p>
-                                                                <p style={{ fontSize: 16, fontWeight: 700, color: '#4ade80', margin: 0 }}>{sim.after_ms} ms</p>
+                                                                <p style={{ fontSize: 12, color: '#0369a1', margin: 0, fontWeight: 600 }}>After</p>
+                                                                <p style={{ fontSize: 20, fontWeight: 800, color: '#16a34a', margin: '4px 0 0' }}>{sim.after_ms} <span style={{fontSize: 14, fontWeight: 600}}>ms</span></p>
                                                             </div>
                                                             {sim.improvement_pct > 0 && (
-                                                                <div style={{ marginLeft: 'auto' }}>
-                                                                    <p style={{ fontSize: 11, color: '#6b7280', margin: 0 }}>Improvement</p>
-                                                                    <p style={{ fontSize: 18, fontWeight: 800, color: '#4ade80', margin: 0 }}>↓ {sim.improvement_pct}%</p>
+                                                                <div style={{ marginLeft: 'auto', textAlign: 'right' }}>
+                                                                    <p style={{ fontSize: 12, color: '#0369a1', margin: 0, fontWeight: 600 }}>Improvement</p>
+                                                                    <p style={{ fontSize: 24, fontWeight: 900, color: '#16a34a', margin: '2px 0 0' }}>↓ {sim.improvement_pct}%</p>
                                                                 </div>
                                                             )}
-                                                            {sim.error && <p style={{ color: '#f87171', fontSize: 12 }}>{sim.error}</p>}
+                                                            {sim.error && <p style={{ color: '#dc2626', fontSize: 13, fontWeight: 600, background: '#fef2f2', padding: '8px 12px', borderRadius: 6 }}>Error: {sim.error}</p>}
                                                         </div>
                                                     )}
 
-                                                    <Button size="sm" variant="outline" disabled={simulating === idx}
+                                                    <Button size="sm" disabled={simulating === idx}
                                                         onClick={() => handleSimulate(rec, idx)}
-                                                        style={{ borderColor: '#2e2e4e', color: '#a78bfa', fontSize: 12 }}>
+                                                        className="bg-violet-50 text-violet-700 border border-violet-200 hover:bg-violet-100 font-semibold shadow-sm w-full md:w-auto mt-2"
+                                                        style={{ fontSize: 13, padding: '18px 24px' }}>
                                                         {simulating === idx
-                                                            ? <><Loader2 size={12} className="mr-1 animate-spin" /> Simulating…</>
-                                                            : <><Zap size={12} className="mr-1" /> Simulate on Shadow DB</>}
+                                                            ? <><Loader2 size={16} className="mr-2 animate-spin" /> Simulating on Shadow DB…</>
+                                                            : <><Zap size={16} className="mr-2" /> Simulate on Shadow DB</>}
                                                     </Button>
                                                 </div>
                                             );

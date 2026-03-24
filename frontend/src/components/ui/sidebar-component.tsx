@@ -118,7 +118,7 @@ function SearchContainer({ isCollapsed = false }: { isCollapsed?: boolean }) {
   return (
     <div
       className={`relative shrink-0 transition-all duration-500 ${isCollapsed ? "w-full flex justify-center" : "w-full mb-6"
-        }`}
+        }`}https://github.com/AdityaRam24/database/pull/1/conflict?name=frontend%252Fsrc%252Fcomponents%252Fui%252Fsidebar-component.tsx&ancestor_oid=73e179c9a52307a4627c7941a65509a9bf6425aa&base_oid=45c9320f0df88394f93c02b5bd0ab32aadeef521&head_oid=15810deaa0f3c3a8e8348c51c169b303d76c44ef
       style={{ transitionTimingFunction: softSpringEasing }}
     >
       <div
@@ -132,7 +132,7 @@ function SearchContainer({ isCollapsed = false }: { isCollapsed?: boolean }) {
           style={{ transitionTimingFunction: softSpringEasing }}
         >
           <div className="size-8 flex items-center justify-center">
-            <SearchIcon size={16} className="text-slate-400" />
+            <SearchIcon size={16} className="text-gray-400" />
           </div>
         </div>
 
@@ -211,7 +211,7 @@ function ProjectDeleteAction({ project, onDeleted }: { project: Project, onDelet
         </button>
         <button
           onClick={e => { e.stopPropagation(); setConfirming(false); }}
-          className="text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-md bg-white/5 text-slate-400 hover:bg-white/10 border border-white/10 transition-colors"
+          className="text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-md bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-200 transition-colors"
         >
           Cancel
         </button>
@@ -222,7 +222,7 @@ function ProjectDeleteAction({ project, onDeleted }: { project: Project, onDelet
   return (
     <button
       onClick={(e) => { e.stopPropagation(); setConfirming(true); }}
-      className="opacity-0 group-hover:opacity-100 shrink-0 p-1.5 rounded-lg text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-all duration-150"
+      className="opacity-0 group-hover:opacity-100 shrink-0 p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-all duration-150"
       title="Remove database"
     >
       <Trash2 size={14} />
@@ -246,7 +246,7 @@ function useSidebarContent(
           items: projects.length > 0 ? projects.map(p => {
             let OriginIcon = <Database size={16} className="text-violet-400" />;
             if (p.connectionType === "file") OriginIcon = <FileCode size={16} className="text-amber-400" />;
-            else if (p.connectionType === "github") OriginIcon = <GithubIcon size={16} className="text-slate-300" />;
+            else if (p.connectionType === "github") OriginIcon = <GithubIcon size={16} className="text-gray-500" />;
             else if (p.connectionType === "ai") OriginIcon = <Sparkles size={16} className="text-rose-400" />;
 
             return {
@@ -256,7 +256,7 @@ function useSidebarContent(
               action: <ProjectDeleteAction project={p} onDeleted={() => onProjectDelete(p)} />
             };
           }) : [
-            { icon: <Dashboard size={16} className="text-slate-400" />, label: "No databases yet" }
+            { icon: <Dashboard size={16} className="text-gray-400" />, label: "No databases yet" }
           ],
         },
         {
@@ -279,7 +279,7 @@ function useSidebarContent(
           items: projects.length > 0 ? projects.map(p => {
             let OriginIcon = <FolderOpen size={16} className="text-blue-400" />;
             if (p.connectionType === "file") OriginIcon = <FileCode size={16} className="text-amber-400" />;
-            else if (p.connectionType === "github") OriginIcon = <GithubIcon size={16} className="text-slate-300" />;
+            else if (p.connectionType === "github") OriginIcon = <GithubIcon size={16} className="text-gray-500" />;
             else if (p.connectionType === "ai") OriginIcon = <Sparkles size={16} className="text-rose-400" />;
             else if (p.connectionType === "connection") OriginIcon = <Database size={16} className="text-violet-400" />;
 
@@ -290,7 +290,7 @@ function useSidebarContent(
               action: <ProjectDeleteAction project={p} onDeleted={() => onProjectDelete(p)} />
             };
           }) : [
-            { icon: <Folder size={16} className="text-slate-400" />, label: "No active projects" }
+            { icon: <Folder size={16} className="text-gray-400" />, label: "No active projects" }
           ],
         },
       ],
@@ -301,9 +301,9 @@ function useSidebarContent(
         {
           title: "Workspace",
           items: [
-            { icon: <UserIcon size={16} className="text-slate-300" />, label: "Profile settings" },
-            { icon: <Security size={16} className="text-slate-300" />, label: "Security" },
-            { icon: <Notification size={16} className="text-slate-300" />, label: "Notifications" },
+            { icon: <UserIcon size={16} className="text-gray-500" />, label: "Profile settings" },
+            { icon: <Security size={16} className="text-gray-500" />, label: "Security" },
+            { icon: <Notification size={16} className="text-gray-500" />, label: "Notifications" },
           ],
         },
       ],
@@ -393,7 +393,7 @@ function SectionTitle({
         <button
           type="button"
           onClick={onToggleCollapse}
-          className="flex items-center justify-center rounded-lg size-10 min-w-10 transition-all duration-500 hover:bg-white/10 text-slate-400 hover:text-slate-200"
+          className="flex items-center justify-center rounded-lg size-10 min-w-10 transition-all duration-500 hover:bg-gray-100 text-gray-400 hover:text-gray-800"
           style={{ transitionTimingFunction: softSpringEasing }}
           aria-label="Expand sidebar"
         >
@@ -410,7 +410,7 @@ function SectionTitle({
       <div className="flex items-center justify-between">
         <div className="flex items-center h-10">
           <div className="px-2 py-1">
-            <div className="font-['Lexend:SemiBold',_sans-serif] text-[20px] text-slate-100 leading-[27px] font-bold">
+            <div className="font-['Lexend:SemiBold',_sans-serif] text-[20px] text-gray-900 leading-[27px] font-bold">
               {title}
             </div>
           </div>
@@ -419,7 +419,7 @@ function SectionTitle({
           <button
             type="button"
             onClick={onToggleCollapse}
-            className="flex items-center justify-center rounded-lg size-10 min-w-10 transition-all duration-500 hover:bg-white/10 text-slate-400 hover:text-slate-200"
+            className="flex items-center justify-center rounded-lg size-10 min-w-10 transition-all duration-500 hover:bg-gray-100 text-gray-400 hover:text-gray-800"
             style={{ transitionTimingFunction: softSpringEasing }}
             aria-label="Collapse sidebar"
           >
@@ -544,7 +544,7 @@ function MenuItem({
           >
             <ChevronDownIcon
               size={16}
-              className="text-slate-400 transition-transform duration-500"
+              className="text-gray-400 transition-transform duration-500"
               style={{
                 transitionTimingFunction: softSpringEasing,
                 transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)",
@@ -567,11 +567,11 @@ function SubMenuItem({ item, onItemClick }: { item: MenuItemT; onItemClick?: () 
   return (
     <div className="w-full pl-8 pr-1 py-[2px]">
       <div
-        className="h-9 w-full rounded-lg cursor-pointer transition-colors hover:bg-white/5 flex items-center px-3 py-1"
+        className="h-9 w-full rounded-lg cursor-pointer transition-colors hover:bg-gray-100 flex items-center px-3 py-1"
         onClick={item.onClick || onItemClick}
       >
         <div className="flex-1 min-w-0">
-          <div className="font-['Lexend:Regular',_sans-serif] text-[13px] text-slate-400 hover:text-slate-200 transition-colors leading-[18px] truncate">
+          <div className="font-['Lexend:Regular',_sans-serif] text-[13px] text-gray-500 hover:text-gray-900 font-medium transition-colors leading-[18px] truncate">
             {item.label}
           </div>
         </div>
@@ -618,7 +618,7 @@ function MenuSection({
               isCollapsed={isCollapsed}
             />
             {isExpanded && item.children && !isCollapsed && (
-              <div className="flex flex-col gap-0.5 ml-2 border-l border-white/5 my-1">
+              <div className="flex flex-col gap-0.5 ml-2 border-l border-gray-200 my-1">
                 {item.children.map((child, childIndex) => (
                   <SubMenuItem
                     key={`${itemKey}-${childIndex}`}

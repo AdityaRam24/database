@@ -69,7 +69,7 @@ function MiniBarChart({ columns, rows }: { columns: string[]; rows: any[][] }) {
                                 className="h-4 rounded"
                                 style={{
                                     width: `${Math.max(4, (values[i] / max) * 100)}%`,
-                                    background: 'linear-gradient(90deg, #7c3aed, #4f46e5)',
+                                    background: 'linear-gradient(90deg, #8b5cf6, #6366f1)',
                                     minWidth: 4
                                 }}
                             />
@@ -315,11 +315,11 @@ const AskAIPanel: React.FC<AskAIPanelProps> = ({ connectionString, businessRules
                     </div>
 
                     {/* Messages */}
-                    <div className="flex-1 overflow-y-auto p-4 space-y-4" style={{ flex: 1 }}>
+                    <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50/50" style={{ flex: 1 }}>
                         {messages.map((msg, i) => (
                             <div key={i} className={`flex flex-col gap-1 ${msg.role === 'user' ? 'items-end' : 'items-start'}`}>
                                 <div className={`flex gap-2 ${msg.role === 'user' ? 'flex-row-reverse' : 'flex-row'} max-w-[90%]`}>
-                                    <div style={{ width: 26, height: 26, borderRadius: '50%', background: msg.role === 'ai' ? '#7c3aed' : '#4f46e5', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                    <div style={{ width: 26, height: 26, borderRadius: '50%', background: msg.role === 'ai' ? '#8b5cf6' : '#4f46e5', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
                                         {msg.role === 'ai' ? <Bot size={13} color="white" /> : <User size={13} color="white" />}
                                     </div>
                                     <div className={msg.role === 'user' ? 'ai-bubble-user' : 'ai-bubble-ai'} style={{
@@ -338,12 +338,12 @@ const AskAIPanel: React.FC<AskAIPanelProps> = ({ connectionString, businessRules
                                                 <button
                                                     onClick={() => handleRunQuery(i, messages[i - 1]?.content || msg.content)}
                                                     disabled={!!msg.loading_query}
-                                                    className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-full transition-all hover:opacity-80"
-                                                    style={{ background: 'rgba(79,70,229,0.2)', border: '1px solid rgba(79,70,229,0.4)', color: '#a5b4fc' }}
+                                                    className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full transition-all hover:bg-violet-50 font-semibold mt-1"
+                                                    style={{ border: '1px solid #c4b5fd', color: '#6d28d9', background: '#f5f3ff' }}
                                                 >
                                                     {msg.loading_query
-                                                        ? <><Loader2 size={10} className="animate-spin" /> Running…</>
-                                                        : <><Play size={10} /> Run as Query</>
+                                                        ? <><Loader2 size={12} className="animate-spin" /> Running…</>
+                                                        : <><Play size={12} fill="currentColor" /> Run as Query</>
                                                     }
                                                 </button>
                                             </div>
@@ -353,7 +353,7 @@ const AskAIPanel: React.FC<AskAIPanelProps> = ({ connectionString, businessRules
                                         {msg.query_result && (
                                             <div className="mt-2">
                                                 {msg.query_result.error ? (
-                                                    <div className="text-xs px-3 py-2 rounded-lg" style={{ background: '#1a0808', border: '1px solid #7f1d1d', color: '#fca5a5' }}>
+                                                    <div className="text-xs px-3 py-2 rounded-lg font-medium shadow-sm" style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#b91c1c' }}>
                                                         ❌ {msg.query_result.error}
                                                     </div>
                                                 ) : (
@@ -363,13 +363,13 @@ const AskAIPanel: React.FC<AskAIPanelProps> = ({ connectionString, businessRules
                                                             {msg.query_result.sql}
                                                         </div>
                                                         {msg.query_result.explanation && (
-                                                            <div className="mb-2 flex items-start gap-1.5 text-xs" style={{ color: '#94a3b8' }}>
-                                                                <Lightbulb size={11} className="mt-0.5 text-yellow-400 flex-shrink-0" />
+                                                            <div className="mb-2 flex items-start gap-1.5 text-xs font-medium" style={{ color: '#64748b' }}>
+                                                                <Lightbulb size={12} className="mt-0.5 text-amber-500 flex-shrink-0" />
                                                                 {msg.query_result.explanation}
                                                             </div>
                                                         )}
                                                         {msg.query_result.attempts > 1 && (
-                                                            <div className="text-xs mb-1" style={{ color: '#6b7280' }}>
+                                                            <div className="text-xs mb-1 font-bold" style={{ color: '#94a3b8' }}>
                                                                 🔄 Self-healed in {msg.query_result.attempts} attempt{msg.query_result.attempts > 1 ? 's' : ''}
                                                             </div>
                                                         )}
@@ -381,23 +381,23 @@ const AskAIPanel: React.FC<AskAIPanelProps> = ({ connectionString, businessRules
                                                         {msg.query_result.rows.length > 0 && (
                                                             <ResultTable columns={msg.query_result.columns} rows={msg.query_result.rows} />
                                                         )}
-                                                        <div className="text-xs mt-1" style={{ color: '#4b5563' }}>
+                                                        <div className="text-xs mt-2 font-bold" style={{ color: '#94a3b8' }}>
                                                             {msg.query_result.rows.length} row{msg.query_result.rows.length !== 1 ? 's' : ''} · LIMIT 100 applied
                                                         </div>
                                                         {/* Query Price Tag */}
                                                         {msg.query_result.query_cost && (
-                                                            <div className="mt-2 flex items-center gap-3 px-3 py-1.5 rounded-lg" style={{ background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)' }}>
-                                                                <span className="flex items-center gap-1 text-xs" style={{ color: '#fbbf24' }}>
-                                                                    <DollarSign size={11} />
+                                                            <div className="mt-2.5 flex items-center gap-3 px-3 py-2 rounded-lg shadow-sm" style={{ background: '#fffbeb', border: '1px solid #fde68a' }}>
+                                                                <span className="flex items-center gap-1 text-xs font-bold" style={{ color: '#d97706' }}>
+                                                                    <DollarSign size={13} />
                                                                     {msg.query_result.query_cost.cost_estimate.dollar_cost_display}
                                                                 </span>
-                                                                <span className="flex items-center gap-1 text-xs" style={{ color: '#86efac' }}>
-                                                                    <Leaf size={11} />
+                                                                <span className="flex items-center gap-1 text-xs font-bold" style={{ color: '#059669' }}>
+                                                                    <Leaf size={13} />
                                                                     {msg.query_result.query_cost.cost_estimate.co2_display}
                                                                 </span>
-                                                                <span className="text-xs" style={{
-                                                                    color: msg.query_result.query_cost.rating === 'cheap' ? '#86efac' : msg.query_result.query_cost.rating === 'moderate' ? '#fdba74' : '#fca5a5',
-                                                                    fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em'
+                                                                <span className="text-[10px]" style={{
+                                                                    color: msg.query_result.query_cost.rating === 'cheap' ? '#16a34a' : msg.query_result.query_cost.rating === 'moderate' ? '#ea580c' : '#dc2626',
+                                                                    fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', padding: '2px 6px', background: 'white', borderRadius: 4, border: '1px solid #fcd34d'
                                                                 }}>
                                                                     {msg.query_result.query_cost.rating}
                                                                 </span>
@@ -410,11 +410,11 @@ const AskAIPanel: React.FC<AskAIPanelProps> = ({ connectionString, businessRules
 
                                         {/* Suggested execute action */}
                                         {msg.suggested_action && (
-                                            <div className="mt-3 p-3 rounded-lg" style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(124,58,237,0.3)' }}>
-                                                <div className="text-xs uppercase tracking-wider font-bold mb-2" style={{ color: '#a78bfa' }}>
-                                                    Suggested Command
+                                            <div className="mt-3 p-3.5 rounded-xl shadow-sm" style={{ background: '#f8fafc', border: '1px solid #e2e8f0' }}>
+                                                <div className="text-xs uppercase tracking-wider font-bold mb-2 flex items-center gap-1.5" style={{ color: '#6d28d9' }}>
+                                                    <Lightbulb size={12} /> Suggested Command
                                                 </div>
-                                                <code className="text-xs font-mono block mb-3" style={{ color: '#6ee7b7' }}>
+                                                <code className="text-xs font-mono block mb-3 p-2.5 rounded-lg border bg-white border-gray-100" style={{ color: '#059669' }}>
                                                     {msg.suggested_action}
                                                 </code>
                                                 <Button
@@ -435,7 +435,7 @@ const AskAIPanel: React.FC<AskAIPanelProps> = ({ connectionString, businessRules
                         ))}
                         {loading && (
                             <div className="flex gap-2 items-center">
-                                <div style={{ width: 26, height: 26, borderRadius: '50%', background: '#7c3aed', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                <div style={{ width: 26, height: 26, borderRadius: '50%', background: '#8b5cf6', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
                                     <Bot size={13} color="white" />
                                 </div>
                                 <div className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs ai-typing-indicator">
@@ -450,25 +450,25 @@ const AskAIPanel: React.FC<AskAIPanelProps> = ({ connectionString, businessRules
                     {/* Input area */}
                     <div className="ai-input-area" style={{ padding: '12px 16px' }}>
                         {/* Language picker */}
-                        <div className="relative mb-2">
+                        <div className="relative mb-3">
                             <button
                                 onClick={() => setShowLangPicker(p => !p)}
-                                className="flex items-center gap-1 text-xs px-2.5 py-1 rounded-full transition-all hover:opacity-80"
-                                style={{ background: 'rgba(124,58,237,0.15)', border: '1px solid rgba(124,58,237,0.3)', color: '#a78bfa' }}
+                                className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full transition-all hover:bg-gray-50 font-bold shadow-sm"
+                                style={{ border: '1px solid #e2e8f0', color: '#64748b', background: '#ffffff' }}
                             >
-                                <Globe size={11} />
+                                <Globe size={11} className="text-violet-500" />
                                 {selectedLang.label}
-                                <ChevronDown size={11} />
+                                <ChevronDown size={11} className="ml-0.5" />
                             </button>
                             {showLangPicker && (
-                                <div className="absolute bottom-8 left-0 z-10 p-1 rounded-xl shadow-xl" style={{ background: '#1a1a2e', border: '1px solid #3b0764' }}>
+                                <div className="absolute bottom-10 left-0 z-10 p-1.5 rounded-xl shadow-lg border border-gray-100 bg-white min-w-[140px]">
                                     {LANGUAGES.map(lang => (
                                         <button
                                             key={lang.code}
                                             onClick={() => { setLanguage(lang.code); setShowLangPicker(false); }}
-                                            className="block w-full text-left text-xs px-3 py-1.5 rounded-lg hover:bg-purple-900/30 text-gray-300 hover:text-white"
+                                            className="block w-full text-left font-bold text-xs px-3 py-2 rounded-lg hover:bg-gray-50 text-gray-600 hover:text-gray-900 transition-colors"
                                         >
-                                            {lang.label} <span className="text-gray-500 ml-1">{lang.code}</span>
+                                            {lang.label} <span className="text-gray-400 font-medium ml-1 float-right">{lang.code}</span>
                                         </button>
                                     ))}
                                 </div>
@@ -487,8 +487,8 @@ const AskAIPanel: React.FC<AskAIPanelProps> = ({ connectionString, businessRules
                             {loading ? (
                                 <button
                                     onClick={handleStop}
-                                    className="flex items-center justify-center rounded-xl transition-all hover:opacity-80"
-                                    style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.4)', padding: '0 16px', color: '#f87171' }}
+                                    className="flex items-center justify-center rounded-xl transition-all hover:bg-rose-100 shadow-sm"
+                                    style={{ background: '#ffe4e6', border: '1px solid #fecaca', padding: '0 16px', color: '#e11d48' }}
                                     title="Stop generation"
                                 >
                                     <StopCircle size={18} />

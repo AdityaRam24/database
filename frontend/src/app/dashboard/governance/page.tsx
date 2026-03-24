@@ -158,19 +158,19 @@ export default function GovernancePage() {
     return (
         <DashboardShell>
             {/* Top bar */}
-            <div className="flex items-center justify-between p-6 px-4 md:px-8 bg-transparent">
+            <div className="flex items-center justify-between p-6 px-4 md:px-8 bg-transparent border-b border-gray-200">
                 <div className="flex items-center gap-4">
-                    <h1 className="m-0 text-xl font-bold text-slate-100 flex items-center gap-2">
-                        <GitMerge size={22} className="text-blue-500" /> Migration Safety Center
+                    <h1 className="m-0 text-xl font-bold text-gray-900 flex items-center gap-2">
+                        <GitMerge size={22} className="text-blue-600" /> Migration Safety Center
                     </h1>
-                    <button onClick={() => router.push('/dashboard/data')} className="ml-2 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold cursor-pointer hover:bg-emerald-500/20 transition-colors">
+                    <button onClick={() => router.push('/dashboard/data')} className="ml-2 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold cursor-pointer hover:bg-emerald-100 transition-colors shadow-sm">
                         <Database size={14} /> View Data
                     </button>
                 </div>
                 <div className="flex items-center gap-3">
                     <button
                         onClick={() => setShowHistory(h => !h)}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-semibold cursor-pointer hover:bg-amber-500/20 transition-colors"
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-700 text-xs font-semibold cursor-pointer hover:bg-amber-100 transition-colors shadow-sm"
                     >
                         <Clock size={14} /> History {history.length > 0 && `(${history.length})`}
                     </button>
@@ -182,18 +182,18 @@ export default function GovernancePage() {
                 <div className="flex-1 p-4 md:p-8 max-w-[900px] mx-auto w-full">
                     {/* Success banner */}
                     {applySuccess && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 18px', background: '#052e16', border: '1px solid #166534', borderRadius: 10, marginBottom: 24 }}>
-                            <CheckCircle size={18} style={{ color: '#22c55e' }} />
-                            <p style={{ margin: 0, color: '#86efac', fontWeight: 600 }}>Patch applied successfully to the shadow database.</p>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 18px', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 10, marginBottom: 24, boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}>
+                            <CheckCircle size={18} style={{ color: '#16a34a' }} />
+                            <p style={{ margin: 0, color: '#166534', fontWeight: 600 }}>Patch applied successfully to the shadow database.</p>
                         </div>
                     )}
 
                     {/* AI Patch Writer */}
-                    <div className="glass glow-border rounded-xl p-5 mb-6">
+                    <div className="bg-white border border-gray-200 shadow-sm rounded-xl p-5 mb-6">
                         <div className="flex items-center gap-2 mb-3">
-                            <Wand2 size={18} className="text-violet-500" />
-                            <h2 className="m-0 text-base font-bold text-violet-300">AI Patch Writer</h2>
-                            <span className="text-xs text-slate-400 ml-2">Describe what to change in plain language</span>
+                            <Wand2 size={18} className="text-violet-600" />
+                            <h2 className="m-0 text-base font-bold text-violet-700">AI Patch Writer</h2>
+                            <span className="text-xs text-gray-500 ml-2">Describe what to change in plain language</span>
                         </div>
                         <div className="flex flex-col sm:flex-row gap-3">
                             <input
@@ -201,12 +201,12 @@ export default function GovernancePage() {
                                 onChange={e => setNlDescription(e.target.value)}
                                 onKeyDown={e => e.key === 'Enter' && handleGeneratePatch()}
                                 placeholder="e.g. 'add phone_number column to users' or 'create index on orders.created_at'"
-                                className="flex-1 bg-slate-900/50 border border-slate-700/50 rounded-lg px-4 py-2.5 text-slate-200 text-sm outline-none focus:border-violet-500/50 transition-colors"
+                                className="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-gray-900 text-sm outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-colors placeholder-gray-400"
                             />
                             <Button
                                 onClick={handleGeneratePatch}
                                 disabled={!nlDescription.trim() || generatingPatch}
-                                className="bg-gradient-to-r from-violet-600 to-indigo-600 text-white border-0 min-w-[120px] btn-glow shadow-[0_0_15px_rgba(124,58,237,0.3)]"
+                                className="bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white border-0 min-w-[120px] shadow-sm"
                             >
                                 {generatingPatch ? <><Loader2 size={14} className="mr-2 animate-spin" /> Generating…</> : <><Wand2 size={14} className="mr-2" /> Generate</>}
                             </Button>
@@ -214,20 +214,21 @@ export default function GovernancePage() {
                     </div>
 
                     {/* Info box */}
-                    <div className="glass rounded-lg border border-blue-500/20 p-4 mb-5">
-                        <p style={{ margin: 0, fontSize: 12, color: '#60a5fa', lineHeight: 1.6 }}>
-                            <strong>How it works:</strong> Paste or generate a SQL patch. The system checks for broken FK constraints, dependent indexes, views, and functions — and blocks unsafe operations like <code style={{ color: '#f87171' }}>DROP DATABASE</code> or <code style={{ color: '#f87171' }}>TRUNCATE</code>. All changes apply only to the shadow DB.
+                    <div className="bg-blue-50 rounded-lg border border-blue-100 p-4 mb-5 shadow-sm">
+                        <p style={{ margin: 0, fontSize: 13, color: '#1e40af', lineHeight: 1.6 }}>
+                            <strong>How it works:</strong> Paste or generate a SQL patch. The system checks for broken FK constraints, dependent indexes, views, and functions — and blocks unsafe operations like <code style={{ color: '#dc2626', background: '#fee2e2', padding: '2px 4px', borderRadius: 4, fontSize: 12 }}>DROP DATABASE</code> or <code style={{ color: '#dc2626', background: '#fee2e2', padding: '2px 4px', borderRadius: 4, fontSize: 12 }}>TRUNCATE</code>. All changes apply only to the shadow DB.
                         </p>
                     </div>
 
                     {/* SQL Editor */}
                     <div style={{ marginBottom: 12 }}>
                         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                            <label style={{ fontSize: 13, fontWeight: 600, color: '#a78bfa' }}>SQL Patch</label>
+                            <label style={{ fontSize: 13, fontWeight: 600, color: '#6d28d9' }}>SQL Patch</label>
                             {sqlPatch && (
                                 <button
                                     onClick={() => { setSqlPatch(''); setResult(null); setApplySuccess(false); }}
                                     style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', fontSize: 12 }}
+                                    className="hover:text-gray-900 transition-colors"
                                 >
                                     <Trash2 size={12} /> Clear
                                 </button>
@@ -240,26 +241,26 @@ export default function GovernancePage() {
                             rows={7}
                             style={{
                                 width: '100%', boxSizing: 'border-box',
-                                background: '#0d1117', color: '#6ee7b7',
-                                border: '1px solid #2e2e4e', borderRadius: 10,
+                                background: '#f8fafc', color: '#0f172a',
+                                border: '1px solid #cbd5e1', borderRadius: 10,
                                 padding: '14px 16px', fontSize: 13,
                                 fontFamily: 'monospace', lineHeight: 1.7,
-                                resize: 'vertical', outline: 'none', transition: 'border-color 0.2s',
+                                resize: 'vertical', outline: 'none', transition: 'border-color 0.2s, box-shadow 0.2s',
                             }}
-                            onFocus={e => e.target.style.borderColor = '#3b82f6'}
-                            onBlur={e => e.target.style.borderColor = '#2e2e4e'}
+                            onFocus={e => { e.target.style.borderColor = '#8b5cf6'; e.target.style.boxShadow = '0 0 0 1px #8b5cf6'; }}
+                            onBlur={e => { e.target.style.borderColor = '#cbd5e1'; e.target.style.boxShadow = 'none'; }}
                         />
                     </div>
 
                     {/* Safety result inline preview */}
                     {result && !showModal && (
-                        <div style={{ marginBottom: 12, padding: '10px 14px', borderRadius: 10, background: result.is_safe ? '#052e16' : '#1a0808', border: `1px solid ${result.is_safe ? '#166534' : '#7f1d1d'}` }}>
+                        <div style={{ marginBottom: 12, padding: '10px 14px', borderRadius: 10, background: result.is_safe ? '#f0fdf4' : '#fef2f2', border: `1px solid ${result.is_safe ? '#bbf7d0' : '#fecaca'}`, boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                {result.is_safe ? <ShieldCheck size={16} style={{ color: '#22c55e' }} /> : <ShieldAlert size={16} style={{ color: '#ef4444' }} />}
-                                <span style={{ fontSize: 13, fontWeight: 600, color: result.is_safe ? '#86efac' : '#fca5a5' }}>
+                                {result.is_safe ? <ShieldCheck size={16} style={{ color: '#16a34a' }} /> : <ShieldAlert size={16} style={{ color: '#dc2626' }} />}
+                                <span style={{ fontSize: 13, fontWeight: 600, color: result.is_safe ? '#166534' : '#991b1b' }}>
                                     {result.is_safe ? 'Safe to Apply' : 'Blocked'}: {result.warning_message}
                                 </span>
-                                <button onClick={() => setShowModal(true)} style={{ marginLeft: 'auto', fontSize: 11, color: '#6b7280', background: 'none', border: 'none', cursor: 'pointer' }}>View Details</button>
+                                <button onClick={() => setShowModal(true)} style={{ marginLeft: 'auto', fontSize: 12, color: '#4b5563', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }} className="hover:text-gray-900 transition-colors">View Details</button>
                             </div>
                         </div>
                     )}
@@ -268,7 +269,7 @@ export default function GovernancePage() {
                         <Button
                             disabled={!sqlPatch.trim() || checking}
                             onClick={handleCheck}
-                            style={{ background: '#1e3a5f', color: '#60a5fa', border: '1px solid #2563eb', fontWeight: 600 }}
+                            className="bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 shadow-sm font-semibold"
                         >
                             {checking ? <><Loader2 size={14} className="mr-2 animate-spin" /> Analysing…</> : <><ShieldCheck size={14} className="mr-2" /> Check Safety</>}
                         </Button>
@@ -276,7 +277,7 @@ export default function GovernancePage() {
                             <Button
                                 disabled={applying}
                                 onClick={handleApply}
-                                style={{ background: '#166534', color: '#86efac', fontWeight: 600 }}
+                                className="bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm font-semibold"
                             >
                                 {applying ? <><Loader2 size={14} className="mr-1 animate-spin" /> Applying…</> : <><CheckCircle size={14} className="mr-1" /> Apply to Shadow DB</>}
                             </Button>
@@ -287,26 +288,27 @@ export default function GovernancePage() {
                     <div style={{ marginTop: 28 }}>
                         <button
                             onClick={() => setShowExamples(s => !s)}
-                            style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', color: '#4b5563', cursor: 'pointer', fontSize: 12, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 12 }}
+                            style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', color: '#4b5563', cursor: 'pointer', fontSize: 13, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 12 }}
+                            className="hover:text-gray-900 transition-colors"
                         >
-                            {showExamples ? <ChevronDown size={13} /> : <ChevronRight size={13} />} Example Patches
+                            {showExamples ? <ChevronDown size={14} /> : <ChevronRight size={14} />} Example Patches
                         </button>
                         {showExamples && (
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
                                 {EXAMPLE_PATCHES.map(cat => (
                                     <div key={cat.category}>
-                                        <p style={{ fontSize: 11, color: '#374151', fontWeight: 700, marginBottom: 6, textTransform: 'uppercase' }}>{cat.category}</p>
-                                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 8 }}>
+                                        <p style={{ fontSize: 11, color: '#6b7280', fontWeight: 700, marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{cat.category}</p>
+                                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 10 }}>
                                             {cat.items.map(ex => (
                                                 <button
                                                     key={ex.label}
                                                     onClick={() => { setSqlPatch(ex.sql); setResult(null); setShowExamples(false); }}
-                                                    style={{ background: '#0f0f1a', border: '1px solid #2e2e4e', borderRadius: 8, padding: '10px 12px', cursor: 'pointer', textAlign: 'left', transition: 'border-color 0.15s' }}
-                                                    onMouseEnter={e => (e.currentTarget.style.borderColor = '#7c3aed')}
-                                                    onMouseLeave={e => (e.currentTarget.style.borderColor = '#2e2e4e')}
+                                                    style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 8, padding: '12px 14px', cursor: 'pointer', textAlign: 'left', transition: 'all 0.15s ease', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}
+                                                    onMouseEnter={e => { e.currentTarget.style.borderColor = '#8b5cf6'; e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'; }}
+                                                    onMouseLeave={e => { e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 1px 2px 0 rgba(0, 0, 0, 0.05)'; }}
                                                 >
-                                                    <p style={{ margin: '0 0 4px', fontWeight: 600, color: '#a78bfa', fontSize: 12 }}>{ex.label}</p>
-                                                    <code style={{ fontFamily: 'monospace', fontSize: 10, color: '#4b5563' }}>{ex.sql}</code>
+                                                    <p style={{ margin: '0 0 6px', fontWeight: 600, color: '#6d28d9', fontSize: 13 }}>{ex.label}</p>
+                                                    <code style={{ fontFamily: 'monospace', fontSize: 11, color: '#475569', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{ex.sql}</code>
                                                 </button>
                                             ))}
                                         </div>
@@ -319,35 +321,38 @@ export default function GovernancePage() {
 
                 {/* History sidebar */}
                 {showHistory && (
-                    <div className="w-full lg:w-80 border-l border-white/5 bg-black/20 p-6 overflow-y-auto glass lg:rounded-l-2xl">
+                    <div className="w-full lg:w-80 border-l border-gray-200 bg-gray-50 p-6 overflow-y-auto lg:rounded-l-2xl shadow-inner">
                         <div className="flex items-center justify-between mb-5">
-                            <h3 style={{ margin: 0, fontSize: 13, fontWeight: 700, color: '#a78bfa' }}>
-                                <Clock size={13} className="inline mr-1.5" /> Migration History
+                            <h3 style={{ margin: 0, fontSize: 14, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                                <Clock size={14} className="inline mr-1.5" /> Migration History
                             </h3>
                             {history.length > 0 && (
                                 <button
                                     onClick={() => { setHistory([]); localStorage.removeItem('governance_history'); }}
-                                    style={{ background: 'none', border: 'none', color: '#4b5563', cursor: 'pointer', fontSize: 11 }}
+                                    style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: 12, fontWeight: 500 }}
+                                    className="hover:text-red-600 transition-colors"
                                 >
                                     Clear all
                                 </button>
                             )}
                         </div>
                         {history.length === 0 ? (
-                            <p style={{ fontSize: 12, color: '#4b5563', textAlign: 'center', marginTop: 40 }}>No migrations yet.</p>
+                            <p style={{ fontSize: 13, color: '#9ca3af', textAlign: 'center', marginTop: 40 }}>No migrations yet.</p>
                         ) : (
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                                 {history.map((item, i) => (
                                     <button
                                         key={i}
                                         onClick={() => setSqlPatch(item.sql)}
-                                        style={{ textAlign: 'left', background: '#0f0f1a', border: `1px solid ${item.success ? '#166534' : '#7f1d1d'}`, borderRadius: 8, padding: '10px 12px', cursor: 'pointer' }}
+                                        style={{ textAlign: 'left', background: '#ffffff', border: `1px solid ${item.success ? '#bbf7d0' : '#fecaca'}`, borderRadius: 8, padding: '12px', cursor: 'pointer', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)', transition: 'transform 0.15s, box-shadow 0.15s' }}
+                                        onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1)'; }}
+                                        onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 1px 2px 0 rgba(0, 0, 0, 0.05)'; }}
                                     >
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-                                            {item.success ? <CheckCircle size={12} style={{ color: '#22c55e' }} /> : <XCircle size={12} style={{ color: '#ef4444' }} />}
-                                            <span style={{ fontSize: 10, color: '#6b7280' }}>{item.timestamp}</span>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+                                            {item.success ? <CheckCircle size={14} style={{ color: '#16a34a' }} /> : <XCircle size={14} style={{ color: '#dc2626' }} />}
+                                            <span style={{ fontSize: 11, color: '#6b7280', fontWeight: 500 }}>{item.timestamp}</span>
                                         </div>
-                                        <code style={{ fontSize: 10, color: '#6ee7b7', fontFamily: 'monospace', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                        <code style={{ fontSize: 11, color: '#334155', fontFamily: 'monospace', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                             {item.sql}
                                         </code>
                                     </button>
@@ -360,37 +365,37 @@ export default function GovernancePage() {
 
             {/* Safety Modal */}
             {showModal && result && (
-                <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: 24 }}>
-                    <div style={{ background: '#0f0f1a', border: `2px solid ${result.is_safe ? '#166534' : '#991b1b'}`, borderRadius: 18, padding: 32, maxWidth: 540, width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.6)' }}>
+                <div style={{ position: 'fixed', inset: 0, background: 'rgba(255,255,255,0.8)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: 24 }}>
+                    <div style={{ background: '#ffffff', border: `1px solid ${result.is_safe ? '#bbf7d0' : '#fecaca'}`, borderRadius: 18, padding: 32, maxWidth: 540, width: '100%', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
-                            {result.is_safe ? <ShieldCheck size={30} style={{ color: '#22c55e' }} /> : <ShieldAlert size={30} style={{ color: '#ef4444' }} />}
+                            {result.is_safe ? <ShieldCheck size={30} style={{ color: '#16a34a' }} /> : <ShieldAlert size={30} style={{ color: '#dc2626' }} />}
                             <div>
-                                <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: result.is_safe ? '#86efac' : '#fca5a5' }}>
+                                <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: result.is_safe ? '#166534' : '#991b1b' }}>
                                     {result.is_safe ? '✅ Safe to Apply' : '⛔ Migration Blocked'}
                                 </h2>
                                 {result.parsed.operation !== 'UNKNOWN' && (
-                                    <p style={{ margin: 0, fontSize: 12, color: '#6b7280' }}>
+                                    <p style={{ margin: 0, fontSize: 13, color: '#6b7280' }}>
                                         {result.parsed.operation}{result.parsed.table && ` on ${result.parsed.table}`}{result.parsed.column && `.${result.parsed.column}`}
                                     </p>
                                 )}
                             </div>
                         </div>
 
-                        <p style={{ fontSize: 14, color: '#d1d5db', marginBottom: 20, lineHeight: 1.6 }}>{result.warning_message}</p>
+                        <p style={{ fontSize: 14, color: '#374151', marginBottom: 24, lineHeight: 1.6, background: '#f8fafc', padding: '12px 16px', borderRadius: 8, border: '1px solid #e2e8f0' }}>{result.warning_message}</p>
 
                         {(result.broken_queries > 0 || result.dependent_indexes > 0 || result.dependent_views > 0 || result.dependent_functions > 0) && (
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginBottom: 20 }}>
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 24 }}>
                                 {[
                                     { label: 'FK Constraints', value: result.broken_queries, icon: '🔗' },
                                     { label: 'Indexes', value: result.dependent_indexes, icon: '⚡' },
                                     { label: 'Views', value: result.dependent_views, icon: '👁' },
                                     { label: 'Functions', value: result.dependent_functions, icon: '⚙️' },
                                 ].map(dep => (
-                                    <div key={dep.label} style={{ background: '#1e1e2e', borderRadius: 8, padding: '10px 14px', display: 'flex', alignItems: 'center', gap: 10 }}>
-                                        <span style={{ fontSize: 16 }}>{dep.icon}</span>
+                                    <div key={dep.label} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 10, padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 12 }}>
+                                        <span style={{ fontSize: 18 }}>{dep.icon}</span>
                                         <div>
-                                            <p style={{ margin: 0, fontSize: 11, color: '#6b7280' }}>{dep.label}</p>
-                                            <p style={{ margin: 0, fontSize: 20, fontWeight: 800, color: dep.value > 0 ? '#f87171' : '#4ade80' }}>{dep.value}</p>
+                                            <p style={{ margin: 0, fontSize: 12, color: '#64748b', fontWeight: 500 }}>{dep.label}</p>
+                                            <p style={{ margin: 0, fontSize: 22, fontWeight: 800, color: dep.value > 0 ? '#ef4444' : '#10b981' }}>{dep.value}</p>
                                         </div>
                                     </div>
                                 ))}
@@ -398,26 +403,27 @@ export default function GovernancePage() {
                         )}
 
                         {result.warnings.length > 0 && (
-                            <div style={{ background: '#1a0a0a', border: '1px solid #7f1d1d', borderRadius: 8, padding: '10px 14px', marginBottom: 20, maxHeight: 130, overflowY: 'auto' }}>
+                            <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 10, padding: '12px 16px', marginBottom: 24, maxHeight: 150, overflowY: 'auto' }}>
                                 {result.warnings.map((w, i) => (
-                                    <p key={i} style={{ margin: '0 0 4px', fontSize: 11, color: '#fca5a5', display: 'flex', gap: 6 }}>
-                                        <AlertTriangle size={11} style={{ flexShrink: 0, marginTop: 2 }} /> {w}
+                                    <p key={i} style={{ margin: '0 0 6px', fontSize: 12, color: '#b91c1c', display: 'flex', gap: 8, lineHeight: 1.4 }}>
+                                        <AlertTriangle size={14} style={{ flexShrink: 0, marginTop: 1 }} /> {w}
                                     </p>
                                 ))}
                             </div>
                         )}
 
-                        <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
-                            <Button variant="outline" size="sm" onClick={() => setShowModal(false)} style={{ borderColor: '#2e2e4e', color: '#6b7280' }}>
-                                <XCircle size={14} className="mr-1" /> Cancel
+                        <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end', marginTop: 8 }}>
+                            <Button variant="outline" size="sm" onClick={() => setShowModal(false)} style={{ borderColor: '#cbd5e1', color: '#4b5563' }} className="hover:bg-gray-50">
+                                <XCircle size={14} className="mr-2" /> Cancel
                             </Button>
                             <Button
                                 size="sm"
                                 disabled={!result.is_safe || applying}
                                 onClick={handleApply}
-                                style={{ background: result.is_safe ? '#166534' : '#450a0a', color: result.is_safe ? '#86efac' : '#fca5a5', opacity: result.is_safe ? 1 : 0.6 }}
+                                style={{ background: result.is_safe ? '#16a34a' : '#ef4444', color: '#fff', opacity: result.is_safe ? 1 : 0.6 }}
+                                className={result.is_safe ? 'hover:bg-green-700' : ''}
                             >
-                                {applying ? <><Loader2 size={14} className="mr-1 animate-spin" /> Applying…</> : result.is_safe ? <><CheckCircle size={14} className="mr-1" /> Apply to Shadow DB</> : '⛔ Blocked'}
+                                {applying ? <><Loader2 size={14} className="mr-2 animate-spin" /> Applying…</> : result.is_safe ? <><CheckCircle size={14} className="mr-2" /> Apply to Shadow DB</> : '⛔ Blocked'}
                             </Button>
                         </div>
                     </div>

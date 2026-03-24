@@ -6,7 +6,7 @@ class Settings(BaseSettings):
     
     # Database
     DATABASE_URL: Optional[str] = None
-    SHADOW_DB_URL: Optional[str] = "postgresql://postgres:postgres@127.0.0.1:5432/shadow_db"
+    SHADOW_DB_URL: Optional[str] = "postgresql://postgres:root@127.0.0.1:5432/shadow_db"
     
     # AI (Jan)
     JAN_API_URL: str = "http://localhost:1337/v1"

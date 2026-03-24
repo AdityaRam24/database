@@ -44,10 +44,10 @@ interface HistoryResult {
 /* ── UI Config ─────────────────────────────────────────────────────── */
 
 const SEVERITY_CONFIG = {
-    CRITICAL: { color: '#ef4444', bg: '#450a0a', border: '#ef4444', label: 'Critical' },
-    HIGH: { color: '#f97316', bg: '#431407', border: '#ea580c', label: 'High' },
-    MEDIUM: { color: '#eab308', bg: '#422006', border: '#ca8a04', label: 'Medium' },
-    LOW: { color: '#3b82f6', bg: '#172554', border: '#2563eb', label: 'Low' },
+    CRITICAL: { color: '#dc2626', bg: '#fef2f2', border: '#fecaca', label: 'Critical' },
+    HIGH: { color: '#ea580c', bg: '#fff7ed', border: '#fed7aa', label: 'High' },
+    MEDIUM: { color: '#ca8a04', bg: '#fefce8', border: '#fef08a', label: 'Medium' },
+    LOW: { color: '#2563eb', bg: '#eff6ff', border: '#bfdbfe', label: 'Low' },
 };
 
 const getIncidentIcon = (type: string) => {
@@ -68,10 +68,10 @@ function ScoreGauge({ score, color }: { score: number, color: string }) {
     return (
         <div style={{ position: 'relative', width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <svg width="40" height="40" viewBox="0 0 40 40" style={{ transform: 'rotate(-90deg)' }}>
-                <circle cx="20" cy="20" r={r} fill="none" stroke="#1e1e2e" strokeWidth="4" />
+                <circle cx="20" cy="20" r={r} fill="none" stroke="#e2e8f0" strokeWidth="4" />
                 <circle cx="20" cy="20" r={r} fill="none" stroke={color} strokeWidth="4" strokeDasharray={strokeDasharray} strokeLinecap="round" />
             </svg>
-            <span style={{ position: 'absolute', fontSize: 11, fontWeight: 800, color: '#e2e8f0' }}>{score}</span>
+            <span style={{ position: 'absolute', fontSize: 11, fontWeight: 800, color: '#0f172a' }}>{score}</span>
         </div>
     );
 }
@@ -136,11 +136,11 @@ export default function IncidentsPage() {
             {/* ── Top bar ── */}
             <div className="flex items-center justify-between p-6 px-4 md:px-8 bg-transparent">
                 <div className="flex items-center gap-4">
-                    <h1 className="m-0 text-xl font-bold text-slate-100 flex items-center gap-2">
-                        <ShieldAlert size={22} className="text-red-500" /> Incident Panel
+                    <h1 className="m-0 text-xl font-bold text-gray-900 flex items-center gap-2">
+                        <ShieldAlert size={22} className="text-red-600" /> Incident Panel
                     </h1>
                     {incidentCount > 0 && (
-                        <span className="animate-pulse ml-2 px-3 py-1 text-xs font-bold rounded-full bg-red-950/50 border border-red-500/50 text-red-400">
+                        <span className="animate-pulse ml-2 px-3 py-1 text-xs font-bold rounded-full bg-red-50 border border-red-200 text-red-600 shadow-sm">
                             {incidentCount} active incident{incidentCount === 1 ? '' : 's'}
                         </span>
                     )}
@@ -148,7 +148,7 @@ export default function IncidentsPage() {
                 <div className="flex items-center gap-3">
                     <Button size="sm" disabled={!connectionString || scanning}
                         onClick={() => connectionString && doScan(connectionString)}
-                        className="bg-red-600 hover:bg-red-700 text-white font-semibold text-xs transition-colors btn-glow shadow-[0_0_15px_rgba(239,68,68,0.3)]">
+                        className="bg-red-600 hover:bg-red-700 text-white font-semibold text-xs transition-colors shadow-sm">
                         {scanning ? <Loader2 size={14} className="animate-spin mr-2" /> : <RefreshCw size={14} className="mr-2" />}
                         {scanning ? 'Scanning…' : 'Scan Now'}
                     </Button>
@@ -157,7 +157,7 @@ export default function IncidentsPage() {
 
             {/* ── Error banner ── */}
             {error && (
-                <div className="px-6 py-3 bg-red-950/50 border-b border-red-500/30 text-red-400 text-sm flex items-center gap-2">
+                <div className="px-6 py-3 bg-red-50 border-b border-red-200 text-red-600 text-sm flex items-center gap-2">
                     <XCircle size={16} /> {error}
                 </div>
             )}
@@ -166,21 +166,21 @@ export default function IncidentsPage() {
 
                 {scanning && !scanResult ? (
                     <div style={{ textAlign: 'center', marginTop: 80 }}>
-                        <ThermometerSun size={40} style={{ color: '#ef4444', animation: 'pulse 2s infinite', margin: '0 auto 16px' }} />
-                        <h3 style={{ margin: 0, color: '#e2e8f0', fontSize: 18 }}>Scanning Database Telemetry...</h3>
-                        <p style={{ color: '#6b7280', marginTop: 8 }}>Analyzing query latency, table growth, and connection pools.</p>
+                        <ThermometerSun size={40} style={{ color: '#dc2626', animation: 'pulse 2s infinite', margin: '0 auto 16px' }} />
+                        <h3 className="m-0 text-gray-900 text-lg font-bold">Scanning Database Telemetry...</h3>
+                        <p className="text-gray-500 mt-2">Analyzing query latency, table growth, and connection pools.</p>
                     </div>
                 ) : (
                     <>
                         {/* ── Insufficient data info ── */}
                         {isInsufficient && (
-                            <div className="glass glow-border rounded-xl p-6 mb-8 border-blue-500/30">
+                            <div className="bg-white rounded-xl p-6 mb-8 border border-blue-200 shadow-sm">
                                 <div className="flex items-start gap-4">
-                                    <TrendingUp size={24} className="text-blue-400 flex-shrink-0 mt-1" />
+                                    <TrendingUp size={24} className="text-blue-500 flex-shrink-0 mt-1" />
                                     <div>
-                                        <p className="m-0 mb-2 text-base font-bold text-blue-300">Building Incident Baseline…</p>
-                                        <p className="m-0 text-sm text-slate-400 leading-relaxed">
-                                            {scanResult?.message} Click <strong className="text-rose-400">Scan Now</strong> a few times to build the baseline. Incidents require baseline telemetry to compare current performance against normal behavior.
+                                        <p className="m-0 mb-2 text-base font-bold text-blue-900">Building Incident Baseline…</p>
+                                        <p className="m-0 text-sm text-gray-600 leading-relaxed">
+                                            {scanResult?.message} Click <strong className="text-red-500">Scan Now</strong> a few times to build the baseline. Incidents require baseline telemetry to compare current performance against normal behavior.
                                         </p>
                                     </div>
                                 </div>
@@ -195,14 +195,14 @@ export default function IncidentsPage() {
                                     const count = summary[level] || 0;
                                     const isActive = count > 0;
                                     return (
-                                        <div key={level} className={`glass overflow-hidden relative rounded-xl p-5 border ${isActive ? 'card-hover' : ''}`} style={{ borderColor: isActive ? cfg.border + '80' : 'rgba(255,255,255,0.05)', background: isActive ? cfg.bg + '80' : '' }}>
+                                        <div key={level} className={`bg-white overflow-hidden relative rounded-xl p-5 border shadow-sm transition-all ${isActive ? 'hover:-translate-y-1 hover:shadow-md' : ''}`} style={{ borderColor: isActive ? cfg.border : '#e2e8f0', background: isActive ? cfg.bg : '' }}>
                                             {isActive && <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: cfg.color }} />}
                                             <div className="flex justify-between items-center">
                                                 <div>
-                                                    <p style={{ color: isActive ? cfg.color : '#6b7280' }} className="m-0 mb-1 text-xs font-bold uppercase tracking-wider">
+                                                    <p style={{ color: isActive ? cfg.color : '#64748b' }} className="m-0 mb-1 text-xs font-bold uppercase tracking-wider">
                                                         {cfg.label}
                                                     </p>
-                                                    <p className={`m-0 text-3xl font-extrabold ${isActive ? 'text-slate-100' : 'text-slate-600'}`}>
+                                                    <p className={`m-0 text-3xl font-extrabold ${isActive ? 'text-gray-900' : 'text-gray-400'}`}>
                                                         {count}
                                                     </p>
                                                 </div>
@@ -218,35 +218,35 @@ export default function IncidentsPage() {
 
                         {/* ── All clear ── */}
                         {!isInsufficient && scanResult && incidentCount === 0 && (
-                            <div className="text-center my-10 p-10 glass border-emerald-500/20 rounded-2xl flex flex-col items-center justify-center">
-                                <div className="w-16 h-16 rounded-full bg-emerald-950/50 flex items-center justify-center mb-5 border border-emerald-500/20">
+                            <div className="text-center my-10 p-10 bg-white border border-emerald-200 shadow-sm rounded-2xl flex flex-col items-center justify-center">
+                                <div className="w-16 h-16 rounded-full bg-emerald-50 flex items-center justify-center mb-5 border border-emerald-100">
                                     <CheckCircle size={32} className="text-emerald-500" />
                                 </div>
-                                <h2 className="text-emerald-400 m-0 mb-3 text-xl font-bold">System Healthy</h2>
-                                <p className="text-emerald-200/70 m-0 text-sm max-w-[400px]">No incidents detected. Database metrics are within normal baseline ranges.</p>
+                                <h2 className="text-emerald-700 m-0 mb-3 text-xl font-bold">System Healthy</h2>
+                                <p className="text-emerald-600/80 m-0 text-sm max-w-[400px]">No incidents detected. Database metrics are within normal baseline ranges.</p>
                             </div>
                         )}
 
                         {/* ── Active Incidents ── */}
                         {incidentCount > 0 && (
                             <div className="mb-10">
-                                <h2 className="m-0 mb-5 text-lg font-bold text-slate-200">
+                                <h2 className="m-0 mb-5 text-lg font-bold text-gray-900">
                                     Live Incidents
                                 </h2>
                                 <div className="flex flex-col gap-4">
                                     {scanResult?.incidents.map((inc, i) => {
                                         const cfg = SEVERITY_CONFIG[inc.severity_level];
                                         return (
-                                            <div key={i} className="glass rounded-xl overflow-hidden flex flex-col border transition-all" style={{ borderColor: cfg.border + '50' }}>
+                                            <div key={i} className="bg-white rounded-xl overflow-hidden flex flex-col border shadow-sm transition-all" style={{ borderColor: cfg.border }}>
                                                 {/* Header */}
-                                                <div className="p-4 px-6 flex items-center justify-between border-b border-white/5" style={{ background: `linear-gradient(90deg, ${cfg.bg}80 0%, transparent 100%)` }}>
+                                                <div className="p-4 px-6 flex items-center justify-between border-b border-gray-100" style={{ background: `linear-gradient(90deg, ${cfg.bg}80 0%, transparent 100%)` }}>
                                                     <div className="flex items-center gap-3">
                                                         <span style={{ color: cfg.color }}>{getIncidentIcon(inc.type)}</span>
-                                                        <span className="font-bold text-base text-slate-100">{inc.type}</span>
-                                                        <span className="text-xs px-2.5 py-1 bg-black/40 rounded text-slate-400 font-mono ml-2 border border-white/5">{inc.affected_table}</span>
+                                                        <span className="font-bold text-base text-gray-900">{inc.type}</span>
+                                                        <span className="text-xs px-2.5 py-1 bg-gray-50 rounded text-gray-500 font-mono ml-2 border border-gray-200">{inc.affected_table}</span>
                                                     </div>
                                                     <div className="flex items-center gap-4">
-                                                        <span className="text-xs text-slate-500 font-medium">
+                                                        <span className="text-xs text-gray-500 font-medium">
                                                             {new Date(inc.detected_at).toLocaleTimeString()}
                                                         </span>
                                                         <span className="text-xs font-bold px-3 py-1 rounded tracking-wide uppercase text-white shadow-sm" style={{ background: cfg.color }}>
@@ -256,30 +256,30 @@ export default function IncidentsPage() {
                                                 </div>
 
                                                 {/* Body */}
-                                                <div className="p-6 flex flex-col md:flex-row gap-8 items-center md:items-start bg-black/10">
+                                                <div className="p-6 flex flex-col md:flex-row gap-8 items-center md:items-start bg-gray-50/50">
                                                     {/* Score */}
                                                     <div className="text-center min-w-[100px] flex flex-col items-center justify-center">
                                                         <ScoreGauge score={inc.severity_score} color={cfg.color} />
-                                                        <p className="m-0 mt-3 text-xs text-slate-500 font-bold tracking-wider">SEVERITY</p>
+                                                        <p className="m-0 mt-3 text-xs text-gray-500 font-bold tracking-wider">SEVERITY</p>
                                                     </div>
                                                     
                                                     {/* Details */}
-                                                    <div className="flex-1 md:border-l border-white/5 md:pl-8">
-                                                        <p className="m-0 mb-5 text-sm text-slate-300 leading-relaxed whitespace-pre-line bg-black/20 p-4 rounded-lg border border-white/5">
+                                                    <div className="flex-1 md:border-l border-gray-200 md:pl-8">
+                                                        <p className="m-0 mb-5 text-sm text-gray-700 leading-relaxed whitespace-pre-line bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
                                                             {inc.root_cause}
                                                         </p>
                                                         <div className="flex flex-wrap gap-3">
-                                                            <div className="glass border border-white/5 px-4 py-2.5 rounded-lg flex flex-col">
-                                                                <span className="text-[10px] text-slate-500 uppercase tracking-widest mb-1 font-semibold">Z-Score</span>
-                                                                <span className={`text-sm font-bold ${inc.metrics.z_score > 3 ? 'text-red-400' : 'text-slate-200'}`}>{inc.metrics.z_score}</span>
+                                                            <div className="bg-white border border-gray-200 px-4 py-2.5 rounded-lg flex flex-col shadow-sm">
+                                                                <span className="text-[10px] text-gray-500 uppercase tracking-widest mb-1 font-semibold">Z-Score</span>
+                                                                <span className={`text-sm font-bold ${inc.metrics.z_score > 3 ? 'text-red-500' : 'text-gray-900'}`}>{inc.metrics.z_score}</span>
                                                             </div>
-                                                            <div className="glass border border-white/5 px-4 py-2.5 rounded-lg flex flex-col">
-                                                                <span className="text-[10px] text-slate-500 uppercase tracking-widest mb-1 font-semibold">Deviation</span>
-                                                                <span className="text-sm font-bold text-slate-200">+{inc.metrics.deviation_pct}%</span>
+                                                            <div className="bg-white border border-gray-200 px-4 py-2.5 rounded-lg flex flex-col shadow-sm">
+                                                                <span className="text-[10px] text-gray-500 uppercase tracking-widest mb-1 font-semibold">Deviation</span>
+                                                                <span className="text-sm font-bold text-gray-900">+{inc.metrics.deviation_pct}%</span>
                                                             </div>
-                                                            <div className="glass border border-white/5 px-4 py-2.5 rounded-lg flex flex-col">
-                                                                <span className="text-[10px] text-slate-500 uppercase tracking-widest mb-1 font-semibold">Impact</span>
-                                                                <span className="text-sm font-bold text-slate-200">{inc.metrics.impact_score}</span>
+                                                            <div className="bg-white border border-gray-200 px-4 py-2.5 rounded-lg flex flex-col shadow-sm">
+                                                                <span className="text-[10px] text-gray-500 uppercase tracking-widest mb-1 font-semibold">Impact</span>
+                                                                <span className="text-sm font-bold text-gray-900">{inc.metrics.impact_score}</span>
                                                             </div>
                                                         </div>
                                                     </div>
@@ -294,29 +294,29 @@ export default function IncidentsPage() {
                         {/* ── Historical Timeline ── */}
                         {history && history.incidents.length > 0 && (
                             <div>
-                                <h2 className="m-0 mb-4 text-base font-bold text-slate-400 flex items-center gap-2">
+                                <h2 className="m-0 mb-4 text-base font-bold text-gray-500 flex items-center gap-2">
                                     <Clock size={18} /> Recent Incident History
                                 </h2>
-                                <div className="glass rounded-xl p-6 border border-white/5">
+                                <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
                                     <div className="flex flex-col gap-0">
                                         {history.incidents.slice(0, 10).map((inc, i) => {
                                             const cfg = SEVERITY_CONFIG[inc.severity_level];
                                             return (
                                                 <div key={i} className="flex gap-5 relative pb-6">
                                                     {i < Math.min(history.incidents.length, 10) - 1 && (
-                                                        <div className="absolute left-[7px] top-4 bottom-0 w-0.5 bg-white/10" />
+                                                        <div className="absolute left-[7px] top-4 bottom-0 w-0.5 bg-gray-200" />
                                                     )}
-                                                    <div className="w-4 h-4 rounded-full mt-1 z-10 border-2 border-[#12121a] shadow-sm ml-[-1px]" style={{ background: cfg.color }} />
+                                                    <div className="w-4 h-4 rounded-full mt-1 z-10 border-2 border-white shadow-sm ml-[-1px]" style={{ background: cfg.color }} />
                                                     <div className="flex-1">
                                                         <div className="flex justify-between items-start mb-1">
                                                             <div>
-                                                                <span className="font-bold text-sm text-slate-200 mr-2">{inc.type}</span>
-                                                                <span className="text-xs text-slate-500 font-mono">on {inc.affected_table}</span>
+                                                                <span className="font-bold text-sm text-gray-900 mr-2">{inc.type}</span>
+                                                                <span className="text-xs text-gray-500 font-mono bg-gray-50 px-1.5 py-0.5 rounded">on {inc.affected_table}</span>
                                                             </div>
-                                                            <span className="text-xs text-slate-500 font-medium">{new Date(inc.detected_at).toLocaleString()}</span>
+                                                            <span className="text-xs text-gray-400 font-medium">{new Date(inc.detected_at).toLocaleString()}</span>
                                                         </div>
-                                                        <p className="m-0 text-sm text-slate-400/80 leading-relaxed">
-                                                            Severity Score: {inc.severity_score} <span style={{ color: cfg.color }} className="font-medium">({inc.severity_level})</span> — Deviation: <span className="text-slate-300">+{inc.metrics.deviation_pct}%</span>
+                                                        <p className="m-0 text-sm text-gray-600 leading-relaxed">
+                                                            Severity Score: {inc.severity_score} <span style={{ color: cfg.color }} className="font-medium">({inc.severity_level})</span> — Deviation: <span className="text-gray-900 font-medium">+{inc.metrics.deviation_pct}%</span>
                                                         </p>
                                                     </div>
                                                 </div>

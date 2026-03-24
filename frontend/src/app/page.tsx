@@ -98,8 +98,6 @@ const FADE_UP = {
 export default function Home() {
     const { user, signInWithGoogle } = useAuth();
     const router = useRouter();
-    const [prompt, setPrompt] = useState("");
-    const [isLoading, setIsLoading] = useState(false);
 
     const handleSubmit = (e?: React.FormEvent) => {
         e?.preventDefault();
