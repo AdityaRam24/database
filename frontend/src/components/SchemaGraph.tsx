@@ -54,18 +54,18 @@ interface TableNodeData {
 
 const TableNode = memo(({ id, data }: NodeProps<TableNodeData>) => {
     const formattedSize = data.size_bytes ? (data.size_bytes / 1024).toFixed(1) + ' KB' : '';
-    
+
     // Bottleneck logic: scale and glow if highly connected
     const isBottleneck = data.connectionDegree > 4;
     const bottleneckStyle = isBottleneck ? {
-        boxShadow: '0 0 20px rgba(139, 92, 246, 0.4)',
+        boxShadow: '0 0 20px hsla(266, 100%, 51%, 0.89)',
         transform: 'scale(1.05)',
         border: '1px solid rgba(139, 92, 246, 0.8)'
     } : {};
 
     // Heatmap Overlay (Storage size based coloring)
     const heatmapColor = data.overlayMode && data.size_bytes !== undefined
-        ? `rgba(239, 68, 68, ${Math.min(data.size_bytes / (1024 * 500) * 0.5, 0.8)})` 
+        ? `rgba(239, 68, 68, ${Math.min(data.size_bytes / (1024 * 500) * 0.5, 0.8)})`
         : 'transparent';
 
     let containerClasses = `schema-node transition-all duration-300 relative rounded-lg border border-gray-200 overflow-hidden bg-white shadow-sm`;
@@ -79,9 +79,9 @@ const TableNode = memo(({ id, data }: NodeProps<TableNodeData>) => {
         : {};
 
     return (
-        <div 
-            className={containerClasses} 
-            style={{ 
+        <div
+            className={containerClasses}
+            style={{
                 animationDelay: `${(data.index || 0) * 50}ms`,
                 backgroundColor: heatmapColor !== 'transparent' ? heatmapColor : undefined,
                 ...bottleneckStyle,
@@ -176,8 +176,8 @@ const CustomEdge = ({
     }), [style, isHovered, isFocused, isDimmed]);
 
     return (
-        <g 
-            onMouseEnter={() => data?.onHoverToggle?.(id, true)} 
+        <g
+            onMouseEnter={() => data?.onHoverToggle?.(id, true)}
             onMouseLeave={() => data?.onHoverToggle?.(id, false)}
             className="react-flow__edge-custom group"
         >
@@ -198,12 +198,11 @@ const CustomEdge = ({
                             transform: `translate(-50%, -50%) translate(${labelX}px,${labelY}px)`,
                             pointerEvents: 'all',
                         }}
-                        className={`schema-edge-label nodrag nopan text-[10px] px-2 py-1 bg-white border rounded-full transition-colors font-bold ${
-                            isHovered || isFocused 
-                            ? 'border-violet-500 text-violet-700 z-20 shadow-md shadow-violet-500/10' 
-                            : 'border-gray-200 text-gray-500 z-10 shadow-sm'
-                        }`}
-                        onMouseEnter={() => data?.onHoverToggle?.(id, true)} 
+                        className={`schema-edge-label nodrag nopan text-[10px] px-2 py-1 bg-white border rounded-full transition-colors font-bold ${isHovered || isFocused
+                                ? 'border-violet-500 text-violet-700 z-20 shadow-md shadow-violet-500/10'
+                                : 'border-gray-200 text-gray-500 z-10 shadow-sm'
+                            }`}
+                        onMouseEnter={() => data?.onHoverToggle?.(id, true)}
                         onMouseLeave={() => data?.onHoverToggle?.(id, false)}
                     >
                         {label}
@@ -250,14 +249,14 @@ const SchemaGraph: React.FC<SchemaGraphProps> = ({ connectionString }) => {
 
     // Feature States
     const [focusedNodeId, setFocusedNodeId] = useState<string | null>(null);
-    const [breadcrumbs, setBreadcrumbs] = useState<{id: string, label: string}[]>([]);
+    const [breadcrumbs, setBreadcrumbs] = useState<{ id: string, label: string }[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
     const [overlayMode, setOverlayMode] = useState(false);
     const [hoveredEdgeId, setHoveredEdgeId] = useState<string | null>(null);
     const [expandedNodeIds, setExpandedNodeIds] = useState<Set<string>>(new Set());
 
     // Original graph data reference for filtering
-    const [graphData, setGraphData] = useState<{nodes: any[], edges: any[]}>({nodes: [], edges: []});
+    const [graphData, setGraphData] = useState<{ nodes: any[], edges: any[] }>({ nodes: [], edges: [] });
 
     // Handle expand/collapse toggle
     const handleToggleExpand = useCallback((id: string, expanded: boolean) => {
@@ -275,7 +274,7 @@ const SchemaGraph: React.FC<SchemaGraphProps> = ({ connectionString }) => {
             if (prev === id) return null; // toggle off
             return id;
         });
-        
+
         // Update breadcrumbs
         const node = graphData.nodes.find(n => n.id === id);
         if (node) {
@@ -301,7 +300,7 @@ const SchemaGraph: React.FC<SchemaGraphProps> = ({ connectionString }) => {
     }, []);
 
     // ─── Data Fetching & D3 Force Layout ────────────────────────────────────
-    
+
     useEffect(() => {
         const fetchData = async () => {
             try {
@@ -489,13 +488,13 @@ const SchemaGraph: React.FC<SchemaGraphProps> = ({ connectionString }) => {
 
     return (
         <div className="relative bg-gray-50/50 block rounded-b-3xl overflow-hidden border-t border-gray-100">
-            
+
             {/* Top Navigation & Filters Bar */}
             <div className="absolute top-4 left-4 right-4 z-20 flex flex-wrap items-center justify-between gap-4 pointer-events-none">
-                
+
                 {/* Breadcrumbs for Focus Mode */}
                 <div className="flex items-center gap-2 bg-white/90 backdrop-blur-md px-4 py-2 rounded-xl border border-gray-200 shadow-sm pointer-events-auto">
-                    <button 
+                    <button
                         onClick={handleClearFocus}
                         className={`text-sm font-bold transition-colors ${!focusedNodeId ? 'text-violet-700' : 'text-gray-500 hover:text-gray-900'}`}
                     >
@@ -506,9 +505,8 @@ const SchemaGraph: React.FC<SchemaGraphProps> = ({ connectionString }) => {
                             <ChevronRight size={14} className="text-gray-400" />
                             <button
                                 onClick={() => handleFocusNode(crumb.id)}
-                                className={`text-sm tracking-tight transition-colors ${
-                                    idx === breadcrumbs.length - 1 ? 'text-violet-600 font-bold' : 'text-gray-500 font-medium hover:text-gray-900'
-                                }`}
+                                className={`text-sm tracking-tight transition-colors ${idx === breadcrumbs.length - 1 ? 'text-violet-600 font-bold' : 'text-gray-500 font-medium hover:text-gray-900'
+                                    }`}
                             >
                                 {crumb.label}
                             </button>
@@ -521,23 +519,22 @@ const SchemaGraph: React.FC<SchemaGraphProps> = ({ connectionString }) => {
                     {/* Search Bar */}
                     <div className="relative group shadow-sm">
                         <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-amber-500 transition-colors" />
-                        <input 
-                            type="text" 
-                            placeholder="Find table or column..." 
+                        <input
+                            type="text"
+                            placeholder="Find table or column..."
                             value={searchQuery}
                             onChange={(e) => setSearchQuery(e.target.value)}
                             className="bg-white/90 backdrop-blur-md border border-gray-200 text-gray-900 font-medium text-sm rounded-xl pl-9 pr-4 py-2 w-64 focus:outline-none focus:ring-1 focus:ring-amber-500 focus:border-amber-500 transition-all placeholder:text-gray-400 shadow-sm"
                         />
                     </div>
-                    
+
                     {/* Storage Heatmap Toggle */}
                     <button
                         onClick={() => setOverlayMode(!overlayMode)}
-                        className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-sm font-bold transition-all shadow-sm ${
-                            overlayMode 
-                            ? 'bg-rose-50 border-rose-200 text-rose-600' 
-                            : 'bg-white/90 backdrop-blur-md border-gray-200 text-gray-500 hover:text-gray-900'
-                        }`}
+                        className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-sm font-bold transition-all shadow-sm ${overlayMode
+                                ? 'bg-rose-50 border-rose-200 text-rose-600'
+                                : 'bg-white/90 backdrop-blur-md border-gray-200 text-gray-500 hover:text-gray-900'
+                            }`}
                         title="Toggle Storage Heatmap overlay"
                     >
                         <Layers size={14} />
@@ -571,7 +568,7 @@ const SchemaGraph: React.FC<SchemaGraphProps> = ({ connectionString }) => {
                     <Background color="#cbd5e1" gap={32} size={1.5} />
                 </ReactFlow>
             </div>
-            
+
             {/* Visual Legend */}
             <div className="absolute bottom-4 left-4 z-20 pointer-events-none hidden md:block">
                 <div className="bg-white/90 backdrop-blur-md border border-gray-200 rounded-xl p-4 shadow-sm">
