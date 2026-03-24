@@ -97,14 +97,14 @@ const TableNode = memo(({ id, data }: NodeProps<TableNodeData>) => {
             <Handle type="target" position={Position.Left} className="schema-handle !w-3 !h-3 !border-2 !border-white !bg-violet-500" />
 
             {/* Header */}
-            <div className="schema-node-header flex items-center justify-between p-3 bg-gray-50 border-b border-gray-200 cursor-pointer">
-                <div className="schema-node-title flex items-center gap-2 font-bold text-sm text-gray-900">
-                    <Table size={16} className={isBottleneck ? "text-amber-500" : "text-violet-600"} />
+            <div className={`schema-node-header flex items-center justify-between p-3 border-b cursor-pointer transition-colors ${data.isFocused ? 'bg-violet-700 border-violet-800' : 'bg-violet-600 border-violet-700'}`}>
+                <div className="schema-node-title flex items-center gap-2 font-bold text-sm text-white">
+                    <Table size={16} className={isBottleneck ? "text-amber-300" : "text-violet-200"} />
                     <span>{data.label}</span>
                 </div>
                 <div className="flex flex-col items-end gap-1 ml-4 shadow-sm">
-                    <span className="schema-node-badge text-[10px] px-2 py-0.5 rounded-full bg-gray-900 text-white font-medium">{data.rows} rows</span>
-                    {formattedSize && <span className="text-[9px] text-gray-500 font-bold">{formattedSize}</span>}
+                    <span className="schema-node-badge text-[10px] px-2 py-0.5 rounded-full bg-violet-900/40 border border-violet-400/30 text-white font-medium">{data.rows} rows</span>
+                    {formattedSize && <span className="text-[9px] text-violet-200 font-medium">{formattedSize}</span>}
                 </div>
             </div>
 
