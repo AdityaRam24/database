@@ -12,3 +12,4 @@ llama-cpp-python>=0.2.75
 scikit-learn>=1.4.0
 faker>=28.0.0
 numpy>=1.26.0
+sqlglot>=20.0.0
