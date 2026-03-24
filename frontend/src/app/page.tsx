@@ -2,22 +2,98 @@
 
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
-import { BackgroundPaths } from "@/components/ui/background-paths";
-import { ChatInput, ChatInputTextArea, ChatInputSubmit } from "@/components/ui/chat-input";
-import { GlowCard } from "@/components/ui/spotlight-card";
-import { DitheringShader } from "@/components/ui/dithering-shader";
-import { CyberneticBentoGrid } from "@/components/ui/cybernetic-bento-grid";
-import { Sparkles, Database, Shield, Zap, Search, BarChart3, ChevronDown } from "lucide-react";
-import { useState, useRef } from "react";
+import { useState } from "react";
+import { motion } from "framer-motion";
+import {
+    Database, Zap, Shield, BarChart3, MessageSquare,
+    ArrowRight, CheckCircle2, Activity, BookOpen,
+    Search, ShieldAlert, Sparkles,
+} from "lucide-react";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { toast } from "sonner";
-import { motion, useScroll, useTransform } from "framer-motion";
 
-// Landing Page Modules
-import SchemaAssemblyHero from "@/components/landing/SchemaAssemblyHero";
-import SelfHealingScrubber from "@/components/landing/SelfHealingScrubber";
-import StorageHeatmapSection from "@/components/landing/StorageHeatmapSection";
-import RelationshipPulseSection from "@/components/landing/RelationshipPulseSection";
-import QueryStreamParallax from "@/components/landing/QueryStreamParallax";
+const FEATURES = [
+    {
+        icon: MessageSquare,
+        color: "#6366f1",
+        bg: "rgba(99,102,241,0.10)",
+        title: "Ask in plain English",
+        desc: "No SQL needed. Type 'Which customers haven't ordered in 3 months?' and get an instant, clear answer.",
+    },
+    {
+        icon: Zap,
+        color: "#f59e0b",
+        bg: "rgba(245,158,11,0.10)",
+        title: "Speed up your app",
+        desc: "Automatically find slow queries and missing indexes. Get one-click fixes that make your app feel faster.",
+    },
+    {
+        icon: Activity,
+        color: "#ef4444",
+        bg: "rgba(239,68,68,0.10)",
+        title: "Catch problems early",
+        desc: "AI monitors your database around the clock and alerts you to anomalies before they affect your users.",
+    },
+    {
+        icon: Shield,
+        color: "#10b981",
+        bg: "rgba(16,185,129,0.10)",
+        title: "Stay protected",
+        desc: "Spot security risks, detect PII exposure, and enforce access controls — all explained in plain English.",
+    },
+    {
+        icon: BarChart3,
+        color: "#8b5cf6",
+        bg: "rgba(139,92,246,0.10)",
+        title: "Visualize your data",
+        desc: "See how all your tables connect with an interactive map. Understand your database structure at a glance.",
+    },
+    {
+        icon: BookOpen,
+        color: "#ec4899",
+        bg: "rgba(236,72,153,0.10)",
+        title: "Define business rules",
+        desc: "Write rules in plain English. Prevent bad data, enforce limits, and keep your database healthy automatically.",
+    },
+];
+
+const HOW_IT_WORKS = [
+    {
+        step: "1",
+        icon: Database,
+        title: "Connect your database",
+        desc: "Paste your PostgreSQL connection string. No setup, no configuration — done in 30 seconds.",
+    },
+    {
+        step: "2",
+        icon: MessageSquare,
+        title: "Ask anything",
+        desc: "Type a question in plain English. No technical knowledge or SQL experience required.",
+    },
+    {
+        step: "3",
+        icon: Sparkles,
+        title: "Get instant insights",
+        desc: "Receive clear answers, visual breakdowns, and one-click recommendations you can act on right away.",
+    },
+];
+
+const EXAMPLE_PROMPTS = [
+    "Which tables use the most storage?",
+    "Show me my 5 slowest queries",
+    "Are there any security risks?",
+    "Find missing indexes",
+    "How many users signed up this week?",
+];
+
+const FADE_UP = {
+    hidden: { opacity: 0, y: 24 },
+    visible: (i = 0) => ({
+        opacity: 1,
+        y: 0,
+        transition: { delay: i * 0.08, duration: 0.5, ease: [0.25, 0.1, 0.25, 1] as const },
+    }),
+};
 
 export default function Home() {
     const { user, signInWithGoogle } = useAuth();
@@ -25,236 +101,275 @@ export default function Home() {
     const [prompt, setPrompt] = useState("");
     const [isLoading, setIsLoading] = useState(false);
 
-    // ── Apple-like unified scroll for 4 feature sections ──────────────────────
-    const featuresRef = useRef<HTMLDivElement>(null);
-    const { scrollYProgress: featuresProgress } = useScroll({
-        target: featuresRef,
-        offset: ["start start", "end end"]
-    });
-
-    // Each section occupies 25 % of the 400 vh block.
-    // Incoming: scales 1.1 → 1.0 + unblurs. Outgoing: scales 1.0 → 0.9 + blurs.
-    const scrubberProgress = useTransform(featuresProgress, [0, 0.25], [0, 1]);
-    const scrubberOpacity = useTransform(featuresProgress, [0, 0.15, 0.25], [1, 1, 0]);
-    const scrubberScale = useTransform(featuresProgress, [0.2, 0.25], [1, 0.9]);
-    const scrubberBlur = useTransform(featuresProgress, [0.2, 0.25], ["blur(0px)", "blur(20px)"]);
-
-    const pulseProgress = useTransform(featuresProgress, [0.25, 0.5], [0, 1]);
-    const pulseOpacity = useTransform(featuresProgress, [0.2, 0.25, 0.45, 0.5], [0, 1, 1, 0]);
-    const pulseScale = useTransform(featuresProgress, [0.2, 0.25, 0.45, 0.5], [1.1, 1, 1, 0.9]);
-    const pulseBlur = useTransform(featuresProgress, [0.2, 0.25, 0.45, 0.5], ["blur(20px)", "blur(0px)", "blur(0px)", "blur(20px)"]);
-
-    const heatmapProgress = useTransform(featuresProgress, [0.5, 0.75], [0, 1]);
-    const heatmapOpacity = useTransform(featuresProgress, [0.45, 0.5, 0.7, 0.75], [0, 1, 1, 0]);
-    const heatmapScale = useTransform(featuresProgress, [0.45, 0.5, 0.7, 0.75], [1.1, 1, 1, 0.9]);
-    const heatmapBlur = useTransform(featuresProgress, [0.45, 0.5, 0.7, 0.75], ["blur(20px)", "blur(0px)", "blur(0px)", "blur(20px)"]);
-
-    const streamProgress = useTransform(featuresProgress, [0.75, 1], [0, 1]);
-    const streamOpacity = useTransform(featuresProgress, [0.7, 0.75, 1], [0, 1, 1]);
-    const streamScale = useTransform(featuresProgress, [0.7, 0.75, 1], [1.1, 1, 1]);
-    const streamBlur = useTransform(featuresProgress, [0.7, 0.75, 1], ["blur(20px)", "blur(0px)", "blur(0px)"]);
-    // ──────────────────────────────────────────────────────────────────────────
-
-    const handlePromptSubmit = () => {
+    const handleSubmit = (e?: React.FormEvent) => {
+        e?.preventDefault();
         if (!prompt.trim()) return;
         setIsLoading(true);
         setTimeout(() => {
-            toast.success("Query understood! Sign in to execute.", {
-                description: "Connecting to the database engine..."
+            toast.success("Great question!", {
+                description: user
+                    ? "Redirecting to your dashboard…"
+                    : "Sign in to connect your database and get the answer.",
             });
             setIsLoading(false);
-            if (!user) {
-                setTimeout(signInWithGoogle, 1500);
-            } else {
-                router.push("/connect");
-            }
-        }, 1200);
-    };
-
-    const scrollToInteractive = () => {
-        const el = document.getElementById("interactive-chat");
-        if (el) el.scrollIntoView({ behavior: 'smooth' });
+            if (!user) setTimeout(signInWithGoogle, 1200);
+            else router.push("/connect");
+        }, 800);
     };
 
     return (
-        <div className="relative w-full overflow-hidden bg-black text-white selection:bg-purple-500/30 font-sans">
+        <div className="min-h-screen bg-background text-foreground font-sans">
 
-            {/* ── Fixed Navigation Bar ──────────────────────────────────────── */}
-            <nav className="fixed top-0 w-full z-50 flex items-center justify-between px-6 py-5 md:px-12 backdrop-blur-md border-b border-white/5 bg-black/50">
-                <div className="flex items-center gap-3 font-semibold text-xl tracking-tight">
-                    <Database className="text-purple-500" strokeWidth={2.5} />
-                    <span className="hidden sm:inline">DB-Lighthouse</span>
-                </div>
-                <div className="flex gap-4">
-                    {user ? (
-                        <button
-                            onClick={() => router.push('/dashboard')}
-                            className="px-5 py-2 rounded-full border border-white/10 hover:bg-white/10 transition-colors text-sm font-medium"
-                        >
-                            Dashboard
-                        </button>
-                    ) : (
-                        <button
-                            onClick={signInWithGoogle}
-                            className="px-5 py-2 rounded-full bg-white text-black hover:bg-zinc-200 transition-colors text-sm font-bold"
-                        >
-                            Sign In
-                        </button>
-                    )}
-                </div>
-            </nav>
-
-            {/* ── 1. Schema Assembly Hero (scroll-driven graph snap) ─────────── */}
-            <SchemaAssemblyHero />
-
-            {/* Animated scroll-down chevron */}
-            <div
-                className="flex justify-center -mt-[50vh] pb-[20vh] relative z-40 cursor-pointer pointer-events-auto"
-                onClick={scrollToInteractive}
-            >
-                <motion.div
-                    animate={{ y: [0, 10, 0] }}
-                    transition={{ repeat: Infinity, duration: 2 }}
-                    className="p-4 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 backdrop-blur-md transition-colors"
-                >
-                    <ChevronDown size={24} className="text-zinc-400" />
-                </motion.div>
-            </div>
-
-            {/* ── 2. Interactive Chat Prompt Showcase ───────────────────────── */}
-            <section id="interactive-chat" className="relative w-full bg-black py-32 z-30">
-                <BackgroundPaths>
-                    <div className="flex flex-col items-center justify-center w-full min-h-[60vh]">
-                        <div className="relative w-full max-w-6xl mx-auto flex flex-col lg:flex-row gap-8 items-center justify-center px-4">
-
-                            {/* Governance card — Left */}
-                            <div className="hidden lg:flex mt-8 drop-shadow-2xl">
-                                <GlowCard size="sm" glowColor="purple" className="flex flex-col items-start gap-4 bg-zinc-950/80 border-white/10 p-6 rounded-[2rem]">
-                                    <div className="p-3 bg-purple-500/20 rounded-xl mb-2">
-                                        <Shield className="text-purple-400" size={28} strokeWidth={2.5} />
-                                    </div>
-                                    <h3 className="font-bold text-lg text-zinc-100 uppercase tracking-wide">Governance</h3>
-                                    <p className="text-sm text-zinc-400 leading-relaxed font-medium">
-                                        Auto-limit rules, PII masking, and multi-factor execution controls keep your data safe.
-                                    </p>
-                                </GlowCard>
-                            </div>
-
-                            {/* Centre: Chat input + dithering shader */}
-                            <div className="w-full max-w-2xl flex-1 relative flex flex-col items-center group perspective-1000">
-                                {/* Accent shader behind chat */}
-                                <div
-                                    className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[140%] h-[250%] -z-10 opacity-40 group-hover:opacity-70 transition-opacity duration-1000 pointer-events-none mix-blend-screen"
-                                    style={{
-                                        maskImage: 'radial-gradient(circle at center, black, transparent 60%)',
-                                        WebkitMaskImage: 'radial-gradient(circle at center, black, transparent 60%)',
-                                    }}
-                                >
-                                    <DitheringShader
-                                        shape="wave"
-                                        type="8x8"
-                                        colorBack="#000000"
-                                        colorFront="#c084fc"
-                                        pxSize={2}
-                                        speed={0.3}
-                                        className="w-full h-full"
-                                    />
-                                </div>
-
-                                <div className="w-full bg-black/60 border border-white/20 p-2 sm:p-3 rounded-[2.5rem] shadow-[0_0_80px_rgba(168,85,247,0.15)] backdrop-blur-2xl transition-all duration-300 hover:shadow-[0_0_100px_rgba(168,85,247,0.25)] hover:border-purple-500/40">
-                                    <ChatInput
-                                        variant="unstyled"
-                                        value={prompt}
-                                        onChange={(e) => setPrompt(e.target.value)}
-                                        onSubmit={handlePromptSubmit}
-                                        loading={isLoading}
-                                        onStop={() => setIsLoading(false)}
-                                        className="px-4 py-3 sm:py-4 flex gap-3"
-                                    >
-                                        <ChatInputTextArea
-                                            placeholder="Ask your database anything… e.g., 'Show me users who churned last month'"
-                                            className="text-white placeholder:text-zinc-500 font-semibold text-lg sm:text-xl leading-relaxed bg-transparent border-none outline-none resize-none px-2"
-                                            rows={2}
-                                        />
-                                        <div className="flex items-end h-full py-1">
-                                            <ChatInputSubmit className="bg-white text-black hover:bg-zinc-200 transition-transform hover:scale-105 active:scale-95 w-12 h-12 shadow-xl shrink-0 rounded-full" />
-                                        </div>
-                                    </ChatInput>
-                                </div>
-
-                                <motion.div
-                                    initial={{ opacity: 0, y: 10 }}
-                                    whileInView={{ opacity: 1, y: 0 }}
-                                    viewport={{ once: true }}
-                                    className="mt-8 flex gap-6 sm:gap-8 text-xs sm:text-sm text-zinc-400 font-bold uppercase tracking-wider"
-                                >
-                                    <span className="flex items-center gap-2"><Zap size={16} className="text-white/60" /> Instant Queries</span>
-                                    <span className="flex items-center gap-2"><Search size={16} className="text-white/60" /> Deep Insights</span>
-                                    <span className="flex items-center gap-2"><Sparkles size={16} className="text-white/60" /> AI-Powered</span>
-                                </motion.div>
-                            </div>
-
-                            {/* Performance card — Right */}
-                            <div className="hidden lg:flex -mt-16 drop-shadow-2xl">
-                                <GlowCard size="sm" glowColor="blue" className="flex flex-col items-start gap-4 bg-zinc-950/80 border-white/10 p-6 rounded-[2rem]">
-                                    <div className="p-3 bg-blue-500/20 rounded-xl mb-2">
-                                        <BarChart3 className="text-blue-400" size={28} strokeWidth={2.5} />
-                                    </div>
-                                    <h3 className="font-bold text-lg text-zinc-100 uppercase tracking-wide">Performance</h3>
-                                    <p className="text-sm text-zinc-400 leading-relaxed font-medium">
-                                        Identify zombie indexes, fix bottleneck queries, and optimize storage instantly.
-                                    </p>
-                                </GlowCard>
-                            </div>
-
+            {/* ── Header ────────────────────────────────────────────────────── */}
+            <header className="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-xl border-b border-border">
+                <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
+                    <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-md shadow-indigo-500/20">
+                            <Database size={15} className="text-white" strokeWidth={2.5} />
                         </div>
+                        <span className="font-bold text-foreground text-[15px] tracking-tight">DB-Lighthouse</span>
                     </div>
-                </BackgroundPaths>
+
+                    <nav className="hidden md:flex items-center gap-7 text-sm font-medium text-muted-foreground">
+                        <a href="#how-it-works" className="hover:text-foreground transition-colors">How it works</a>
+                        <a href="#features" className="hover:text-foreground transition-colors">Features</a>
+                    </nav>
+
+                    <div className="flex items-center gap-2.5">
+                        <ThemeToggle />
+                        {user ? (
+                            <button
+                                onClick={() => router.push('/dashboard')}
+                                className="px-4 py-2 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold transition-colors flex items-center gap-1.5 shadow-md shadow-indigo-500/20"
+                            >
+                                Dashboard <ArrowRight size={13} />
+                            </button>
+                        ) : (
+                            <button
+                                onClick={signInWithGoogle}
+                                className="px-4 py-2 rounded-full bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold transition-colors shadow-md shadow-indigo-500/20"
+                            >
+                                Get Started
+                            </button>
+                        )}
+                    </div>
+                </div>
+            </header>
+
+            {/* ── Hero ──────────────────────────────────────────────────────── */}
+            <section className="pt-36 pb-28 px-4 sm:px-6">
+                <div className="max-w-3xl mx-auto text-center">
+                    <motion.div initial="hidden" animate="visible" variants={FADE_UP}>
+                        {/* Badge */}
+                        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-indigo-600 dark:text-indigo-400 text-xs font-semibold mb-7">
+                            <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse" />
+                            AI-Powered PostgreSQL Intelligence
+                        </div>
+
+                        {/* Headline */}
+                        <h1 className="text-5xl sm:text-6xl lg:text-[68px] font-extrabold tracking-tight text-foreground leading-[1.07] mb-6">
+                            Understand your database<br />
+                            <span className="bg-gradient-to-r from-indigo-600 via-violet-600 to-purple-600 bg-clip-text text-transparent">
+                                in plain English
+                            </span>
+                        </h1>
+
+                        {/* Sub */}
+                        <p className="text-xl text-muted-foreground leading-relaxed mb-10 max-w-2xl mx-auto">
+                            Ask questions, spot problems, and optimize performance — without writing a single line of SQL.
+                            Built for everyone on your team, technical or not.
+                        </p>
+
+                        {/* Search / chat input */}
+                        <form onSubmit={handleSubmit} className="max-w-2xl mx-auto mb-5">
+                            <div className="flex items-center gap-3 p-3 bg-card border-2 border-border rounded-2xl shadow-sm hover:border-indigo-500/40 focus-within:border-indigo-500/60 focus-within:shadow-indigo-500/10 focus-within:shadow-lg transition-all duration-300">
+                                <Search size={17} className="text-muted-foreground shrink-0 ml-1" />
+                                <input
+                                    type="text"
+                                    value={prompt}
+                                    onChange={e => setPrompt(e.target.value)}
+                                    onKeyDown={e => e.key === 'Enter' && handleSubmit()}
+                                    placeholder="Ask your database anything…"
+                                    className="flex-1 bg-transparent text-foreground placeholder:text-muted-foreground text-base outline-none font-medium"
+                                />
+                                <button
+                                    type="submit"
+                                    disabled={isLoading || !prompt.trim()}
+                                    className="shrink-0 px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-40 text-white text-sm font-bold transition-all flex items-center gap-2"
+                                >
+                                    {isLoading
+                                        ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                        : <><span className="hidden sm:inline">Ask</span> <ArrowRight size={14} /></>
+                                    }
+                                </button>
+                            </div>
+                        </form>
+
+                        {/* Example prompts */}
+                        <div className="flex flex-wrap justify-center gap-2 mb-10">
+                            {EXAMPLE_PROMPTS.map((q) => (
+                                <button
+                                    key={q}
+                                    onClick={() => setPrompt(q)}
+                                    className="px-3 py-1.5 rounded-full text-[11px] font-medium bg-muted hover:bg-muted/70 text-muted-foreground hover:text-foreground transition-all border border-border"
+                                >
+                                    {q}
+                                </button>
+                            ))}
+                        </div>
+
+                        {/* Trust row */}
+                        <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
+                            {["PostgreSQL native", "No SQL required", "AI-powered", "Privacy first"].map((item) => (
+                                <span key={item} className="flex items-center gap-1.5">
+                                    <CheckCircle2 size={13} className="text-emerald-500 shrink-0" />
+                                    {item}
+                                </span>
+                            ))}
+                        </div>
+                    </motion.div>
+                </div>
             </section>
 
-            {/* ── 3-6. Seamless Apple-style 4-section scroll sequence (400 vh) ── */}
-            <div ref={featuresRef} className="relative w-full h-[400vh] bg-black">
-                <div className="sticky top-0 w-full h-screen overflow-hidden bg-black">
+            {/* ── How It Works ──────────────────────────────────────────────── */}
+            <section id="how-it-works" className="py-24 px-4 sm:px-6 border-y border-border bg-muted/40">
+                <div className="max-w-5xl mx-auto">
+                    <div className="text-center mb-14">
+                        <p className="text-indigo-600 dark:text-indigo-400 text-xs font-bold uppercase tracking-widest mb-3">Simple by design</p>
+                        <h2 className="text-3xl sm:text-4xl font-extrabold text-foreground tracking-tight">Three steps to clarity</h2>
+                    </div>
 
-                    {/* 3. Self-Healing Security Scrubber */}
-                    <motion.div
-                        style={{ opacity: scrubberOpacity, scale: scrubberScale, filter: scrubberBlur }}
-                        className="absolute inset-0"
-                    >
-                        <SelfHealingScrubber scrollProgress={scrubberProgress} />
-                    </motion.div>
-
-                    {/* 4. Live Relationship Graph Pulse */}
-                    <motion.div
-                        style={{ opacity: pulseOpacity, scale: pulseScale, filter: pulseBlur }}
-                        className="absolute inset-0 z-10"
-                    >
-                        <RelationshipPulseSection scrollProgress={pulseProgress} />
-                    </motion.div>
-
-                    {/* 5. Storage Heatmap / Space Shrinker */}
-                    <motion.div
-                        style={{ opacity: heatmapOpacity, scale: heatmapScale, filter: heatmapBlur }}
-                        className="absolute inset-0 z-20"
-                    >
-                        <StorageHeatmapSection scrollProgress={heatmapProgress} />
-                    </motion.div>
-
-                    {/* 6. Incident Detection / Query Stream Parallax */}
-                    <motion.div
-                        style={{ opacity: streamOpacity, scale: streamScale, filter: streamBlur }}
-                        className="absolute inset-0 z-30"
-                    >
-                        <QueryStreamParallax scrollProgress={streamProgress} />
-                    </motion.div>
-
+                    <div className="grid md:grid-cols-3 gap-6">
+                        {HOW_IT_WORKS.map(({ step, icon: Icon, title, desc }, i) => (
+                            <motion.div
+                                key={step}
+                                custom={i}
+                                initial="hidden"
+                                whileInView="visible"
+                                viewport={{ once: true }}
+                                variants={FADE_UP}
+                                className="relative bg-card border border-border rounded-2xl p-7"
+                            >
+                                <div className="flex items-center gap-3 mb-5">
+                                    <div className="w-10 h-10 rounded-xl bg-indigo-500/10 flex items-center justify-center shrink-0">
+                                        <Icon size={18} className="text-indigo-600 dark:text-indigo-400" strokeWidth={2} />
+                                    </div>
+                                    <span className="text-4xl font-black text-border leading-none">{step}</span>
+                                </div>
+                                <h3 className="text-base font-bold text-foreground mb-2">{title}</h3>
+                                <p className="text-sm text-muted-foreground leading-relaxed">{desc}</p>
+                                {i < 2 && (
+                                    <div className="hidden md:flex absolute top-1/2 -right-3 z-10 -translate-y-1/2">
+                                        <ArrowRight size={14} className="text-muted-foreground/30" />
+                                    </div>
+                                )}
+                            </motion.div>
+                        ))}
+                    </div>
                 </div>
-            </div>
+            </section>
 
-            {/* ── Footer / Bento Grid ───────────────────────────────────────── */}
-            <div className="relative z-20 w-full pb-24 border-t border-white/5 bg-[#050508] pt-32">
-                <CyberneticBentoGrid />
-            </div>
+            {/* ── Features ──────────────────────────────────────────────────── */}
+            <section id="features" className="py-24 px-4 sm:px-6">
+                <div className="max-w-5xl mx-auto">
+                    <div className="text-center mb-14">
+                        <p className="text-violet-600 dark:text-violet-400 text-xs font-bold uppercase tracking-widest mb-3">Everything you need</p>
+                        <h2 className="text-3xl sm:text-4xl font-extrabold text-foreground tracking-tight mb-4">
+                            Built for every member of your team
+                        </h2>
+                        <p className="text-muted-foreground max-w-md mx-auto text-base">
+                            Developers, PMs, and founders — DB-Lighthouse speaks your language.
+                        </p>
+                    </div>
+
+                    <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                        {FEATURES.map(({ icon: Icon, color, bg, title, desc }, i) => (
+                            <motion.div
+                                key={title}
+                                custom={i}
+                                initial="hidden"
+                                whileInView="visible"
+                                viewport={{ once: true }}
+                                variants={FADE_UP}
+                                className="bg-card border border-border rounded-2xl p-6 hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 group"
+                            >
+                                <div className="w-11 h-11 rounded-xl flex items-center justify-center mb-4 transition-transform group-hover:scale-105 duration-300" style={{ background: bg }}>
+                                    <Icon size={19} style={{ color }} strokeWidth={2} />
+                                </div>
+                                <h3 className="font-bold text-foreground mb-2 text-[15px]">{title}</h3>
+                                <p className="text-sm text-muted-foreground leading-relaxed">{desc}</p>
+                            </motion.div>
+                        ))}
+                    </div>
+                </div>
+            </section>
+
+            {/* ── Social proof / stats strip ────────────────────────────────── */}
+            <section className="py-16 px-4 sm:px-6 border-y border-border bg-muted/40">
+                <div className="max-w-4xl mx-auto">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+                        {[
+                            { value: "< 30s", label: "to connect a database" },
+                            { value: "99%", label: "questions answered in plain English" },
+                            { value: "0", label: "SQL knowledge required" },
+                            { value: "24 / 7", label: "AI monitoring" },
+                        ].map(({ value, label }) => (
+                            <div key={label}>
+                                <p className="text-3xl font-extrabold text-foreground mb-1">{value}</p>
+                                <p className="text-xs text-muted-foreground font-medium leading-snug">{label}</p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </section>
+
+            {/* ── CTA ───────────────────────────────────────────────────────── */}
+            <section className="py-28 px-4 sm:px-6">
+                <div className="max-w-2xl mx-auto text-center">
+                    <motion.div
+                        initial="hidden"
+                        whileInView="visible"
+                        viewport={{ once: true }}
+                        variants={FADE_UP}
+                    >
+                        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 mb-6 shadow-xl shadow-indigo-500/25">
+                            <ShieldAlert size={28} className="text-white" strokeWidth={2} />
+                        </div>
+                        <h2 className="text-3xl sm:text-4xl font-extrabold text-foreground tracking-tight mb-4">
+                            Ready to understand your database?
+                        </h2>
+                        <p className="text-muted-foreground text-lg mb-9 leading-relaxed">
+                            Connect your PostgreSQL database for free. No credit card, no setup — just answers.
+                        </p>
+                        <button
+                            onClick={user ? () => router.push('/dashboard') : signInWithGoogle}
+                            className="inline-flex items-center gap-2.5 px-8 py-4 rounded-2xl bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-lg transition-colors shadow-xl shadow-indigo-500/20"
+                        >
+                            {user ? 'Go to Dashboard' : 'Get Started Free'}
+                            <ArrowRight size={18} />
+                        </button>
+                        <p className="mt-4 text-xs text-muted-foreground">No credit card required · Free to start</p>
+                    </motion.div>
+                </div>
+            </section>
+
+            {/* ── Footer ────────────────────────────────────────────────────── */}
+            <footer className="border-t border-border py-10 px-4 sm:px-6">
+                <div className="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div className="flex items-center gap-2">
+                        <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center">
+                            <Database size={12} className="text-white" strokeWidth={2.5} />
+                        </div>
+                        <span className="font-bold text-sm text-foreground">DB-Lighthouse AI</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground">© 2025 DB-Lighthouse. AI-powered database intelligence.</p>
+                    <div className="flex gap-5 text-xs text-muted-foreground">
+                        <a href="#" className="hover:text-foreground transition-colors">Privacy</a>
+                        <a href="#" className="hover:text-foreground transition-colors">Terms</a>
+                        <a href="#" className="hover:text-foreground transition-colors">GitHub</a>
+                    </div>
+                </div>
+            </footer>
 
         </div>
     );

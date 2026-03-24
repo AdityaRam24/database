@@ -4,6 +4,7 @@ import "./globals.css";
 import "./globals_extra.css";
 import { AuthProvider } from "@/context/AuthContext";
 import LenisProvider from "@/components/LenisProvider";
+import { ThemeProvider } from "next-themes";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -26,13 +27,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" data-scroll-behavior="smooth">
+    <html lang="en" data-scroll-behavior="smooth" suppressHydrationWarning>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <AuthProvider>
-          <LenisProvider>
-            {children}
-          </LenisProvider>
-        </AuthProvider>
+        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+          <AuthProvider>
+            <LenisProvider>
+              {children}
+            </LenisProvider>
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

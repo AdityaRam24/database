@@ -56,14 +56,14 @@ function MiniBarChart({ columns, rows }: { columns: string[]; rows: any[][] }) {
     const values = rows.map(r => Number(r[valueCol]) || 0);
     const max = Math.max(...values, 1);
     return (
-        <div className="mt-3 p-3 rounded-lg" style={{ background: '#0a0a14' }}>
-            <div className="text-xs text-purple-400 font-bold mb-2 uppercase tracking-wider">
+        <div className="mt-3 p-3 rounded-lg ai-code-block border-0">
+            <div className="text-xs text-purple-500 dark:text-purple-400 font-bold mb-2 uppercase tracking-wider">
                 <BarChart2 size={12} className="inline mr-1" /> Auto Chart
             </div>
             <div className="space-y-1.5">
                 {rows.slice(0, 8).map((row, i) => (
                     <div key={i} className="flex items-center gap-2 text-xs">
-                        <span className="text-gray-400 w-20 truncate">{String(row[labelCol])}</span>
+                        <span className="text-muted-foreground w-20 truncate">{String(row[labelCol])}</span>
                         <div className="flex-1 flex items-center gap-1">
                             <div
                                 className="h-4 rounded"
@@ -73,7 +73,7 @@ function MiniBarChart({ columns, rows }: { columns: string[]; rows: any[][] }) {
                                     minWidth: 4
                                 }}
                             />
-                            <span className="text-gray-300">{row[valueCol]}</span>
+                            <span className="text-foreground">{row[valueCol]}</span>
                         </div>
                     </div>
                 ))}
@@ -85,12 +85,12 @@ function MiniBarChart({ columns, rows }: { columns: string[]; rows: any[][] }) {
 // Inline result table
 function ResultTable({ columns, rows }: { columns: string[]; rows: any[][] }) {
     return (
-        <div className="mt-3 overflow-x-auto rounded-lg" style={{ border: '1px solid #2e2e4e', maxHeight: 200 }}>
+        <div className="mt-3 overflow-x-auto rounded-lg ai-table-wrapper">
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 11 }}>
                 <thead>
-                    <tr style={{ background: '#1e1e2e' }}>
+                    <tr className="ai-table-head">
                         {columns.map(col => (
-                            <th key={col} style={{ padding: '6px 10px', textAlign: 'left', color: '#a78bfa', fontWeight: 700, borderBottom: '1px solid #2e2e4e', whiteSpace: 'nowrap' }}>
+                            <th key={col} className="text-violet-500 dark:text-violet-400 font-bold border-b border-border" style={{ padding: '6px 10px', textAlign: 'left', whiteSpace: 'nowrap' }}>
                                 {col}
                             </th>
                         ))}
@@ -98,17 +98,17 @@ function ResultTable({ columns, rows }: { columns: string[]; rows: any[][] }) {
                 </thead>
                 <tbody>
                     {rows.slice(0, 20).map((row, i) => (
-                        <tr key={i} style={{ borderBottom: '1px solid #1a1a2e' }}>
+                        <tr key={i} className="border-b border-border/50">
                             {row.map((cell, j) => (
-                                <td key={j} style={{ padding: '5px 10px', color: '#d1d5db', whiteSpace: 'nowrap', maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                    {cell === null ? <span style={{ color: '#4b5563' }}>NULL</span> : String(cell)}
+                                <td key={j} className="text-foreground" style={{ padding: '5px 10px', whiteSpace: 'nowrap', maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                    {cell === null ? <span className="text-muted-foreground/50">NULL</span> : String(cell)}
                                 </td>
                             ))}
                         </tr>
                     ))}
                 </tbody>
             </table>
-            {rows.length > 20 && <p style={{ padding: '4px 10px', color: '#4b5563', fontSize: 10 }}>… and {rows.length - 20} more rows</p>}
+            {rows.length > 20 && <p className="text-muted-foreground/50" style={{ padding: '4px 10px', fontSize: 10 }}>… and {rows.length - 20} more rows</p>}
         </div>
     );
 }
@@ -268,8 +268,9 @@ const AskAIPanel: React.FC<AskAIPanelProps> = ({ connectionString, businessRules
             {/* Floating button */}
             <button
                 onClick={() => setOpen(true)}
-                className="fixed bottom-6 right-6 z-50 flex items-center gap-2 px-5 py-3 rounded-full text-white font-semibold shadow-xl transition-all hover:scale-105 active:scale-95"
-                style={{ background: 'linear-gradient(135deg, #7c3aed, #4f46e5)', boxShadow: '0 4px 24px rgba(124,58,237,0.5)' }}
+                className="fixed bottom-6 right-6 z-50 flex items-center gap-2 px-5 py-3 rounded-full text-white font-semibold transition-all hover:scale-105 active:scale-95 hover:shadow-[0_8px_32px_rgba(124,58,237,0.5)]"
+                style={{ background: 'linear-gradient(135deg, #7c3aed, #4f46e5)', boxShadow: '0 4px 24px rgba(124,58,237,0.4)' }}
+                aria-label="Open AI Assistant"
             >
                 <Bot size={20} />
                 Ask AI
@@ -277,17 +278,14 @@ const AskAIPanel: React.FC<AskAIPanelProps> = ({ connectionString, businessRules
 
             {/* Panel */}
             {open && (
-                <div className="fixed bottom-6 right-6 z-50 flex flex-col" style={{
+                <div className="fixed bottom-6 right-6 z-50 flex flex-col ai-panel" style={{
                     width: 420,
                     height: 600,
-                    background: '#0f0f1a',
-                    border: '1px solid #3b0764',
                     borderRadius: 18,
-                    boxShadow: '0 16px 60px rgba(124,58,237,0.35)',
                     overflow: 'hidden',
                 }}>
                     {/* Header */}
-                    <div style={{ background: 'linear-gradient(135deg, #7c3aed, #4f46e5)', padding: '14px 18px' }}>
+                    <div className="ai-panel-header" style={{ padding: '14px 18px' }}>
                         <div className="flex items-center justify-between">
                             <span className="text-white font-bold flex items-center gap-2 text-sm">
                                 <Bot size={18} /> AI Assistant
@@ -324,16 +322,13 @@ const AskAIPanel: React.FC<AskAIPanelProps> = ({ connectionString, businessRules
                                     <div style={{ width: 26, height: 26, borderRadius: '50%', background: msg.role === 'ai' ? '#7c3aed' : '#4f46e5', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                                         {msg.role === 'ai' ? <Bot size={13} color="white" /> : <User size={13} color="white" />}
                                     </div>
-                                    <div style={{
+                                    <div className={msg.role === 'user' ? 'ai-bubble-user' : 'ai-bubble-ai'} style={{
                                         maxWidth: '100%',
                                         padding: '10px 14px',
                                         borderRadius: 12,
-                                        background: msg.role === 'user' ? '#4f46e5' : '#1a1a2e',
-                                        color: '#e2e8f0',
                                         fontSize: 13,
                                         lineHeight: 1.6,
                                         whiteSpace: 'pre-wrap',
-                                        border: msg.role === 'ai' ? '1px solid #2e2e4e' : 'none',
                                     }}>
                                         {msg.content}
 
@@ -364,7 +359,7 @@ const AskAIPanel: React.FC<AskAIPanelProps> = ({ connectionString, businessRules
                                                 ) : (
                                                     <>
                                                         {/* SQL shown */}
-                                                        <div className="mb-2 p-2 rounded text-xs font-mono" style={{ background: '#0a0a14', border: '1px solid #1e2e1e', color: '#6ee7b7' }}>
+                                                        <div className="mb-2 p-2 rounded text-xs font-mono ai-code-block border-0">
                                                             {msg.query_result.sql}
                                                         </div>
                                                         {msg.query_result.explanation && (
@@ -443,7 +438,7 @@ const AskAIPanel: React.FC<AskAIPanelProps> = ({ connectionString, businessRules
                                 <div style={{ width: 26, height: 26, borderRadius: '50%', background: '#7c3aed', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                                     <Bot size={13} color="white" />
                                 </div>
-                                <div className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs" style={{ background: '#1a1a2e', border: '1px solid #2e2e4e', color: '#a78bfa' }}>
+                                <div className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs ai-typing-indicator">
                                     <Loader2 size={12} className="animate-spin" />
                                     Thinking...
                                 </div>
@@ -453,7 +448,7 @@ const AskAIPanel: React.FC<AskAIPanelProps> = ({ connectionString, businessRules
                     </div>
 
                     {/* Input area */}
-                    <div style={{ padding: '12px 16px', borderTop: '1px solid #1e1e2e', background: '#0a0a14' }}>
+                    <div className="ai-input-area" style={{ padding: '12px 16px' }}>
                         {/* Language picker */}
                         <div className="relative mb-2">
                             <button
@@ -487,13 +482,7 @@ const AskAIPanel: React.FC<AskAIPanelProps> = ({ connectionString, businessRules
                                 onChange={e => setInput(e.target.value)}
                                 onKeyDown={e => e.key === 'Enter' && !e.shiftKey && handleSend()}
                                 placeholder="Ask anything or describe a change..."
-                                style={{
-                                    flex: 1, border: '1px solid #3b0764', borderRadius: 10, padding: '10px 14px',
-                                    color: '#e2e8f0', fontSize: 13, outline: 'none',
-                                    background: 'rgba(255,255,255,0.04)', transition: 'border-color 0.2s'
-                                }}
-                                onFocus={e => e.target.style.borderColor = '#7c3aed'}
-                                onBlur={e => e.target.style.borderColor = '#3b0764'}
+                                className="ai-input-field flex-1"
                             />
                             {loading ? (
                                 <button
