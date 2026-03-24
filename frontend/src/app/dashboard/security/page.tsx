@@ -50,7 +50,6 @@ export default function SecurityPage() {
     const [generatingSynthetic, setGeneratingSynthetic] = useState(false);
     const [syntheticResult, setSyntheticResult] = useState<any>(null);
 
-    const API = process.env.NEXT_PUBLIC_API_URL;
 
     useEffect(() => {
         const cs = localStorage.getItem('db_connection_string');
@@ -63,7 +62,7 @@ export default function SecurityPage() {
     const loadGuardrails = async () => {
         setLoadingGuardrails(true);
         try {
-            const res = await fetch(`${API}/security/guardrail-status`);
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/security/guardrail-status`);
             setGuardrails(await res.json());
         } catch (e) { console.error(e); }
         finally { setLoadingGuardrails(false); }
@@ -74,7 +73,7 @@ export default function SecurityPage() {
         setScanningPrompt(true);
         setScanResult(null);
         try {
-            const res = await fetch(`${API}/security/scan-prompt`, {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/security/scan-prompt`, {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ prompt: testPrompt }),
             });
@@ -87,7 +86,7 @@ export default function SecurityPage() {
         if (!connectionString) return;
         setDetectingPII(true);
         try {
-            const res = await fetch(`${API}/security/detect-pii`, {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/security/detect-pii`, {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ source_connection_string: connectionString }),
             });
@@ -100,7 +99,7 @@ export default function SecurityPage() {
         if (!connectionString) return;
         setGeneratingSynthetic(true);
         try {
-            const res = await fetch(`${API}/security/generate-synthetic`, {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/security/generate-synthetic`, {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ source_connection_string: connectionString }),
             });

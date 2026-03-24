@@ -89,10 +89,10 @@ const TableNode = memo(({ id, data }: NodeProps<TableNodeData>) => {
             }}
             onClick={(e) => {
                 e.stopPropagation();
-                data.onFocusNode(id);
+                data.onFocusNode?.(id);
             }}
-            onMouseEnter={() => data.onToggleExpand(id, true)}
-            onMouseLeave={() => data.onToggleExpand(id, false)}
+            onMouseEnter={() => data.onToggleExpand?.(id, true)}
+            onMouseLeave={() => data.onToggleExpand?.(id, false)}
         >
             <Handle type="target" position={Position.Left} className="schema-handle !w-3 !h-3 !border-2 !border-white !bg-violet-500" />
 
@@ -355,37 +355,46 @@ const SchemaGraph: React.FC<SchemaGraphProps> = ({ connectionString }) => {
                     .stop();
 
                 // Run simulation synchronously
-                for (let i = 0; i < 300; ++i) simulation.tick();
+                let ticks = 0;
+                const runChunk = () => {
+                    for (let i = 0; i < 50; ++i) simulation.tick();
+                    ticks += 50;
+                    
+                    if (ticks < 300) {
+                        requestAnimationFrame(runChunk);
+                    } else {
+                        // Format for ReactFlow
+                        const flowNodes = layoutNodes.map((node: any) => ({
+                            id: node.id,
+                            type: 'tableNode',
+                            position: { x: node.x, y: node.y },
+                            data: node.data
+                        }));
 
-                // Format for ReactFlow
-                const flowNodes = layoutNodes.map((node: any) => ({
-                    id: node.id,
-                    type: 'tableNode',
-                    position: { x: node.x, y: node.y },
-                    data: node.data
-                }));
+                        const flowEdges = data.edges.map((e: any) => ({
+                            ...e,
+                            type: 'custom',
+                            animated: true,
+                            data: {
+                                onHoverToggle: handleEdgeHoverToggle
+                            },
+                            markerEnd: {
+                                type: MarkerType.ArrowClosed,
+                                width: 15,
+                                height: 15,
+                                color: '#8b5cf6',
+                            },
+                        }));
 
-                const flowEdges = data.edges.map((e: any) => ({
-                    ...e,
-                    type: 'custom',
-                    animated: true,
-                    data: {
-                        onHoverToggle: handleEdgeHoverToggle
-                    },
-                    markerEnd: {
-                        type: MarkerType.ArrowClosed,
-                        width: 15,
-                        height: 15,
-                        color: '#8b5cf6',
-                    },
-                }));
-
-                setNodes(flowNodes);
-                setEdges(flowEdges);
+                        setNodes(flowNodes);
+                        setEdges(flowEdges);
+                        setLoading(false);
+                    }
+                };
+                requestAnimationFrame(runChunk);
 
             } catch (error) {
                 console.error('Failed to fetch graph data:', error);
-            } finally {
                 setLoading(false);
             }
         };
@@ -400,23 +409,16 @@ const SchemaGraph: React.FC<SchemaGraphProps> = ({ connectionString }) => {
 
     // ─── Update Node & Edge States based on Current Features ───────────────
 
+    // Nodes Update
     useEffect(() => {
         if (!graphData.nodes.length) return;
 
-        // Determine Ego-Graph scope
         let focusedScope = new Set<string>();
-        let focusedEdgesScope = new Set<string>();
-
         if (focusedNodeId) {
             focusedScope.add(focusedNodeId);
             graphData.edges.forEach((e: any) => {
-                if (e.source === focusedNodeId) {
-                    focusedScope.add(e.target);
-                    focusedEdgesScope.add(e.id);
-                } else if (e.target === focusedNodeId) {
-                    focusedScope.add(e.source);
-                    focusedEdgesScope.add(e.id);
-                }
+                if (e.source === focusedNodeId) focusedScope.add(e.target);
+                else if (e.target === focusedNodeId) focusedScope.add(e.source);
             });
         }
 
@@ -428,37 +430,71 @@ const SchemaGraph: React.FC<SchemaGraphProps> = ({ connectionString }) => {
                 node.data.columns?.some((c: any) => c.name.toLowerCase().includes(searchQuery.toLowerCase()))
             );
 
+            const newData = {
+                ...node.data,
+                isExpanded: expandedNodeIds.has(node.id),
+                onToggleExpand: handleToggleExpand,
+                onFocusNode: handleFocusNode,
+                isFocused,
+                isDimmed,
+                isSearchHighlighted,
+                overlayMode,
+            };
+
+            const isChanged = 
+                node.data.isExpanded !== newData.isExpanded ||
+                node.data.isFocused !== newData.isFocused ||
+                node.data.isDimmed !== newData.isDimmed ||
+                node.data.isSearchHighlighted !== newData.isSearchHighlighted ||
+                node.data.overlayMode !== newData.overlayMode;
+
+            if (!isChanged) return node;
+
             return {
                 ...node,
-                data: {
-                    ...node.data,
-                    isExpanded: expandedNodeIds.has(node.id),
-                    onToggleExpand: handleToggleExpand,
-                    onFocusNode: handleFocusNode,
-                    isFocused,
-                    isDimmed,
-                    isSearchHighlighted,
-                    overlayMode,
-                }
+                data: newData
             };
         }));
+    }, [focusedNodeId, searchQuery, overlayMode, expandedNodeIds, graphData, setNodes, handleToggleExpand, handleFocusNode]);
+
+    // Edges Update
+    useEffect(() => {
+        if (!graphData.edges.length) return;
+
+        let focusedEdgesScope = new Set<string>();
+        if (focusedNodeId) {
+            graphData.edges.forEach((e: any) => {
+                if (e.source === focusedNodeId || e.target === focusedNodeId) {
+                    focusedEdgesScope.add(e.id);
+                }
+            });
+        }
 
         setEdges((eds) => eds.map((edge) => {
             const isDimmed = focusedNodeId ? !focusedEdgesScope.has(edge.id) : false;
             const isHovered = edge.id === hoveredEdgeId;
             const isFocused = focusedNodeId && focusedEdgesScope.has(edge.id);
 
+            const newData = {
+                ...edge.data,
+                isDimmed,
+                isHovered,
+                isFocused
+            };
+
+            const isChanged = 
+                edge.data.isDimmed !== newData.isDimmed ||
+                edge.data.isHovered !== newData.isHovered ||
+                edge.data.isFocused !== newData.isFocused;
+
+            if (!isChanged) return edge;
+
             return {
                 ...edge,
-                data: {
-                    ...edge.data,
-                    isDimmed,
-                    isHovered,
-                    isFocused
-                }
+                data: newData
             };
         }));
-    }, [focusedNodeId, searchQuery, overlayMode, hoveredEdgeId, expandedNodeIds, graphData, setNodes, setEdges, handleToggleExpand, handleFocusNode]);
+    }, [focusedNodeId, hoveredEdgeId, graphData, setEdges]);
 
 
     const onConnect = useCallback(
