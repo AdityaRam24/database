@@ -32,11 +32,25 @@ class DialectConverter:
         read_dialect = "tsql" if dialect == "mssql" else dialect
 
         try:
-            # sqlglot.transpile returns a list of transpiled statements
-            transpiled_statements = sqlglot.transpile(sql, read=read_dialect, write="postgres")
+            import sqlglot.expressions as exp
             
-            # Filter out empty statements
-            valid_statements = [s for s in transpiled_statements if s and s.strip()]
+            # Parse into a list of ASTs
+            ast_list = sqlglot.parse(sql, read=read_dialect)
+            
+            valid_statements = []
+            for stmt in ast_list:
+                if not stmt:
+                    continue
+                
+                # Force all identifiers (tables, columns) to lowercase and unquote them.
+                # This guarantees they become generic case-insensitive matches in PostgreSQL.
+                for node in stmt.find_all(exp.Identifier):
+                    if hasattr(node, "this") and isinstance(node.this, str):
+                        node.args["this"] = node.this.lower()
+                        if "quoted" in node.args:
+                            node.args["quoted"] = False
+                            
+                valid_statements.append(stmt.sql(dialect="postgres"))
             
             return ";\n".join(valid_statements) + (";" if valid_statements else "")
         except Exception as e:
