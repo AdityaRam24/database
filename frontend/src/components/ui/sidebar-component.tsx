@@ -80,12 +80,12 @@ function InterfacesLogoSquare() {
 function BrandBadge() {
   return (
     <div className="relative shrink-0 w-full mb-4">
-      <div className="flex items-center p-1 w-full bg-indigo-500/10 rounded-xl border border-indigo-500/20 py-2">
-        <div className="h-10 w-8 flex items-center justify-center pl-2">
+      <div className="flex items-center p-1 w-full bg-violet-50 rounded-xl border border-violet-100 py-2 shadow-sm">
+        <div className="h-10 w-8 flex items-center justify-center pl-2 text-violet-600">
           <InterfacesLogoSquare />
         </div>
         <div className="px-2 py-1">
-          <div className="font-['Lexend:SemiBold',_sans-serif] text-[18px] text-indigo-400 font-bold tracking-tight">
+          <div className="font-['Lexend:SemiBold',_sans-serif] text-[18px] text-violet-700 font-bold tracking-tight">
             Lighthouse
           </div>
         </div>
@@ -122,7 +122,7 @@ function SearchContainer({ isCollapsed = false }: { isCollapsed?: boolean }) {
       style={{ transitionTimingFunction: softSpringEasing }}
     >
       <div
-        className={`bg-white/5 h-10 relative rounded-xl flex items-center transition-all duration-500 border border-white/10 ${isCollapsed ? "w-10 min-w-10 justify-center" : "w-full"
+        className={`bg-gray-100 h-10 relative rounded-xl flex items-center transition-all duration-500 border border-gray-200 shadow-sm ${isCollapsed ? "w-10 min-w-10 justify-center" : "w-full"
           }`}
         style={{ transitionTimingFunction: softSpringEasing }}
       >
@@ -132,7 +132,7 @@ function SearchContainer({ isCollapsed = false }: { isCollapsed?: boolean }) {
           style={{ transitionTimingFunction: softSpringEasing }}
         >
           <div className="size-8 flex items-center justify-center">
-            <SearchIcon size={16} className="text-slate-400" />
+            <SearchIcon size={16} className="text-gray-400" />
           </div>
         </div>
 
@@ -148,7 +148,7 @@ function SearchContainer({ isCollapsed = false }: { isCollapsed?: boolean }) {
                 placeholder="Search..."
                 value={searchValue}
                 onChange={(e) => setSearchValue(e.target.value)}
-                className="w-full bg-transparent border-none outline-none font-['Lexend:Regular',_sans-serif] text-[14px] text-slate-200 placeholder:text-slate-500 leading-[20px]"
+                className="w-full bg-transparent border-none outline-none font-['Lexend:Regular',_sans-serif] text-[14px] text-gray-900 placeholder:text-gray-400 leading-[20px]"
                 tabIndex={isCollapsed ? -1 : 0}
               />
             </div>
@@ -211,7 +211,7 @@ function ProjectDeleteAction({ project, onDeleted }: { project: Project, onDelet
         </button>
         <button
           onClick={e => { e.stopPropagation(); setConfirming(false); }}
-          className="text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-md bg-white/5 text-slate-400 hover:bg-white/10 border border-white/10 transition-colors"
+          className="text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-md bg-gray-100 text-gray-600 hover:bg-gray-200 border border-gray-200 transition-colors"
         >
           Cancel
         </button>
@@ -222,7 +222,7 @@ function ProjectDeleteAction({ project, onDeleted }: { project: Project, onDelet
   return (
     <button
       onClick={(e) => { e.stopPropagation(); setConfirming(true); }}
-      className="opacity-0 group-hover:opacity-100 shrink-0 p-1.5 rounded-lg text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-all duration-150"
+      className="opacity-0 group-hover:opacity-100 shrink-0 p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-all duration-150"
       title="Remove database"
     >
       <Trash2 size={14} />
@@ -246,7 +246,7 @@ function useSidebarContent(
           items: projects.length > 0 ? projects.map(p => {
             let OriginIcon = <Database size={16} className="text-violet-400" />;
             if (p.connectionType === "file") OriginIcon = <FileCode size={16} className="text-amber-400" />;
-            else if (p.connectionType === "github") OriginIcon = <GithubIcon size={16} className="text-slate-300" />;
+            else if (p.connectionType === "github") OriginIcon = <GithubIcon size={16} className="text-gray-500" />;
             else if (p.connectionType === "ai") OriginIcon = <Sparkles size={16} className="text-rose-400" />;
 
             return {
@@ -256,7 +256,7 @@ function useSidebarContent(
               action: <ProjectDeleteAction project={p} onDeleted={() => onProjectDelete(p)} />
             };
           }) : [
-            { icon: <Dashboard size={16} className="text-slate-400" />, label: "No databases yet" }
+            { icon: <Dashboard size={16} className="text-gray-400" />, label: "No databases yet" }
           ],
         },
         {
@@ -279,7 +279,7 @@ function useSidebarContent(
           items: projects.length > 0 ? projects.map(p => {
             let OriginIcon = <FolderOpen size={16} className="text-blue-400" />;
             if (p.connectionType === "file") OriginIcon = <FileCode size={16} className="text-amber-400" />;
-            else if (p.connectionType === "github") OriginIcon = <GithubIcon size={16} className="text-slate-300" />;
+            else if (p.connectionType === "github") OriginIcon = <GithubIcon size={16} className="text-gray-500" />;
             else if (p.connectionType === "ai") OriginIcon = <Sparkles size={16} className="text-rose-400" />;
             else if (p.connectionType === "connection") OriginIcon = <Database size={16} className="text-violet-400" />;
 
@@ -290,7 +290,7 @@ function useSidebarContent(
               action: <ProjectDeleteAction project={p} onDeleted={() => onProjectDelete(p)} />
             };
           }) : [
-            { icon: <Folder size={16} className="text-slate-400" />, label: "No active projects" }
+            { icon: <Folder size={16} className="text-gray-400" />, label: "No active projects" }
           ],
         },
       ],
@@ -301,9 +301,9 @@ function useSidebarContent(
         {
           title: "Workspace",
           items: [
-            { icon: <UserIcon size={16} className="text-slate-300" />, label: "Profile settings" },
-            { icon: <Security size={16} className="text-slate-300" />, label: "Security" },
-            { icon: <Notification size={16} className="text-slate-300" />, label: "Notifications" },
+            { icon: <UserIcon size={16} className="text-gray-500" />, label: "Profile settings" },
+            { icon: <Security size={16} className="text-gray-500" />, label: "Security" },
+            { icon: <Notification size={16} className="text-gray-500" />, label: "Notifications" },
           ],
         },
       ],
@@ -328,7 +328,7 @@ function IconNavButton({
     <button
       type="button"
       className={`flex items-center justify-center rounded-xl size-10 min-w-10 transition-colors duration-500
-        ${isActive ? "bg-violet-600/20 text-violet-400 border border-violet-500/30" : "hover:bg-white/10 text-slate-400 hover:text-slate-200"}`}
+        ${isActive ? "bg-violet-50 text-violet-700 border border-violet-200 shadow-sm" : "hover:bg-gray-100 text-gray-400 hover:text-gray-700"}`}
       style={{ transitionTimingFunction: softSpringEasing }}
       onClick={onClick}
     >
@@ -350,7 +350,7 @@ function IconNavigation({
   ];
 
   return (
-    <aside className="bg-[#0b0b14]/90 backdrop-blur-xl flex flex-col gap-2 items-center p-4 w-16 min-h-screen border-r border-white/5 relative z-20">
+    <aside className="bg-white flex flex-col gap-2 items-center p-4 w-16 min-h-screen border-r border-gray-200 relative z-20">
       {/* Logo */}
       <div className="mb-4 size-10 flex items-center justify-center cursor-pointer hover:scale-110 transition-transform">
         <div className="size-7">
@@ -393,7 +393,7 @@ function SectionTitle({
         <button
           type="button"
           onClick={onToggleCollapse}
-          className="flex items-center justify-center rounded-lg size-10 min-w-10 transition-all duration-500 hover:bg-white/10 text-slate-400 hover:text-slate-200"
+          className="flex items-center justify-center rounded-lg size-10 min-w-10 transition-all duration-500 hover:bg-gray-100 text-gray-400 hover:text-gray-800"
           style={{ transitionTimingFunction: softSpringEasing }}
           aria-label="Expand sidebar"
         >
@@ -410,7 +410,7 @@ function SectionTitle({
       <div className="flex items-center justify-between">
         <div className="flex items-center h-10">
           <div className="px-2 py-1">
-            <div className="font-['Lexend:SemiBold',_sans-serif] text-[20px] text-slate-100 leading-[27px] font-bold">
+            <div className="font-['Lexend:SemiBold',_sans-serif] text-[20px] text-gray-900 leading-[27px] font-bold">
               {title}
             </div>
           </div>
@@ -419,7 +419,7 @@ function SectionTitle({
           <button
             type="button"
             onClick={onToggleCollapse}
-            className="flex items-center justify-center rounded-lg size-10 min-w-10 transition-all duration-500 hover:bg-white/10 text-slate-400 hover:text-slate-200"
+            className="flex items-center justify-center rounded-lg size-10 min-w-10 transition-all duration-500 hover:bg-gray-100 text-gray-400 hover:text-gray-800"
             style={{ transitionTimingFunction: softSpringEasing }}
             aria-label="Collapse sidebar"
           >
@@ -449,7 +449,7 @@ function DetailSidebar({ activeSection, projects, onProjectClick, onProjectDelet
 
   return (
     <aside
-      className={`bg-[#0b0b14]/70 backdrop-blur-2xl flex flex-col gap-2 items-start p-4 border-r border-white/5 transition-all duration-500 min-h-screen relative z-10 ${isCollapsed ? "w-16 min-w-16 !px-0 justify-center" : "w-64"
+      className={`bg-white/80 backdrop-blur-xl flex flex-col gap-2 items-start p-4 border-r border-gray-200 transition-all duration-500 min-h-screen relative z-10 ${isCollapsed ? "w-16 min-w-16 !px-0 justify-center" : "w-64"
         }`}
       style={{ transitionTimingFunction: softSpringEasing }}
     >
@@ -475,14 +475,14 @@ function DetailSidebar({ activeSection, projects, onProjectClick, onProjectDelet
       </div>
 
       {!isCollapsed && (
-        <div className="w-full mt-auto pt-4 border-t border-white/10">
-          <div className="flex items-center gap-3 px-3 py-2.5 bg-gradient-to-tr from-white/5 to-transparent border border-white/5 hover:bg-white/10 rounded-xl cursor-pointer transition-colors shadow-sm">
+        <div className="w-full mt-auto pt-4 border-t border-gray-200">
+          <div className="flex items-center gap-3 px-3 py-2.5 bg-white border border-gray-200 hover:bg-gray-50 rounded-xl cursor-pointer transition-colors shadow-sm">
             <AvatarCircle />
             <div className="flex flex-col">
-              <div className="font-['Lexend:Regular',_sans-serif] text-[13.5px] text-white font-medium/90">Steve Team</div>
-              <div className="text-[10px] uppercase tracking-wider text-slate-500 font-semibold">Workspace</div>
+              <div className="font-['Lexend:Regular',_sans-serif] text-[13.5px] text-gray-900 font-bold">Steve Team</div>
+              <div className="text-[10px] uppercase tracking-wider text-gray-500 font-semibold">Workspace</div>
             </div>
-            <SettingsIcon size={16} className="text-slate-400 ml-auto opacity-75 hover:opacity-100" />
+            <SettingsIcon size={16} className="text-gray-400 ml-auto opacity-75 hover:opacity-100" />
           </div>
         </div>
       )}
@@ -518,7 +518,7 @@ function MenuItem({
       style={{ transitionTimingFunction: softSpringEasing }}
     >
       <div
-        className={`group rounded-xl cursor-pointer transition-all duration-300 flex items-center relative gap-2 ${item.isActive ? "bg-white/10 border border-white/10 shadow-sm" : "hover:bg-white/5 border border-transparent"
+        className={`group rounded-xl cursor-pointer transition-all duration-300 flex items-center relative gap-2 ${item.isActive ? "bg-white border border-gray-200 shadow-sm text-gray-900" : "hover:bg-gray-100/50 border border-transparent text-gray-500"
           } ${isCollapsed ? "w-10 min-w-10 h-10 justify-center p-4" : "w-full h-11 px-3 py-2"}`}
         style={{ transitionTimingFunction: softSpringEasing }}
         onClick={handleClick}
@@ -531,7 +531,7 @@ function MenuItem({
             }`}
           style={{ transitionTimingFunction: softSpringEasing }}
         >
-          <div className={`font-['Lexend:Regular',_sans-serif] text-[13px] leading-[20px] truncate ${item.isActive ? "text-white font-medium" : "text-slate-300"}`}>
+          <div className={`font-['Lexend:Regular',_sans-serif] text-[13px] leading-[20px] truncate ${item.isActive ? "text-gray-900 font-bold" : "text-gray-600 font-medium"}`}>
             {item.label}
           </div>
         </div>
@@ -544,7 +544,7 @@ function MenuItem({
           >
             <ChevronDownIcon
               size={16}
-              className="text-slate-400 transition-transform duration-500"
+              className="text-gray-400 transition-transform duration-500"
               style={{
                 transitionTimingFunction: softSpringEasing,
                 transform: isExpanded ? "rotate(180deg)" : "rotate(0deg)",
@@ -567,11 +567,11 @@ function SubMenuItem({ item, onItemClick }: { item: MenuItemT; onItemClick?: () 
   return (
     <div className="w-full pl-8 pr-1 py-[2px]">
       <div
-        className="h-9 w-full rounded-lg cursor-pointer transition-colors hover:bg-white/5 flex items-center px-3 py-1"
+        className="h-9 w-full rounded-lg cursor-pointer transition-colors hover:bg-gray-100 flex items-center px-3 py-1"
         onClick={item.onClick || onItemClick}
       >
         <div className="flex-1 min-w-0">
-          <div className="font-['Lexend:Regular',_sans-serif] text-[13px] text-slate-400 hover:text-slate-200 transition-colors leading-[18px] truncate">
+          <div className="font-['Lexend:Regular',_sans-serif] text-[13px] text-gray-500 hover:text-gray-900 font-medium transition-colors leading-[18px] truncate">
             {item.label}
           </div>
         </div>
@@ -599,7 +599,7 @@ function MenuSection({
         style={{ transitionTimingFunction: softSpringEasing }}
       >
         <div className="flex items-center h-8 px-4">
-          <div className="font-['Lexend:SemiBold',_sans-serif] text-[11px] uppercase tracking-wider font-semibold text-slate-500">
+          <div className="font-['Lexend:SemiBold',_sans-serif] text-[11px] uppercase tracking-wider font-semibold text-gray-500">
             {section.title}
           </div>
         </div>
@@ -618,7 +618,7 @@ function MenuSection({
               isCollapsed={isCollapsed}
             />
             {isExpanded && item.children && !isCollapsed && (
-              <div className="flex flex-col gap-0.5 ml-2 border-l border-white/5 my-1">
+              <div className="flex flex-col gap-0.5 ml-2 border-l border-gray-200 my-1">
                 {item.children.map((child, childIndex) => (
                   <SubMenuItem
                     key={`${itemKey}-${childIndex}`}

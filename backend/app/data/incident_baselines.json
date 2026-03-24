@@ -39,9 +39,89 @@
         "total_seq_scans": 833,
         "xact_rollback": 597
       }
+    },
+    {
+      "timestamp": "2026-03-24T07:30:18.965824",
+      "metrics": {
+        "queries": [],
+        "query_stats": {
+          "total_calls": 0,
+          "avg_mean_time": 0.0,
+          "max_mean_time": 0.0
+        },
+        "table_sizes": {
+          "artist": 57344,
+          "album": 81920,
+          "employee": 40960,
+          "customer": 73728,
+          "invoice": 122880,
+          "invoice_line": 344064,
+          "track": 663552,
+          "playlist": 24576,
+          "playlist_track": 958464,
+          "genre": 24576,
+          "media_type": 24576
+        },
+        "connection_count": 2,
+        "table_seq_scans": {
+          "customer": 444,
+          "employee": 444,
+          "invoice": 256,
+          "track": 133,
+          "album": 66,
+          "playlist": 64,
+          "artist": 64,
+          "genre": 64,
+          "media_type": 64,
+          "playlist_track": 5,
+          "invoice_line": 5
+        },
+        "total_seq_scans": 1609,
+        "xact_rollback": 1206
+      }
+    },
+    {
+      "timestamp": "2026-03-24T07:30:18.976134",
+      "metrics": {
+        "queries": [],
+        "query_stats": {
+          "total_calls": 0,
+          "avg_mean_time": 0.0,
+          "max_mean_time": 0.0
+        },
+        "table_sizes": {
+          "artist": 57344,
+          "album": 81920,
+          "employee": 40960,
+          "customer": 73728,
+          "invoice": 122880,
+          "invoice_line": 344064,
+          "track": 663552,
+          "playlist": 24576,
+          "playlist_track": 958464,
+          "genre": 24576,
+          "media_type": 24576
+        },
+        "connection_count": 1,
+        "table_seq_scans": {
+          "customer": 444,
+          "employee": 444,
+          "invoice": 256,
+          "track": 133,
+          "album": 66,
+          "playlist": 64,
+          "artist": 64,
+          "genre": 64,
+          "media_type": 64,
+          "playlist_track": 5,
+          "invoice_line": 5
+        },
+        "total_seq_scans": 1609,
+        "xact_rollback": 1209
+      }
     }
   ],
-  "last_updated": "2026-03-24T07:17:36.723826",
+  "last_updated": "2026-03-24T07:30:18.976134",
   "incident_history": [
     {
       "id": "INC-1773203843-4561",
