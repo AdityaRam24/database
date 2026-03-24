@@ -14,6 +14,7 @@ export default function DashboardPage() {
     const router = useRouter();
     const [stats, setStats] = useState<any>(null);
     const [statsLoading, setStatsLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
     const [connectionString, setConnectionString] = useState<string | null>(null);
     const [graphKey, setGraphKey] = useState(0); 
     const [businessRules, setBusinessRules] = useState<string>('');
@@ -26,16 +27,22 @@ export default function DashboardPage() {
     const fetchStats = async (connStr: string) => {
         setStatsLoading(true);
         setStats(null);
+        setError(null);
         try {
             const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/analysis/dashboard`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ connection_string: connStr })
             });
+            if (!res.ok) {
+                const errData = await res.json().catch(() => ({}));
+                throw new Error(errData.detail || `Failed to connect or fetch stats (Status: ${res.status}).`);
+            }
             const data = await res.json();
             setStats(data);
-        } catch (e) {
+        } catch (e: any) {
             console.error(e);
+            setError(e.message || "An error occurred while connecting to the database.");
         } finally {
             setStatsLoading(false);
         }
@@ -77,7 +84,31 @@ export default function DashboardPage() {
         <DashboardShell>
             <div className="p-4 md:p-8 max-w-[1400px] mx-auto w-full">
                 {statsLoading ? (
-                    <div style={{ color: '#6b7280', animation: 'pulse 2s infinite' }}>Loading stats...</div>
+                    <div className="flex flex-col items-center justify-center h-64 gap-4 mt-6">
+                        <div className="w-8 h-8 border-2 border-violet-500/30 border-t-violet-500 rounded-full animate-spin" />
+                        <div className="text-slate-400 text-sm animate-pulse">Connecting to database...</div>
+                    </div>
+                ) : error ? (
+                    <div className="flex flex-col items-center justify-center gap-4 bg-red-500/5 border border-red-500/20 rounded-2xl p-8 mt-6 text-center backdrop-blur-sm animate-in fade-in slide-in-from-bottom-4 duration-700">
+                        <div className="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mb-2">
+                            <Database size={28} className="text-red-400" />
+                        </div>
+                        <h3 className="text-lg font-bold text-slate-100">Connection Error</h3>
+                        <p className="text-slate-400 text-sm max-w-md mx-auto">
+                            {error}
+                        </p>
+                        <p className="text-slate-500 text-xs mt-2 max-w-md mx-auto">
+                            The database might have been deleted from the server, or the connection string is invalid. You can try reconnecting or selecting another project from the sidebar.
+                        </p>
+                        <div className="flex flex-wrap items-center justify-center gap-4 mt-4">
+                            <button onClick={() => router.push('/connect')} className="px-5 py-2.5 rounded-xl text-sm font-semibold bg-violet-600 hover:bg-violet-500 text-white transition-all shadow-[0_0_15px_rgba(124,58,237,0.3)]">
+                                Connect New Database
+                            </button>
+                            <button onClick={() => { if(connectionString) fetchStats(connectionString); }} className="px-5 py-2.5 rounded-xl text-sm font-semibold bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 transition-all">
+                                Retry Connection
+                            </button>
+                        </div>
+                    </div>
                 ) : !stats ? (
                     <div className="flex items-center gap-4 px-5 py-4 bg-white/5 border border-white/10 rounded-2xl mt-6 backdrop-blur-sm">
                         <Database size={22} className="text-slate-500 shrink-0" />

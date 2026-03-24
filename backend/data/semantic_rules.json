@@ -1,1 +1,7 @@
-[]
+[
+  {
+    "id": "1773641324350",
+    "name": "Active User",
+    "definition": "A user who has logged in within the last 7 days"
+  }
+]

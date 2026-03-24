@@ -101,6 +101,15 @@ class DBService:
         try:
             logger.info("Restoring schema from SQL file...")
             
+            # Sanitize SQL dialect issues (e.g. MySQL backticks to Postgres double quotes)
+            sql_content = sql_content.replace('`', '"')
+            
+            # Strip CREATE/DROP DATABASE commands as we provision our own container DB
+            import re
+            sql_content = re.sub(r'(?i)^\s*DROP\s+DATABASE\s+.*?;', '-- Dropped DB command removed', sql_content, flags=re.MULTILINE)
+            sql_content = re.sub(r'(?i)^\s*CREATE\s+DATABASE\s+.*?;', '-- Created DB command removed', sql_content, flags=re.MULTILINE)
+            sql_content = re.sub(r'(?i)^\s*USE\s+.*?;', '-- USE command removed', sql_content, flags=re.MULTILINE)
+            
             # 0. Ensure target DB exists
             DBService._ensure_shadow_db_exists()
             
@@ -176,6 +185,14 @@ class DBService:
             import re
             import uuid
             from urllib.parse import urlparse
+
+            # Sanitize SQL dialect issues (e.g. MySQL backticks to Postgres double quotes)
+            sql_content = sql_content.replace('`', '"')
+            
+            # Strip CREATE/DROP DATABASE commands as we provision our own container DB
+            sql_content = re.sub(r'(?i)^\s*DROP\s+DATABASE\s+.*?;', '-- Dropped DB command removed', sql_content, flags=re.MULTILINE)
+            sql_content = re.sub(r'(?i)^\s*CREATE\s+DATABASE\s+.*?;', '-- Created DB command removed', sql_content, flags=re.MULTILINE)
+            sql_content = re.sub(r'(?i)^\s*USE\s+.*?;', '-- USE command removed', sql_content, flags=re.MULTILINE)
 
             # 1. Sanitize project name to create a safe database name
             safe_name = re.sub(r'[^a-z0-9]', '_', project_name.lower())[:30] # Max 30 chars
