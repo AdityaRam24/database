@@ -4,28 +4,31 @@ import React, { useEffect, useState } from 'react';
 import DualSidebar from "@/components/ui/sidebar-component";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter, usePathname } from "next/navigation";
+import { useTheme } from 'next-themes';
 import { LogOut, LogIn, Zap, GitMerge, Database, BookOpen, Activity, Shield, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { NavBar } from "@/components/ui/tubelight-navbar";
 import { EtheralShadow } from "@/components/ui/etheral-shadow";
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { MenuToggle } from '@/components/ui/menu-toggle';
+import { ThemeToggle } from '@/components/ui/ThemeToggle';
 
 const NAV_ITEMS = [
-    { path: '/dashboard', label: 'Overview', icon: Database, color: '#7c3aed', textColor: '#a78bfa' },
-    { path: '/dashboard/performance', label: 'Indexing', icon: Zap, color: '#f59e0b', textColor: '#fbbf24' },
-    { path: '/dashboard/governance', label: 'Governance', icon: GitMerge, color: '#3b82f6', textColor: '#60a5fa' },
-    { path: '/dashboard/data', label: 'Data', icon: Database, color: '#10b981', textColor: '#34d399' },
-    { path: '/dashboard/semantic', label: 'Semantic', icon: BookOpen, color: '#f59e0b', textColor: '#fbbf24' },
-    { path: '/dashboard/anomaly', label: 'Anomaly', icon: Activity, color: '#ef4444', textColor: '#f87171' },
-    { path: '/dashboard/incidents', label: 'Incidents', icon: ShieldAlert, color: '#ef4444', textColor: '#fca5a5' },
-    { path: '/dashboard/security', label: 'Security', icon: Shield, color: '#818cf8', textColor: '#818cf8' },
+    { path: '/dashboard',             label: 'Home',           icon: Database,   color: '#6366f1', textColor: '#818cf8' },
+    { path: '/dashboard/performance', label: 'Speed & Indexes',icon: Zap,        color: '#f59e0b', textColor: '#fbbf24' },
+    { path: '/dashboard/governance',  label: 'Rules & Limits', icon: GitMerge,   color: '#3b82f6', textColor: '#60a5fa' },
+    { path: '/dashboard/data',        label: 'Explore Data',   icon: Database,   color: '#10b981', textColor: '#34d399' },
+    { path: '/dashboard/semantic',    label: 'Business Rules', icon: BookOpen,   color: '#a78bfa', textColor: '#c4b5fd' },
+    { path: '/dashboard/anomaly',     label: 'Health Monitor', icon: Activity,   color: '#ef4444', textColor: '#f87171' },
+    { path: '/dashboard/incidents',   label: 'Alerts',         icon: ShieldAlert,color: '#f97316', textColor: '#fb923c' },
+    { path: '/dashboard/security',    label: 'Security',       icon: Shield,     color: '#818cf8', textColor: '#a5b4fc' },
 ];
 
 export default function DashboardShell({ children }: { children: React.ReactNode }) {
     const { user, signOut, signInWithGoogle, loading: authLoading } = useAuth();
     const router = useRouter();
     const pathname = usePathname();
+    const { resolvedTheme } = useTheme();
     const [projectName, setProjectName] = useState<string>("");
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -43,12 +46,12 @@ export default function DashboardShell({ children }: { children: React.ReactNode
         window.dispatchEvent(new CustomEvent('project-changed', { detail: { connStr, name } }));
     };
 
-    if (authLoading) return <div className="flex h-screen items-center justify-center bg-gray-50 text-gray-500">Loading...</div>;
+    if (authLoading) return <div className="flex h-screen items-center justify-center bg-background text-muted-foreground">Loading...</div>;
 
     return (
         <EtheralShadow
-            className="w-full h-screen overflow-hidden font-sans text-gray-900"
-            color="rgba(139, 92, 246, 0.05)"
+            className="w-full h-screen overflow-hidden font-sans text-slate-900 dark:text-slate-200"
+            color={resolvedTheme === 'dark' ? "rgba(99, 102, 241, 0.12)" : "rgba(99, 102, 241, 0.04)"}
             animation={{ scale: 60, speed: 40 }}
             noise={{ opacity: 0.1, scale: 1.5 }}
             sizing="fill"
@@ -60,13 +63,13 @@ export default function DashboardShell({ children }: { children: React.ReactNode
                 <div style={{ flex: 1, overflow: 'auto', display: 'flex', flexDirection: 'column', zIndex: 10 }}>
                 {/* Floating Glassmorphic Header */}
                 <header className="sticky top-3 z-40 w-full max-w-[1400px] mx-auto px-3 sm:px-4">
-                    <nav className="flex items-center justify-between px-3 sm:px-4 py-2 bg-white/80 backdrop-blur-2xl border border-gray-200 rounded-full shadow-sm">
+                    <nav className="flex items-center justify-between px-3 sm:px-4 py-2 bg-white/80 dark:bg-[#0b0b14]/80 backdrop-blur-2xl border border-black/8 dark:border-white/10 rounded-full shadow-[0_8px_32px_rgba(0,0,0,0.12)] dark:shadow-[0_8px_32px_rgba(0,0,0,0.5)]">
                         {/* Logo */}
                         <div className="flex items-center gap-2 shrink-0">
                             <span className="w-7 h-7 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center text-xs shadow-md shadow-violet-500/20">🔦</span>
                             <div className="hidden sm:block">
-                                <h1 className="text-gray-900 font-bold text-sm whitespace-nowrap leading-tight">DB-Lighthouse</h1>
-                                {projectName && <p className="text-gray-500 text-[9px] uppercase tracking-wider">{projectName}</p>}
+                                <h1 className="text-slate-800 dark:text-slate-200 font-bold text-sm whitespace-nowrap leading-tight">DB-Lighthouse</h1>
+                                {projectName && <p className="text-slate-500 text-[9px] uppercase tracking-wider">{projectName}</p>}
                             </div>
                         </div>
 
@@ -77,6 +80,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
 
                         {/* Desktop Auth */}
                         <div className="hidden lg:flex items-center gap-2 shrink-0">
+                            <ThemeToggle />
                             {user ? (
                                 <>
                                     {user.photoURL && <img src={user.photoURL} alt="avatar" className="w-7 h-7 rounded-full border border-gray-200" referrerPolicy="no-referrer" />}
@@ -98,10 +102,10 @@ export default function DashboardShell({ children }: { children: React.ReactNode
                                 <Button size="icon" variant="ghost" className="xl:hidden" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
                                     <MenuToggle strokeWidth={2.5} open={mobileMenuOpen} onOpenChange={setMobileMenuOpen} className="size-6 text-gray-700" />
                                 </Button>
-                                <SheetContent side="right" className="bg-white border-l border-gray-200 sm:max-w-sm w-3/4 p-0">
-                                    <div className="flex flex-col h-full bg-gray-50/50">
-                                        <div className="p-6 border-b border-gray-100 flex items-center gap-3">
-                                            <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center text-sm shadow-sm">🔦</span>
+                                <SheetContent side="right" className="bg-white/95 dark:bg-[#0b0b14]/95 border-l border-black/5 dark:border-white/5 backdrop-blur-xl sm:max-w-sm w-3/4 p-0">
+                                    <div className="flex flex-col h-full bg-transparent">
+                                        <div className="p-6 border-b border-black/5 dark:border-white/5 flex items-center gap-3">
+                                            <span className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-sm">🔦</span>
                                             <div>
                                                 <h1 className="text-gray-900 font-bold text-sm">DB-Lighthouse</h1>
                                             </div>
@@ -111,25 +115,29 @@ export default function DashboardShell({ children }: { children: React.ReactNode
                                             {NAV_ITEMS.map((item, idx) => {
                                                 const isActive = pathname === item.path;
                                                 return (
-                                                    <a key={idx} href={item.path} onClick={() => setMobileMenuOpen(false)} 
-                                                       className={`flex items-center gap-4 px-4 py-3 rounded-xl transition-all border ${isActive ? 'bg-white border-gray-200 text-gray-900 shadow-sm' : 'border-transparent text-gray-500 hover:text-gray-900 hover:bg-gray-100/50'}`}>
-                                                        <item.icon size={18} style={{ color: isActive ? item.color : '#6b7280' }} />
+                                                    <a key={idx} href={item.path} onClick={() => setMobileMenuOpen(false)}
+                                                       className={`flex items-center gap-4 px-4 py-3 rounded-xl transition-all border ${isActive ? 'bg-black/5 dark:bg-white/5 border-black/10 dark:border-white/10 text-slate-900 dark:text-white' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-black/5 dark:hover:bg-white/5'}`}>
+                                                        <item.icon size={18} style={{ color: item.color }} />
                                                         <span className="font-medium text-sm">{item.label}</span>
                                                     </a>
                                                 );
                                             })}
                                         </div>
-                                        <div className="p-6 border-t border-gray-100">
+                                        <div className="p-6 border-t border-black/5 dark:border-white/5 flex flex-col gap-4">
+                                            <div className="flex items-center justify-between">
+                                                <span className="text-xs text-slate-500 font-medium">Theme</span>
+                                                <ThemeToggle />
+                                            </div>
                                             {user ? (
                                                 <div className="flex flex-col gap-4">
                                                     <div className="flex items-center gap-3">
                                                         {user.photoURL && <img src={user.photoURL} alt="avatar" className="w-10 h-10 rounded-full border border-gray-200" referrerPolicy="no-referrer" />}
                                                         <div className="flex flex-col">
-                                                            <span className="text-gray-900 text-sm font-bold">{user.displayName}</span>
-                                                            <span className="text-gray-500 text-xs truncate max-w-[150px]">{user.email}</span>
+                                                            <span className="text-slate-900 dark:text-white text-sm font-medium">{user.displayName}</span>
+                                                            <span className="text-slate-500 text-xs truncate max-w-[150px]">{user.email}</span>
                                                         </div>
                                                     </div>
-                                                    <Button variant="outline" className="w-full justify-start border-gray-200 text-gray-700 hover:bg-gray-50" onClick={async () => { setMobileMenuOpen(false); await signOut(); router.push('/'); }}>
+                                                    <Button variant="outline" className="w-full justify-start border-black/10 dark:border-white/10 text-slate-600 dark:text-slate-300 hover:bg-black/5 dark:hover:bg-white/5 hover:text-slate-900 dark:hover:text-white" onClick={async () => { setMobileMenuOpen(false); await signOut(); router.push('/'); }}>
                                                         <LogOut size={16} className="mr-2" /> Sign out
                                                     </Button>
                                                 </div>

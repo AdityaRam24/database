@@ -80,12 +80,12 @@ function InterfacesLogoSquare() {
 function BrandBadge() {
   return (
     <div className="relative shrink-0 w-full mb-4">
-      <div className="flex items-center p-1 w-full bg-violet-50 rounded-xl border border-violet-100 py-2 shadow-sm">
-        <div className="h-10 w-8 flex items-center justify-center pl-2 text-violet-600">
+      <div className="flex items-center p-1 w-full bg-indigo-500/8 dark:bg-indigo-500/10 rounded-xl border border-indigo-500/15 dark:border-indigo-500/20 py-2">
+        <div className="h-10 w-8 flex items-center justify-center pl-2">
           <InterfacesLogoSquare />
         </div>
         <div className="px-2 py-1">
-          <div className="font-['Lexend:SemiBold',_sans-serif] text-[18px] text-violet-700 font-bold tracking-tight">
+          <div className="font-['Lexend:SemiBold',_sans-serif] text-[18px] text-indigo-600 dark:text-indigo-400 font-bold tracking-tight">
             Lighthouse
           </div>
         </div>
@@ -118,11 +118,11 @@ function SearchContainer({ isCollapsed = false }: { isCollapsed?: boolean }) {
   return (
     <div
       className={`relative shrink-0 transition-all duration-500 ${isCollapsed ? "w-full flex justify-center" : "w-full mb-6"
-        }`}
+        }`}https://github.com/AdityaRam24/database/pull/1/conflict?name=frontend%252Fsrc%252Fcomponents%252Fui%252Fsidebar-component.tsx&ancestor_oid=73e179c9a52307a4627c7941a65509a9bf6425aa&base_oid=45c9320f0df88394f93c02b5bd0ab32aadeef521&head_oid=15810deaa0f3c3a8e8348c51c169b303d76c44ef
       style={{ transitionTimingFunction: softSpringEasing }}
     >
       <div
-        className={`bg-gray-100 h-10 relative rounded-xl flex items-center transition-all duration-500 border border-gray-200 shadow-sm ${isCollapsed ? "w-10 min-w-10 justify-center" : "w-full"
+        className={`sidebar-search-container h-10 relative rounded-xl flex items-center transition-all duration-500 ${isCollapsed ? "w-10 min-w-10 justify-center" : "w-full"
           }`}
         style={{ transitionTimingFunction: softSpringEasing }}
       >
@@ -148,7 +148,7 @@ function SearchContainer({ isCollapsed = false }: { isCollapsed?: boolean }) {
                 placeholder="Search..."
                 value={searchValue}
                 onChange={(e) => setSearchValue(e.target.value)}
-                className="w-full bg-transparent border-none outline-none font-['Lexend:Regular',_sans-serif] text-[14px] text-gray-900 placeholder:text-gray-400 leading-[20px]"
+                className="w-full bg-transparent border-none outline-none font-['Lexend:Regular',_sans-serif] text-[14px] text-foreground placeholder:text-muted-foreground leading-[20px]"
                 tabIndex={isCollapsed ? -1 : 0}
               />
             </div>
@@ -328,7 +328,7 @@ function IconNavButton({
     <button
       type="button"
       className={`flex items-center justify-center rounded-xl size-10 min-w-10 transition-colors duration-500
-        ${isActive ? "bg-violet-50 text-violet-700 border border-violet-200 shadow-sm" : "hover:bg-gray-100 text-gray-400 hover:text-gray-700"}`}
+        ${isActive ? "bg-violet-500/15 text-violet-500 dark:text-violet-400 border border-violet-500/30" : "hover:bg-black/5 dark:hover:bg-white/10 text-slate-400 dark:text-slate-500 hover:text-slate-700 dark:hover:text-slate-200"}`}
       style={{ transitionTimingFunction: softSpringEasing }}
       onClick={onClick}
     >
@@ -350,7 +350,7 @@ function IconNavigation({
   ];
 
   return (
-    <aside className="bg-white flex flex-col gap-2 items-center p-4 w-16 min-h-screen border-r border-gray-200 relative z-20">
+    <aside className="sidebar-icon-rail flex flex-col gap-2 items-center p-4 w-16 min-h-screen relative z-20">
       {/* Logo */}
       <div className="mb-4 size-10 flex items-center justify-center cursor-pointer hover:scale-110 transition-transform">
         <div className="size-7">
@@ -449,7 +449,7 @@ function DetailSidebar({ activeSection, projects, onProjectClick, onProjectDelet
 
   return (
     <aside
-      className={`bg-white/80 backdrop-blur-xl flex flex-col gap-2 items-start p-4 border-r border-gray-200 transition-all duration-500 min-h-screen relative z-10 ${isCollapsed ? "w-16 min-w-16 !px-0 justify-center" : "w-64"
+      className={`sidebar-detail-panel flex flex-col gap-2 items-start p-4 transition-all duration-500 min-h-screen relative z-10 ${isCollapsed ? "w-16 min-w-16 !px-0 justify-center" : "w-64"
         }`}
       style={{ transitionTimingFunction: softSpringEasing }}
     >
@@ -475,14 +475,14 @@ function DetailSidebar({ activeSection, projects, onProjectClick, onProjectDelet
       </div>
 
       {!isCollapsed && (
-        <div className="w-full mt-auto pt-4 border-t border-gray-200">
-          <div className="flex items-center gap-3 px-3 py-2.5 bg-white border border-gray-200 hover:bg-gray-50 rounded-xl cursor-pointer transition-colors shadow-sm">
+        <div className="w-full mt-auto pt-4 border-t border-border">
+          <div className="flex items-center gap-3 px-3 py-2.5 bg-black/3 dark:bg-white/5 border border-border hover:bg-black/6 dark:hover:bg-white/10 rounded-xl cursor-pointer transition-colors shadow-sm">
             <AvatarCircle />
             <div className="flex flex-col">
-              <div className="font-['Lexend:Regular',_sans-serif] text-[13.5px] text-gray-900 font-bold">Steve Team</div>
-              <div className="text-[10px] uppercase tracking-wider text-gray-500 font-semibold">Workspace</div>
+              <div className="font-['Lexend:Regular',_sans-serif] text-[13.5px] text-foreground font-medium">Steve Team</div>
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Workspace</div>
             </div>
-            <SettingsIcon size={16} className="text-gray-400 ml-auto opacity-75 hover:opacity-100" />
+            <SettingsIcon size={16} className="text-muted-foreground ml-auto opacity-75 hover:opacity-100" />
           </div>
         </div>
       )}
@@ -518,7 +518,7 @@ function MenuItem({
       style={{ transitionTimingFunction: softSpringEasing }}
     >
       <div
-        className={`group rounded-xl cursor-pointer transition-all duration-300 flex items-center relative gap-2 ${item.isActive ? "bg-white border border-gray-200 shadow-sm text-gray-900" : "hover:bg-gray-100/50 border border-transparent text-gray-500"
+        className={`group rounded-xl cursor-pointer transition-all duration-300 flex items-center relative gap-2 ${item.isActive ? "bg-violet-500/10 border border-violet-500/20 shadow-sm" : "hover:bg-black/4 dark:hover:bg-white/5 border border-transparent"
           } ${isCollapsed ? "w-10 min-w-10 h-10 justify-center p-4" : "w-full h-11 px-3 py-2"}`}
         style={{ transitionTimingFunction: softSpringEasing }}
         onClick={handleClick}
@@ -531,7 +531,7 @@ function MenuItem({
             }`}
           style={{ transitionTimingFunction: softSpringEasing }}
         >
-          <div className={`font-['Lexend:Regular',_sans-serif] text-[13px] leading-[20px] truncate ${item.isActive ? "text-gray-900 font-bold" : "text-gray-600 font-medium"}`}>
+          <div className={`font-['Lexend:Regular',_sans-serif] text-[13px] leading-[20px] truncate ${item.isActive ? "text-violet-600 dark:text-white font-medium" : "text-slate-600 dark:text-slate-300"}`}>
             {item.label}
           </div>
         </div>
@@ -599,7 +599,7 @@ function MenuSection({
         style={{ transitionTimingFunction: softSpringEasing }}
       >
         <div className="flex items-center h-8 px-4">
-          <div className="font-['Lexend:SemiBold',_sans-serif] text-[11px] uppercase tracking-wider font-semibold text-gray-500">
+          <div className="font-['Lexend:SemiBold',_sans-serif] text-[11px] uppercase tracking-wider font-semibold text-muted-foreground">
             {section.title}
           </div>
         </div>
