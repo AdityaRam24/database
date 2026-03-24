@@ -52,6 +52,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
             animation={{ scale: 60, speed: 40 }}
             noise={{ opacity: 0.1, scale: 1.5 }}
             sizing="fill"
+            style={{ backgroundColor: '#f8fafc' }}
         >
             <div className="flex w-full h-full flex-1">
                 <DualSidebar onProjectLoad={handleProjectLoad} />
