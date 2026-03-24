@@ -99,16 +99,16 @@ export default function DataExplorerPage() {
             {/* Body - Split layout for tables and data */}
             <div className="flex-1 flex flex-col lg:flex-row overflow-hidden p-4 md:p-8 gap-6 w-full max-w-[1400px] mx-auto">
                 {/* Inner Sidebar: Tables List */}
-                <Card className="w-full lg:w-[280px] shrink-0 glass border-white/5 flex flex-col glow-border rounded-xl">
-                    <CardHeader className="pb-4 border-b border-white/5">
-                        <CardTitle className="text-slate-200 text-lg">Tables</CardTitle>
-                        <CardDescription className="text-slate-400">Select a table to view its content</CardDescription>
+                <Card className="w-full lg:w-[280px] shrink-0 border border-gray-200 bg-white flex flex-col shadow-sm rounded-xl">
+                    <CardHeader className="pb-4 border-b border-gray-100 bg-gray-50/50 rounded-t-xl">
+                        <CardTitle className="text-gray-900 text-lg">Tables</CardTitle>
+                        <CardDescription className="text-gray-500">Select a table to view its content</CardDescription>
                     </CardHeader>
-                    <CardContent className="p-0 overflow-y-auto w-full custom-scrollbar">
+                    <CardContent className="p-0 overflow-y-auto w-full custom-scrollbar bg-white">
                             {tablesLoading ? (
-                                <div className="p-4 text-[#6b7280] text-sm">Loading schemas...</div>
+                                <div className="p-4 text-gray-500 text-sm">Loading schemas...</div>
                             ) : tables.length === 0 ? (
-                                <div className="p-4 text-[#6b7280] text-sm">No tables found.</div>
+                                <div className="p-4 text-gray-500 text-sm">No tables found.</div>
                             ) : (
                                 <ul className="flex flex-col">
                                     {tables.map(node => (
@@ -116,12 +116,12 @@ export default function DataExplorerPage() {
                                             <button
                                                 onClick={() => handleTableClick(node.data.label)}
                                                 className={`w-full text-left px-5 py-3.5 text-sm transition-all border-l-2 ${selectedTable === node.data.label
-                                                        ? 'bg-emerald-500/10 border-emerald-500 text-emerald-400'
-                                                        : 'border-transparent text-slate-400 hover:bg-white/5 hover:text-slate-200'
+                                                        ? 'bg-violet-50 border-violet-500 text-violet-700'
+                                                        : 'border-transparent text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                                                     }`}
                                             >
                                                 <div className="font-medium">{node.data.label}</div>
-                                                <div className="text-xs opacity-60 mt-1">{node.data.rows} rows</div>
+                                                <div className="text-xs text-gray-400 mt-1">{node.data.rows} rows</div>
                                             </button>
                                         </li>
                                     ))}
@@ -131,18 +131,18 @@ export default function DataExplorerPage() {
                     </Card>
 
                     {/* Main Area: Animated Data Grid */}
-                    <Card className="flex-1 relative border border-white/10 rounded-2xl p-6 bg-slate-900/40 backdrop-blur-xl shadow-xl flex flex-col overflow-hidden min-w-0">
+                    <Card className="flex-1 relative border border-gray-200 rounded-2xl p-6 bg-white shadow-sm flex flex-col overflow-hidden min-w-0">
                         {/* Header */}
                         <div className="flex items-center justify-between mb-6 shrink-0 z-10">
                             <div className="flex items-center gap-4">
                                 <div className="flex items-center gap-2">
-                                    <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.8)]" />
-                                    <h1 className="text-xl font-medium text-slate-100">
+                                    <div className="w-2 h-2 rounded-full bg-violet-500 animate-pulse shadow-[0_0_10px_rgba(139,92,246,0.5)]" />
+                                    <h1 className="text-xl font-medium text-gray-900">
                                         {selectedTable ? `Data: ${selectedTable}` : 'Data Explorer'}
                                     </h1>
                                 </div>
                                 {selectedTable && (
-                                    <div className="text-sm text-slate-400">
+                                    <div className="text-sm text-gray-500">
                                         Showing {tableData?.rows?.length || 0} rows
                                     </div>
                                 )}
@@ -152,15 +152,15 @@ export default function DataExplorerPage() {
                         {/* Content */}
                         <div className="flex-1 overflow-auto custom-scrollbar relative z-0">
                             {!selectedTable ? (
-                                <div className="flex items-center justify-center h-full text-slate-500">
+                                <div className="flex items-center justify-center h-full text-gray-400">
                                     Select a table from the left to view data.
                                 </div>
                             ) : dataLoading ? (
-                                <div className="flex items-center justify-center h-full text-emerald-500 animate-pulse">
+                                <div className="flex items-center justify-center h-full text-violet-500 animate-pulse">
                                     Fetching records...
                                 </div>
                             ) : error ? (
-                                <div className="flex items-center justify-center h-full text-red-400">
+                                <div className="flex items-center justify-center h-full text-red-500">
                                     {error}
                                 </div>
                             ) : tableData && tableData.columns.length > 0 ? (
@@ -174,7 +174,7 @@ export default function DataExplorerPage() {
                                 >
                                     {/* Headers */}
                                     <div 
-                                        className="grid gap-4 px-4 py-2 text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2 sticky top-0 bg-[#0b0b14]/80 backdrop-blur-md z-10 border-b border-white/5"
+                                        className="grid gap-4 px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2 sticky top-0 bg-gray-50/95 backdrop-blur-md z-10 border-b border-gray-200"
                                         style={{ gridTemplateColumns: `repeat(${tableData.columns.length}, minmax(150px, 1fr))` }}
                                     >
                                         {tableData.columns.map(col => (
@@ -193,7 +193,7 @@ export default function DataExplorerPage() {
                                             className="relative cursor-pointer"
                                         >
                                             <motion.div
-                                                className="relative bg-white/[0.03] hover:bg-white/[0.06] border border-white/5 hover:border-white/10 rounded-xl p-4 overflow-hidden transition-colors"
+                                                className="relative bg-white hover:bg-gray-50 border border-gray-100 hover:border-violet-200 rounded-xl p-4 overflow-hidden transition-colors shadow-sm"
                                                 whileHover={{ y: -1, transition: { type: "spring", stiffness: 400, damping: 25 } }}
                                             >
                                                 <div 
@@ -201,8 +201,8 @@ export default function DataExplorerPage() {
                                                     style={{ gridTemplateColumns: `repeat(${tableData.columns.length}, minmax(150px, 1fr))` }}
                                                 >
                                                     {tableData.columns.map((col, idx) => (
-                                                        <div key={col} className={`truncate text-sm ${idx === 0 ? "font-medium text-slate-200" : "text-slate-300"}`} title={String(row[col])}>
-                                                            {row[col] !== null ? String(row[col]) : <span className="text-slate-600 italic">NULL</span>}
+                                                        <div key={col} className={`truncate text-sm ${idx === 0 ? "font-medium text-gray-900" : "text-gray-600"}`} title={String(row[col])}>
+                                                            {row[col] !== null ? String(row[col]) : <span className="text-gray-400 italic">NULL</span>}
                                                         </div>
                                                     ))}
                                                 </div>
@@ -211,13 +211,13 @@ export default function DataExplorerPage() {
                                     ))}
                                     
                                     {tableData.rows.length === 0 && (
-                                        <div className="px-6 py-10 text-center text-slate-500">
+                                        <div className="px-6 py-10 text-center text-gray-500">
                                             This table is empty.
                                         </div>
                                     )}
                                 </motion.div>
                             ) : (
-                                <div className="flex items-center justify-center h-full text-slate-500">
+                                <div className="flex items-center justify-center h-full text-gray-500">
                                     No data available.
                                 </div>
                             )}

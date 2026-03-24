@@ -154,14 +154,14 @@ export default function ConnectPage() {
     };
 
     return (
-        <div className="min-h-screen bg-[#07070f] flex flex-col items-center justify-center p-4 relative overflow-hidden">
+        <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4 relative overflow-hidden">
             {/* Background glow */}
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-violet-600/10 blur-[120px] rounded-full pointer-events-none" />
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-violet-600/5 blur-[120px] rounded-full pointer-events-none" />
 
             {/* Back button */}
             <button
                 onClick={() => router.push("/dashboard")}
-                className="absolute top-6 left-6 flex items-center gap-2 text-slate-400 hover:text-white text-sm transition-colors"
+                className="absolute top-6 left-6 flex items-center gap-2 text-gray-500 hover:text-gray-900 font-medium text-sm transition-colors"
             >
                 <ArrowLeft size={16} /> Dashboard
             </button>
@@ -169,11 +169,11 @@ export default function ConnectPage() {
             <div className="w-full max-w-lg relative z-10">
                 {/* Header */}
                 <div className="mb-8 text-center">
-                    <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-violet-600/20 border border-violet-500/30 mb-4">
-                        <Database size={22} className="text-violet-400" />
+                    <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-violet-50 border border-violet-100 mb-4">
+                        <Database size={22} className="text-violet-600" />
                     </div>
-                    <h1 className="text-2xl font-bold text-white mb-1">Connect a Database</h1>
-                    <p className="text-slate-400 text-sm">Choose how you want to add your database to Lighthouse.</p>
+                    <h1 className="text-2xl font-bold text-gray-900 mb-1">Connect a Database</h1>
+                    <p className="text-gray-500 text-sm">Choose how you want to add your database to Lighthouse.</p>
                 </div>
 
                 {/* Tab pills */}
@@ -185,23 +185,23 @@ export default function ConnectPage() {
                             onClick={() => { setActiveTab(t.id); setError(null); }}
                             className={`flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl border text-xs font-medium transition-all duration-200
                                 ${activeTab === t.id
-                                    ? "bg-violet-600/20 border-violet-500/50 text-violet-300"
-                                    : "bg-white/5 border-white/10 text-slate-400 hover:text-slate-200 hover:bg-white/8"
+                                    ? "bg-violet-50 border-violet-200 text-violet-700 shadow-sm"
+                                    : "bg-white border-gray-200 text-gray-500 hover:text-gray-900 hover:bg-gray-50"
                                 }`}
                         >
-                            <span className={activeTab === t.id ? "text-violet-400" : ""}>{t.icon}</span>
+                            <span className={activeTab === t.id ? "text-violet-600" : ""}>{t.icon}</span>
                             <span>{t.label}</span>
                         </button>
                     ))}
                 </div>
 
                 {/* Card */}
-                <div className="bg-[#0d0d1a] border border-white/10 rounded-2xl p-6 shadow-2xl">
+                <div className="bg-white border border-gray-200 rounded-3xl p-6 shadow-xl shadow-gray-200/50">
                     <form onSubmit={handleConnect} className="space-y-5">
 
                         {/* Project Name */}
                         <div>
-                            <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+                            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
                                 Project Name
                             </label>
                             <input
@@ -209,14 +209,14 @@ export default function ConnectPage() {
                                 placeholder={defaultNames[activeTab]}
                                 value={projectName}
                                 onChange={(e) => setProjectName(e.target.value)}
-                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:border-violet-500/60 focus:bg-white/8 transition-colors"
+                                className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-colors shadow-sm"
                             />
                         </div>
 
                         {/* Dynamic field */}
                         {activeTab === "connection" && (
                             <div>
-                                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+                                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
                                     PostgreSQL Connection String
                                 </label>
                                 <input
@@ -225,9 +225,9 @@ export default function ConnectPage() {
                                     value={connectionString}
                                     onChange={(e) => setConnectionString(e.target.value)}
                                     required
-                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:border-violet-500/60 focus:bg-white/8 transition-colors font-mono"
+                                    className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-colors font-mono shadow-sm"
                                 />
-                                <p className="text-xs text-slate-600 mt-2">The connection string and DB name are saved securely to your account.</p>
+                                <p className="text-xs text-gray-500 mt-2 font-medium">The connection string and DB name are saved securely to your account.</p>
                             </div>
                         )}
 
@@ -235,17 +235,17 @@ export default function ConnectPage() {
                             <div className="space-y-4">
                                 {/* File picker */}
                                 <div>
-                                    <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+                                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
                                         SQL Schema File
                                     </label>
-                                    <label className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${file ? "border-violet-500/50 bg-violet-600/10" : "border-white/10 hover:border-white/20 bg-white/3"}`}>
+                                    <label className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${file ? "border-violet-400 bg-violet-50" : "border-gray-300 hover:border-gray-400 bg-gray-50 hover:bg-gray-100"}`}>
                                         <input type="file" accept=".sql" className="hidden" onChange={(e) => setFile(e.target.files?.[0] || null)} required />
                                         {file ? (
-                                            <div className="flex items-center gap-3 text-violet-300">
+                                            <div className="flex items-center gap-3 text-violet-700">
                                                 <FileCode2 size={20} />
                                                 <div>
-                                                    <p className="text-sm font-semibold">{file.name}</p>
-                                                    <p className="text-xs text-slate-400">{(file.size / 1024).toFixed(1)} KB — click to change</p>
+                                                    <p className="text-sm font-bold">{file.name}</p>
+                                                    <p className="text-xs text-violet-500 font-medium">{(file.size / 1024).toFixed(1)} KB — click to change</p>
                                                 </div>
                                             </div>
                                         ) : (
@@ -259,31 +259,31 @@ export default function ConnectPage() {
 
                                 {/* Dialect selector */}
                                 <div>
-                                    <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+                                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
                                         SQL Dialect
                                     </label>
                                     <div className="grid grid-cols-1 gap-2">
                                         <select
                                             value={sqlDialect}
                                             onChange={(e) => setSqlDialect(e.target.value)}
-                                            className="w-full bg-[#0d0d1a] border border-white/10 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-violet-500/60 transition-colors appearance-none cursor-pointer"
+                                            className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 focus:outline-none focus:border-violet-500 transition-colors appearance-none cursor-pointer shadow-sm"
                                             style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238b8fa8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 16px center' }}
                                         >
                                             {SQL_DIALECTS.map((d) => (
-                                                <option key={d.value} value={d.value} style={{ backgroundColor: '#0d0d1a' }}>
+                                                <option key={d.value} value={d.value}>
                                                     {d.icon}  {d.label}
                                                 </option>
                                             ))}
                                         </select>
                                     </div>
                                     {sqlDialect !== "postgresql" && (
-                                        <p className="text-xs text-amber-400/80 mt-2 flex items-center gap-1">
+                                        <p className="text-xs text-amber-600 mt-2 flex items-center gap-1 font-medium">
                                             <span>⚡</span>
                                             Your {SQL_DIALECTS.find(d => d.value === sqlDialect)?.label} SQL will be automatically converted to PostgreSQL before import.
                                         </p>
                                     )}
                                     {sqlDialect === "postgresql" && (
-                                        <p className="text-xs text-slate-500 mt-2">We will automatically create a secure, dedicated PostgreSQL database for this schema.</p>
+                                        <p className="text-xs text-gray-500 mt-2 font-medium">We will automatically create a secure, dedicated PostgreSQL database for this schema.</p>
                                     )}
                                 </div>
                             </div>
@@ -291,7 +291,7 @@ export default function ConnectPage() {
 
                         {activeTab === "ai" && (
                             <div>
-                                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+                                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
                                     Describe Your Database
                                 </label>
                                 <textarea
@@ -300,14 +300,14 @@ export default function ConnectPage() {
                                     value={aiDescription}
                                     onChange={(e) => setAiDescription(e.target.value)}
                                     required
-                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:border-violet-500/60 focus:bg-white/8 transition-colors resize-none"
+                                    className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-colors resize-none shadow-sm"
                                 />
                             </div>
                         )}
 
                         {activeTab === "github" && (
                             <div>
-                                <label className="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">
+                                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
                                     GitHub File URL
                                 </label>
                                 <input
@@ -316,14 +316,14 @@ export default function ConnectPage() {
                                     value={githubUrl}
                                     onChange={(e) => setGithubUrl(e.target.value)}
                                     required
-                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm text-white placeholder:text-slate-600 focus:outline-none focus:border-violet-500/60 focus:bg-white/8 transition-colors font-mono"
+                                    className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-colors font-mono shadow-sm"
                                 />
-                                <p className="text-xs text-slate-600 mt-2">Both blob and raw GitHub URLs are supported.</p>
+                                <p className="text-xs text-gray-500 mt-2 font-medium">Both blob and raw GitHub URLs are supported.</p>
                             </div>
                         )}
 
                         {error && (
-                            <div className="flex items-center gap-2 px-4 py-3 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 text-sm">
+                            <div className="flex items-center gap-2 px-4 py-3 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm font-medium">
                                 {error}
                             </div>
                         )}
@@ -333,13 +333,13 @@ export default function ConnectPage() {
                             disabled={loading}
                             className={`w-full py-3.5 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2 mt-4
                                 ${loading
-                                    ? "bg-violet-600/50 text-white/70 cursor-wait"
-                                    : "bg-violet-600 hover:bg-violet-500 text-white shadow-[0_0_20px_rgba(124,58,237,0.3)] hover:shadow-[0_0_30px_rgba(124,58,237,0.5)]"
+                                    ? "bg-violet-100 text-violet-400 cursor-wait"
+                                    : "bg-gray-900 hover:bg-gray-800 text-white shadow-lg shadow-gray-900/20 hover:shadow-gray-900/30"
                                 }`}
                         >
                             {loading ? (
                                 <>
-                                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                    <div className="w-4 h-4 border-2 border-violet-200 border-t-violet-500 rounded-full animate-spin" />
                                     {activeTab === "connection" ? "Connecting..." : "Creating Database..."}
                                 </>
                             ) : (

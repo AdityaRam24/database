@@ -79,7 +79,7 @@ const OptimizationReport: React.FC<OptimizationReportProps> = ({ connectionStrin
 
     if (loading) {
         return (
-            <Card style={{ background: '#0f0f1a', border: '1px solid #2e2e4e' }}>
+            <Card style={{ background: '#ffffff', border: '1px solid #e5e7eb' }}>
                 <CardContent className="pt-6 text-center">
                     <Loader2 className="h-8 w-8 animate-spin mx-auto" style={{ color: '#7c3aed' }} />
                     <p className="mt-2" style={{ color: '#6b7280' }}>Scanning schema for optimizations...</p>
@@ -90,13 +90,13 @@ const OptimizationReport: React.FC<OptimizationReportProps> = ({ connectionStrin
 
     if (recommendations.length === 0) {
         return (
-            <Card style={{ background: '#0f0f1a', border: '1px solid #2e2e4e' }}>
-                <CardHeader><CardTitle style={{ color: '#a78bfa' }}>Optimization Report</CardTitle></CardHeader>
+            <Card style={{ background: '#ffffff', border: '1px solid #e5e7eb', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}>
+                <CardHeader><CardTitle style={{ color: '#4f46e5' }}>Optimization Report</CardTitle></CardHeader>
                 <CardContent>
-                    <Alert style={{ background: '#052e16', border: '1px solid #166534' }}>
-                        <CheckCircle className="h-4 w-4" style={{ color: '#22c55e' }} />
-                        <AlertTitle style={{ color: '#86efac' }}>All Good!</AlertTitle>
-                        <AlertDescription style={{ color: '#4ade80' }}>
+                    <Alert style={{ background: '#f0fdf4', border: '1px solid #bbf7d0' }}>
+                        <CheckCircle className="h-4 w-4" style={{ color: '#16a34a' }} />
+                        <AlertTitle style={{ color: '#166534', fontWeight: 'bold' }}>All Good!</AlertTitle>
+                        <AlertDescription style={{ color: '#15803d' }}>
                             No obvious optimizations found. Your schema looks healthy.
                         </AlertDescription>
                     </Alert>
@@ -106,9 +106,9 @@ const OptimizationReport: React.FC<OptimizationReportProps> = ({ connectionStrin
     }
 
     return (
-        <Card style={{ background: '#0f0f1a', border: '1px solid #2e2e4e' }}>
+        <Card style={{ background: '#ffffff', border: '1px solid #e5e7eb', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)' }}>
             <CardHeader>
-                <CardTitle style={{ color: '#a78bfa' }}>
+                <CardTitle style={{ color: '#4f46e5' }}>
                     Optimization Recommendations ({recommendations.length})
                 </CardTitle>
             </CardHeader>
@@ -121,10 +121,11 @@ const OptimizationReport: React.FC<OptimizationReportProps> = ({ connectionStrin
                             alignItems: 'flex-start',
                             justifyContent: 'space-between',
                             padding: '14px 16px',
-                            border: `1px solid ${applied.has(idx) ? '#166534' : '#2e2e4e'}`,
-                            borderRadius: 10,
-                            background: applied.has(idx) ? '#052e16' : '#1e1e2e',
+                            border: `1px solid ${applied.has(idx) ? '#86efac' : '#e5e7eb'}`,
+                            borderRadius: 12,
+                            background: applied.has(idx) ? '#f0fdf4' : '#f8fafc',
                             gap: 12,
+                            boxShadow: '0 1px 2px 0 rgba(0,0,0,0.05)',
                             transition: 'border 0.2s, background 0.2s',
                         }}
                     >
@@ -136,26 +137,26 @@ const OptimizationReport: React.FC<OptimizationReportProps> = ({ connectionStrin
                                     borderRadius: 4,
                                     fontSize: 11,
                                     fontWeight: 700,
-                                    background: (rec.impact ?? 'Low') === 'High' ? '#450a0a' : (rec.impact ?? 'Low') === 'Medium' ? '#422006' : '#1e1b4b',
-                                    color: (rec.impact ?? 'Low') === 'High' ? '#fca5a5' : (rec.impact ?? 'Low') === 'Medium' ? '#fdba74' : '#a5b4fc',
+                                    background: (rec.impact ?? 'Low') === 'High' ? '#fee2e2' : (rec.impact ?? 'Low') === 'Medium' ? '#ffedd5' : '#e0e7ff',
+                                    color: (rec.impact ?? 'Low') === 'High' ? '#dc2626' : (rec.impact ?? 'Low') === 'Medium' ? '#ea580c' : '#4f46e5',
                                 }}>
                                     {(rec.impact ?? 'Low').toUpperCase()}
                                 </span>
-                                <span style={{ color: '#7c3aed', fontSize: 12, fontWeight: 600 }}>
+                                <span style={{ color: '#4f46e5', fontSize: 13, fontWeight: 700 }}>
                                     {rec.table}{rec.column ? `.${rec.column}` : ''}
                                 </span>
                             </div>
                             {/* Description */}
-                            <p style={{ color: '#c4b5fd', fontSize: 13, margin: '0 0 8px 0' }}>{rec.description}</p>
+                            <p style={{ color: '#4b5563', fontSize: 13, margin: '0 0 8px 0', fontWeight: 500 }}>{rec.description}</p>
                             {/* SQL */}
                             <code style={{
                                 display: 'block',
-                                fontSize: 11,
-                                color: '#6ee7b7',
-                                background: '#0d1117',
-                                border: '1px solid #1e2d3d',
-                                padding: '6px 10px',
-                                borderRadius: 6,
+                                fontSize: 12,
+                                color: '#059669',
+                                background: '#f1f5f9',
+                                border: '1px solid #e2e8f0',
+                                padding: '8px 12px',
+                                borderRadius: 8,
                                 wordBreak: 'break-all',
                                 fontFamily: 'monospace',
                             }}>
@@ -166,15 +167,16 @@ const OptimizationReport: React.FC<OptimizationReportProps> = ({ connectionStrin
                         {/* Action button */}
                         <div style={{ flexShrink: 0 }}>
                             {applied.has(idx) ? (
-                                <Button variant="outline" size="sm" disabled style={{ color: '#22c55e', borderColor: '#166534', background: '#052e16' }}>
-                                    <CheckCircle className="mr-1 h-3 w-3" /> Applied
+                                <Button variant="outline" size="sm" disabled style={{ color: '#15803d', borderColor: '#bbf7d0', background: '#f0fdf4' }}>
+                                    <CheckCircle className="mr-1 h-4 w-4" /> Applied
                                 </Button>
                             ) : (
                                 <Button
                                     size="sm"
                                     onClick={() => handleApply(rec, idx)}
                                     disabled={applying === idx}
-                                    style={{ background: '#7c3aed', color: 'white', minWidth: 90 }}
+                                    style={{ background: '#7c3aed', color: 'white', minWidth: 90, borderRadius: 8 }}
+                                    className="hover:bg-violet-500 shadow-md shadow-violet-500/20"
                                 >
                                     {applying === idx
                                         ? <><Loader2 className="mr-1 h-3 w-3 animate-spin" /> Applying...</>

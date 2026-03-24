@@ -60,9 +60,9 @@ const METRIC_CONFIG: Record<string, { label: string; icon: any; color: string; f
 };
 
 const SEVERITY_COLORS = {
-    normal: { bg: '#052e16', border: '#22c55e', text: '#86efac' },
-    warning: { bg: '#422006', border: '#f59e0b', text: '#fdba74' },
-    critical: { bg: '#450a0a', border: '#ef4444', text: '#fca5a5' },
+    normal: { bg: '#f0fdf4', border: '#86efac', text: '#166534' },
+    warning: { bg: '#fffbeb', border: '#fde68a', text: '#b45309' },
+    critical: { bg: '#fef2f2', border: '#fecaca', text: '#b91c1c' },
 };
 
 /* ── Mini chart ────────────────────────────────────────────────────── */
@@ -185,11 +185,11 @@ export default function AnomalyPage() {
             {/* ── Top bar ── */}
             <div className="flex items-center justify-between p-6 px-4 md:px-8 bg-transparent">
                 <div className="flex items-center gap-4">
-                    <h1 className="m-0 text-xl font-bold text-slate-100 flex items-center gap-2">
+                    <h1 className="m-0 text-xl font-bold text-gray-900 flex items-center gap-2">
                         <Activity size={22} className="text-rose-500" /> Anomaly Detector
                     </h1>
                     {anomalyCount > 0 && (
-                        <span className="px-3 py-1 text-xs font-bold rounded-full bg-rose-950/50 text-rose-400 border border-rose-500/50">
+                        <span className="px-3 py-1 text-xs font-bold rounded-full bg-rose-50 text-rose-600 border border-rose-200">
                             {anomalyCount} anomal{anomalyCount === 1 ? 'y' : 'ies'}
                         </span>
                     )}
@@ -197,13 +197,13 @@ export default function AnomalyPage() {
                 <div className="flex items-center gap-3">
                     <Button size="sm" disabled={!connectionString || collecting}
                         onClick={() => connectionString && doCollect(connectionString)}
-                        className="bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 border border-emerald-500/30 font-semibold text-xs transition-colors">
+                        className="bg-emerald-50 hover:bg-emerald-100 text-emerald-600 border border-emerald-200 font-semibold text-xs transition-colors">
                         {collecting ? <Loader2 size={14} className="animate-spin mr-2" /> : <RefreshCw size={14} className="mr-2" />}
                         {collecting ? 'Collecting…' : 'Collect Snapshot'}
                     </Button>
                     <Button size="sm" disabled={!connectionString || detecting}
                         onClick={() => connectionString && doDetect(connectionString)}
-                        className="bg-violet-600 hover:bg-violet-700 text-white font-semibold text-xs transition-colors btn-glow shadow-[0_0_15px_rgba(124,58,237,0.3)]">
+                        className="bg-violet-600 hover:bg-violet-700 text-white font-semibold text-xs transition-colors shadow-sm">
                         {detecting ? <Loader2 size={14} className="animate-spin mr-2" /> : <Activity size={14} className="mr-2" />}
                         {detecting ? 'Analyzing…' : 'Detect Anomalies'}
                     </Button>
@@ -212,20 +212,20 @@ export default function AnomalyPage() {
 
             {/* ── Error banner ── */}
             {error && (
-                <div className="px-6 py-3 bg-red-950/50 border-b border-red-500/30 text-red-400 text-sm flex items-center gap-2">
+                <div className="px-6 py-3 bg-red-50 border-b border-red-200 text-red-600 text-sm flex items-center gap-2">
                     <XCircle size={16} /> {error}
                 </div>
             )}
 
             <div className="flex flex-col flex-1 w-full max-w-[1200px] mx-auto pb-10 px-4 md:px-8 mt-2">
             {isInsufficient && (
-                <div className="glass glow-border rounded-xl p-6 mb-8 border-blue-500/30">
+                <div className="bg-white rounded-xl p-6 mb-8 border border-blue-200 shadow-sm">
                     <div className="flex items-start gap-4">
-                        <Info size={24} className="text-blue-400 flex-shrink-0 mt-1" />
+                        <Info size={24} className="text-blue-500 flex-shrink-0 mt-1" />
                         <div>
-                            <p className="m-0 mb-2 text-base font-bold text-blue-300">Building Baseline…</p>
-                            <p className="m-0 text-sm text-slate-400 leading-relaxed">
-                                {anomalyResult?.message} Click <strong className="text-emerald-400">Collect Snapshot</strong> multiple times (or set up a cron) to build the rolling 7-day baseline. Once you have 3+ snapshots, Z-Score anomaly detection will activate.
+                            <p className="m-0 mb-2 text-base font-bold text-blue-900">Building Baseline…</p>
+                            <p className="m-0 text-sm text-gray-600 leading-relaxed">
+                                {anomalyResult?.message} Click <strong className="text-emerald-600">Collect Snapshot</strong> multiple times (or set up a cron) to build the rolling 7-day baseline. Once you have 3+ snapshots, Z-Score anomaly detection will activate.
                             </p>
                         </div>
                     </div>
@@ -236,8 +236,8 @@ export default function AnomalyPage() {
 
                 {detecting && !anomalyResult ? (
                     <div style={{ textAlign: 'center', marginTop: 80 }}>
-                        <Loader2 size={32} style={{ color: '#7c3aed', animation: 'spin 1s linear infinite' }} />
-                        <p style={{ color: '#6b7280', marginTop: 12 }}>Running Z-Score analysis…</p>
+                        <Loader2 size={32} style={{ color: '#8b5cf6', animation: 'spin 1s linear infinite', margin: '0 auto' }} />
+                        <p style={{ color: '#64748b', marginTop: 12 }}>Running Z-Score analysis…</p>
                     </div>
                 ) : (
                     <>
@@ -251,15 +251,15 @@ export default function AnomalyPage() {
                                     const sev = SEVERITY_COLORS[entry.severity];
                                     const isAnomalous = entry.severity !== 'normal';
                                     return (
-                                        <div key={key} className={`glass overflow-hidden relative rounded-xl p-4 border ${isAnomalous ? 'card-hover' : ''}`} style={{ borderColor: isAnomalous ? sev.border + '80' : 'rgba(255,255,255,0.05)', background: isAnomalous ? sev.bg + '80' : '' }}>
-                                            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: sev.border }} />
+                                        <div key={key} className="bg-white overflow-hidden relative rounded-xl p-4 border shadow-sm transition-all" style={{ borderColor: isAnomalous ? sev.border : '#e2e8f0', background: isAnomalous ? sev.bg : '' }}>
+                                            <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: isAnomalous ? sev.border : 'transparent' }} />
                                             <div className="flex items-center gap-2 mb-2">
                                                 <Icon size={14} style={{ color: cfg.color }} />
-                                                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider">{cfg.label}</span>
+                                                <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">{cfg.label}</span>
                                             </div>
-                                            <p className="m-0 text-2xl font-extrabold" style={{ color: sev.text }}>{cfg.format(entry.current_value)}</p>
-                                            <div className="flex gap-3 mt-2 text-xs text-slate-500 font-medium">
-                                                <span>Z: <strong style={{ color: Math.abs(entry.z_score) >= 2 ? '#fca5a5' : '#86efac' }}>{entry.z_score}</strong></span>
+                                            <p className="m-0 text-2xl font-extrabold" style={{ color: isAnomalous ? sev.text : '#111827' }}>{cfg.format(entry.current_value)}</p>
+                                            <div className="flex gap-3 mt-2 text-xs text-gray-500 font-medium">
+                                                <span>Z: <strong style={{ color: Math.abs(entry.z_score) >= 2 ? '#ef4444' : '#10b981' }}>{entry.z_score}</strong></span>
                                                 <span>Δ {entry.deviation_pct}%</span>
                                             </div>
                                         </div>
@@ -271,30 +271,30 @@ export default function AnomalyPage() {
                         {/* ── Anomaly alerts ── */}
                         {anomalyResult && anomalyResult.anomalies && anomalyResult.anomalies.length > 0 && (
                             <div className="mb-10">
-                                <h2 className="m-0 mb-5 text-base font-bold text-rose-400 flex items-center gap-2">
+                                <h2 className="m-0 mb-5 text-base font-bold text-rose-600 flex items-center gap-2">
                                     <AlertTriangle size={18} /> Anomalies Detected
                                 </h2>
                                 <div className="flex flex-col gap-4">
                                     {anomalyResult.anomalies.map((a, i) => {
                                         const sev = SEVERITY_COLORS[a.severity];
                                         return (
-                                            <div key={i} className="glass rounded-xl p-5 relative overflow-hidden border transition-all" style={{ borderColor: sev.border + '40' }}>
+                                            <div key={i} className="bg-white shadow-sm rounded-xl p-5 relative overflow-hidden border transition-all" style={{ borderColor: sev.border }}>
                                                 <div style={{ position: 'absolute', top: 0, left: 0, width: 4, bottom: 0, background: sev.border }} />
                                                 <div className="flex items-start justify-between gap-4">
                                                     <div className="flex-1">
                                                         <div className="flex items-center gap-3 mb-2">
-                                                            <span className="text-[10px] font-bold px-2 py-0.5 rounded tracking-widest uppercase border" style={{ background: sev.bg, color: sev.text, borderColor: sev.border + '40' }}>
+                                                            <span className="text-[10px] font-bold px-2 py-0.5 rounded tracking-widest uppercase border" style={{ background: sev.bg, color: sev.text, borderColor: sev.border }}>
                                                                 {a.severity}
                                                             </span>
-                                                            <span className="font-bold text-base text-slate-200">{a.label}</span>
+                                                            <span className="font-bold text-base text-gray-900">{a.label}</span>
                                                         </div>
                                                         {a.root_cause && (
-                                                            <p className="m-0 mt-2 text-sm text-slate-400 leading-relaxed bg-black/20 p-3 rounded-lg border border-white/5">{a.root_cause}</p>
+                                                            <p className="m-0 mt-2 text-sm text-gray-600 leading-relaxed bg-gray-50 p-3 rounded-lg border border-gray-100">{a.root_cause}</p>
                                                         )}
                                                     </div>
                                                     <div className="text-right shrink-0">
                                                         <p className="m-0 text-2xl font-extrabold" style={{ color: sev.text }}>Z {a.z_score}</p>
-                                                        <p className="m-0 text-xs text-slate-500 font-medium">{a.deviation_pct}% deviation</p>
+                                                        <p className="m-0 text-xs text-gray-500 font-medium">{a.deviation_pct}% deviation</p>
                                                     </div>
                                                 </div>
                                             </div>
@@ -306,17 +306,17 @@ export default function AnomalyPage() {
 
                         {/* ── All clear ── */}
                         {anomalyResult && anomalyResult.status === 'analyzed' && anomalyResult.anomalies.length === 0 && (
-                            <div className="text-center my-8 p-8 glass border-emerald-500/20 rounded-2xl flex flex-col items-center justify-center">
+                            <div className="text-center my-8 p-8 bg-white border border-emerald-200 shadow-sm rounded-2xl flex flex-col items-center justify-center">
                                 <CheckCircle size={32} className="text-emerald-500 mb-4" />
-                                <p className="text-emerald-400 m-0 font-bold text-lg">All metrics within normal range</p>
-                                <p className="text-emerald-200/70 m-0 mt-2 text-sm">No anomalies detected in the current snapshot.</p>
+                                <p className="text-emerald-700 m-0 font-bold text-lg">All metrics within normal range</p>
+                                <p className="text-emerald-600/80 m-0 mt-2 text-sm">No anomalies detected in the current snapshot.</p>
                             </div>
                         )}
 
                         {/* ── Metric Charts ── */}
                         {history && history.snapshot_count >= 2 && (
                             <div>
-                                <h2 className="m-0 mb-5 text-base font-bold text-violet-400 flex items-center gap-2">
+                                <h2 className="m-0 mb-5 text-base font-bold text-violet-600 flex items-center gap-2">
                                     <TrendingUp size={18} /> Metric Trends & Confidence Bands
                                 </h2>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -325,14 +325,14 @@ export default function AnomalyPage() {
                                         const band = history.confidence_bands[key] || { mean: 0, upper: 0, lower: 0 };
                                         if (!values || values.length === 0) return null;
                                         return (
-                                            <div key={key} className="glass rounded-xl p-5 border border-white/5">
+                                            <div key={key} className="bg-white rounded-xl p-5 border border-gray-200 shadow-sm">
                                                 <div className="flex items-center gap-2 mb-4">
                                                     <cfg.icon size={16} style={{ color: cfg.color }} />
-                                                    <span className="font-bold text-sm text-slate-200">{cfg.label}</span>
-                                                    <span className="ml-auto text-xs text-slate-500 font-mono bg-black/20 px-2 py-1 rounded">{values.length} snapshots</span>
+                                                    <span className="font-bold text-sm text-gray-900">{cfg.label}</span>
+                                                    <span className="ml-auto text-xs text-gray-500 font-mono bg-gray-50 px-2 py-1 rounded border border-gray-100">{values.length} snapshots</span>
                                                 </div>
                                                 <MiniChart values={values} band={band} color={cfg.color} />
-                                                <div className="flex justify-between mt-3 text-xs text-slate-500 font-medium">
+                                                <div className="flex justify-between mt-3 text-xs text-gray-500 font-medium">
                                                     <span>Normal: {cfg.format(band.lower)} — {cfg.format(band.upper)}</span>
                                                     <span>Latest: <strong style={{ color: cfg.color }}>{cfg.format(values[values.length - 1])}</strong></span>
                                                 </div>
@@ -345,7 +345,7 @@ export default function AnomalyPage() {
 
                         {/* ── Info footer ── */}
                         {anomalyResult?.last_updated && (
-                            <p className="mt-8 text-xs text-slate-500 text-center font-medium">
+                            <p className="mt-8 text-xs text-gray-500 text-center font-medium">
                                 Last updated: {new Date(anomalyResult.last_updated).toLocaleString()} • {anomalyResult.snapshot_count} snapshots in baseline
                             </p>
                         )}
