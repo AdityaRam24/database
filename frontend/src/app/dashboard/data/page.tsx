@@ -1,13 +1,10 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
-import ProjectsSidebar from "@/components/ProjectsSidebar";
-import AskAIPanel from "@/components/AskAIPanel";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
-import { LogOut, LogIn, Zap, GitMerge, Database } from "lucide-react";
+import { Database, Table } from "lucide-react";
 import DashboardShell from "@/components/DashboardShell";
 import { motion } from "framer-motion";
 
@@ -96,19 +93,32 @@ export default function DataExplorerPage() {
 
     return (
         <DashboardShell>
+            {/* Page header */}
+            <div className="px-6 py-5 flex items-center border-b border-gray-100">
+                <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-emerald-50 flex items-center justify-center">
+                        <Database size={18} className="text-emerald-600" />
+                    </div>
+                    <div>
+                        <h1 className="text-lg font-bold text-gray-900 leading-tight">Data Explorer</h1>
+                        <p className="text-xs text-gray-500 font-medium">Browse your database tables and records safely</p>
+                    </div>
+                </div>
+            </div>
+
             {/* Body - Split layout for tables and data */}
-            <div className="flex-1 flex flex-col lg:flex-row overflow-hidden p-4 md:p-8 gap-6 w-full max-w-[1400px] mx-auto">
-                {/* Inner Sidebar: Tables List */}
+            <div className="flex-1 flex flex-col lg:flex-row overflow-hidden p-4 md:p-6 gap-4 w-full max-w-[1400px] mx-auto">
+                {/* Inner Sidebar: Collections List */}
                 <Card className="w-full lg:w-[280px] shrink-0 border border-gray-200 bg-white flex flex-col shadow-sm rounded-xl">
                     <CardHeader className="pb-4 border-b border-gray-100 bg-gray-50/50 rounded-t-xl">
-                        <CardTitle className="text-gray-900 text-lg">Tables</CardTitle>
-                        <CardDescription className="text-gray-500">Select a table to view its content</CardDescription>
+                        <CardTitle className="text-gray-900 text-lg flex items-center gap-2"><Database size={18} className="text-violet-500" /> Data Collections</CardTitle>
+                        <CardDescription className="text-gray-500">Select a collection to view records</CardDescription>
                     </CardHeader>
                     <CardContent className="p-0 overflow-y-auto w-full custom-scrollbar bg-white">
                             {tablesLoading ? (
-                                <div className="p-4 text-gray-500 text-sm">Loading schemas...</div>
+                                <div className="p-4 text-gray-500 text-sm">Loading collections...</div>
                             ) : tables.length === 0 ? (
-                                <div className="p-4 text-gray-500 text-sm">No tables found.</div>
+                                <div className="p-4 text-gray-500 text-sm">No collections found.</div>
                             ) : (
                                 <ul className="flex flex-col">
                                     {tables.map(node => (
@@ -120,8 +130,10 @@ export default function DataExplorerPage() {
                                                         : 'border-transparent text-gray-600 hover:bg-gray-50 hover:text-gray-900'
                                                     }`}
                                             >
-                                                <div className="font-medium">{node.data.label}</div>
-                                                <div className="text-xs text-gray-400 mt-1">{node.data.rows} rows</div>
+                                                <div className="font-medium flex items-center gap-2">
+                                                    <Table size={14} className="text-gray-400" /> {node.data.label}
+                                                </div>
+                                                <div className="text-xs text-gray-400 mt-1 pl-6">{node.data.rows} records</div>
                                             </button>
                                         </li>
                                     ))}
@@ -136,14 +148,14 @@ export default function DataExplorerPage() {
                         <div className="flex items-center justify-between mb-6 shrink-0 z-10">
                             <div className="flex items-center gap-4">
                                 <div className="flex items-center gap-2">
-                                    <div className="w-2 h-2 rounded-full bg-violet-500 animate-pulse shadow-[0_0_10px_rgba(139,92,246,0.5)]" />
-                                    <h1 className="text-xl font-medium text-gray-900">
-                                        {selectedTable ? `Data: ${selectedTable}` : 'Data Explorer'}
+                                    <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
+                                    <h1 className="text-xl font-bold text-gray-900">
+                                        {selectedTable ? `Collection: ${selectedTable}` : 'Data Explorer'}
                                     </h1>
                                 </div>
                                 {selectedTable && (
-                                    <div className="text-sm text-gray-500">
-                                        Showing {tableData?.rows?.length || 0} rows
+                                    <div className="text-sm font-medium text-gray-500 bg-gray-100 px-3 py-1 rounded-full border border-gray-200">
+                                        Showing {tableData?.rows?.length || 0} records
                                     </div>
                                 )}
                             </div>
@@ -152,8 +164,9 @@ export default function DataExplorerPage() {
                         {/* Content */}
                         <div className="flex-1 overflow-auto custom-scrollbar relative z-0">
                             {!selectedTable ? (
-                                <div className="flex items-center justify-center h-full text-gray-400">
-                                    Select a table from the left to view data.
+                                <div className="flex flex-col items-center justify-center h-full text-gray-400 gap-4">
+                                    <Database size={48} className="text-gray-200" />
+                                    <p className="font-medium text-gray-500">Select a collection from the left sidebar to view data safely.</p>
                                 </div>
                             ) : dataLoading ? (
                                 <div className="flex items-center justify-center h-full text-violet-500 animate-pulse">
@@ -224,9 +237,6 @@ export default function DataExplorerPage() {
                         </div>
                     </Card>
             </div>
-
-            {/* Floating Ask AI button */}
-            {connectionString && <AskAIPanel connectionString={connectionString} />}
         </DashboardShell>
     );
 }

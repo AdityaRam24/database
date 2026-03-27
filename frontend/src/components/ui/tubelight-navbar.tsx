@@ -45,7 +45,7 @@ export function NavBar({ items, className }: NavBarProps) {
   return (
     <div
       className={cn(
-        "flex items-center justify-center gap-1 sm:gap-2 relative z-50 overflow-x-auto py-1",
+        "flex items-center justify-start sm:justify-center gap-1 sm:gap-2 relative z-50 overflow-x-auto py-1 w-full",
         className,
       )}
       style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}

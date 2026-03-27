@@ -37,6 +37,9 @@ interface Message {
 interface AskAIPanelProps {
     connectionString: string;
     businessRules?: string;
+    /** When provided the panel is controlled externally — no floating FAB is rendered */
+    open?: boolean;
+    onClose?: () => void;
 }
 
 const LANGUAGES = [
@@ -113,8 +116,12 @@ function ResultTable({ columns, rows }: { columns: string[]; rows: any[][] }) {
     );
 }
 
-const AskAIPanel: React.FC<AskAIPanelProps> = ({ connectionString, businessRules = '' }) => {
-    const [open, setOpen] = useState(false);
+const AskAIPanel: React.FC<AskAIPanelProps> = ({ connectionString, businessRules = '', open: openProp, onClose }) => {
+    const isControlled = openProp !== undefined;
+    const [internalOpen, setInternalOpen] = useState(false);
+    const open = isControlled ? openProp! : internalOpen;
+    const handleClose = () => { isControlled ? onClose?.() : setInternalOpen(false); };
+
     const [messages, setMessages] = useState<Message[]>([
         { role: 'ai', content: 'Hi! I\'ve read your database schema.\n\n✦ Ask me anything about your tables\n✦ Request schema changes (I\'ll execute them safely)\n✦ Ask for data queries — I\'ll run them and show results\n✦ Type in any language!\n\nTry: *"show me the top 5 users"* or *"add email_verified column to users"*' }
     ]);
@@ -265,16 +272,18 @@ const AskAIPanel: React.FC<AskAIPanelProps> = ({ connectionString, businessRules
 
     return (
         <>
-            {/* Floating button */}
-            <button
-                onClick={() => setOpen(true)}
-                className="fixed bottom-6 right-6 z-50 flex items-center gap-2 px-5 py-3 rounded-full text-white font-semibold transition-all hover:scale-105 active:scale-95 hover:shadow-[0_8px_32px_rgba(124,58,237,0.5)]"
-                style={{ background: 'linear-gradient(135deg, #7c3aed, #4f46e5)', boxShadow: '0 4px 24px rgba(124,58,237,0.4)' }}
-                aria-label="Open AI Assistant"
-            >
-                <Bot size={20} />
-                Ask AI
-            </button>
+            {/* Floating FAB — only shown when not controlled by navbar */}
+            {!isControlled && (
+                <button
+                    onClick={() => setInternalOpen(true)}
+                    className="fixed bottom-6 right-6 z-50 flex items-center gap-2 px-5 py-3 rounded-full text-white font-semibold transition-all hover:scale-105 active:scale-95 hover:shadow-[0_8px_32px_rgba(124,58,237,0.5)]"
+                    style={{ background: 'linear-gradient(135deg, #7c3aed, #4f46e5)', boxShadow: '0 4px 24px rgba(124,58,237,0.4)' }}
+                    aria-label="Open AI Assistant"
+                >
+                    <Bot size={20} />
+                    Ask AI
+                </button>
+            )}
 
             {/* Panel */}
             {open && (
@@ -295,7 +304,7 @@ const AskAIPanel: React.FC<AskAIPanelProps> = ({ connectionString, businessRules
                                 <button onClick={handleClearChat} title="Clear chat" className="text-white/60 hover:text-white transition-colors">
                                     <Trash2 size={15} />
                                 </button>
-                                <button onClick={() => setOpen(false)} className="text-white/70 hover:text-white transition-colors">
+                                <button onClick={handleClose} className="text-white/70 hover:text-white transition-colors">
                                     <X size={18} />
                                 </button>
                             </div>

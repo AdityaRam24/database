@@ -31,7 +31,7 @@ import {
   Integration,
   LogoGithub as GithubIcon,
 } from "@carbon/icons-react";
-import { Database, Trash2, FileCode, Sparkles } from "lucide-react";
+import { Database, Trash2, FileCode, Sparkles, Table } from "lucide-react";
 
 import { useAuth } from '@/context/AuthContext';
 import { getUserProjects, deleteProject, Project } from '@/lib/projectStorage';
@@ -118,7 +118,7 @@ function SearchContainer({ isCollapsed = false }: { isCollapsed?: boolean }) {
   return (
     <div
       className={`relative shrink-0 transition-all duration-500 ${isCollapsed ? "w-full flex justify-center" : "w-full mb-6"
-        }`}https://github.com/AdityaRam24/database/pull/1/conflict?name=frontend%252Fsrc%252Fcomponents%252Fui%252Fsidebar-component.tsx&ancestor_oid=73e179c9a52307a4627c7941a65509a9bf6425aa&base_oid=45c9320f0df88394f93c02b5bd0ab32aadeef521&head_oid=15810deaa0f3c3a8e8348c51c169b303d76c44ef
+        }`}
       style={{ transitionTimingFunction: softSpringEasing }}
     >
       <div
@@ -233,6 +233,8 @@ function ProjectDeleteAction({ project, onDeleted }: { project: Project, onDelet
 function useSidebarContent(
   activeSection: string,
   projects: Project[],
+  activeConn: string | null,
+  tables: string[],
   onProjectClick: (p: Project) => void,
   onProjectDelete: (p: Project) => void,
   router: any
@@ -249,9 +251,20 @@ function useSidebarContent(
             else if (p.connectionType === "github") OriginIcon = <GithubIcon size={16} className="text-gray-500" />;
             else if (p.connectionType === "ai") OriginIcon = <Sparkles size={16} className="text-rose-400" />;
 
+            const isActive = p.connectionString === activeConn;
+
             return {
               icon: OriginIcon,
               label: p.projectName,
+              isActive,
+              hasDropdown: isActive,
+              children: isActive ? tables.map(t => ({
+                label: t,
+                icon: <Table size={12} className="text-slate-400 group-hover:text-violet-500" />,
+                onClick: () => {
+                  window.dispatchEvent(new CustomEvent('focus-schema-node', { detail: { tableName: t } }));
+                }
+              })) : undefined,
               onClick: () => onProjectClick(p),
               action: <ProjectDeleteAction project={p} onDeleted={() => onProjectDelete(p)} />
             };
@@ -350,7 +363,7 @@ function IconNavigation({
   ];
 
   return (
-    <aside className="sidebar-icon-rail flex flex-col gap-2 items-center p-4 w-16 min-h-screen relative z-20">
+    <aside className="sidebar-icon-rail flex flex-col gap-2 items-center p-4 w-16 h-full relative z-20">
       {/* Logo */}
       <div className="mb-4 size-10 flex items-center justify-center cursor-pointer hover:scale-110 transition-transform">
         <div className="size-7">
@@ -431,10 +444,10 @@ function SectionTitle({
   );
 }
 
-function DetailSidebar({ activeSection, projects, onProjectClick, onProjectDelete, router }: { activeSection: string, projects: Project[], onProjectClick: (p: Project) => void, onProjectDelete: (p: Project) => void, router: any }) {
+function DetailSidebar({ activeSection, projects, activeConn, tables, onProjectClick, onProjectDelete, router }: { activeSection: string, projects: Project[], activeConn: string | null, tables: string[], onProjectClick: (p: Project) => void, onProjectDelete: (p: Project) => void, router: any }) {
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
   const [isCollapsed, setIsCollapsed] = useState(false);
-  const content = useSidebarContent(activeSection, projects, onProjectClick, onProjectDelete, router);
+  const content = useSidebarContent(activeSection, projects, activeConn, tables, onProjectClick, onProjectDelete, router);
 
   const toggleExpanded = (itemKey: string) => {
     setExpandedItems((prev) => {
@@ -449,7 +462,7 @@ function DetailSidebar({ activeSection, projects, onProjectClick, onProjectDelet
 
   return (
     <aside
-      className={`sidebar-detail-panel flex flex-col gap-2 items-start p-4 transition-all duration-500 min-h-screen relative z-10 ${isCollapsed ? "w-16 min-w-16 !px-0 justify-center" : "w-64"
+      className={`sidebar-detail-panel flex flex-col gap-2 items-start p-4 transition-all duration-500 h-full relative z-10 ${isCollapsed ? "w-16 min-w-[4rem] !px-0 justify-center" : "w-[240px] md:w-[260px] lg:w-[280px] shrink-0"
         }`}
       style={{ transitionTimingFunction: softSpringEasing }}
     >
@@ -479,7 +492,11 @@ function DetailSidebar({ activeSection, projects, onProjectClick, onProjectDelet
           <div className="flex items-center gap-3 px-3 py-2.5 bg-black/3 dark:bg-white/5 border border-border hover:bg-black/6 dark:hover:bg-white/10 rounded-xl cursor-pointer transition-colors shadow-sm">
             <AvatarCircle />
             <div className="flex flex-col">
-              <div className="font-['Lexend:Regular',_sans-serif] text-[13.5px] text-foreground font-medium">Steve Team</div>
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
+                <div className="font-['Lexend:Regular',_sans-serif] text-[13.5px] text-foreground font-medium">Steve Team</div>
+                <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-indigo-100 text-indigo-700 uppercase tracking-wider">DEV</span>
+              </div>
               <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Workspace</div>
             </div>
             <SettingsIcon size={16} className="text-muted-foreground ml-auto opacity-75 hover:opacity-100" />
@@ -645,7 +662,29 @@ export function DualSidebar({ onProjectLoad }: SidebarProps) {
   const [activeSection, setActiveSection] = useState("dashboard");
   const { user } = useAuth();
   const [projects, setProjects] = useState<Project[]>([]);
+  const [activeConn, setActiveConn] = useState<string | null>(null);
+  const [tables, setTables] = useState<string[]>([]);
   const router = useRouter();
+
+  useEffect(() => {
+    setActiveConn(localStorage.getItem('db_connection_string'));
+  }, []);
+
+  useEffect(() => {
+    if (activeConn) {
+      fetch(`${process.env.NEXT_PUBLIC_API_URL}/analysis/graph`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ connection_string: activeConn }),
+      })
+        .then(r => r.json())
+        .then(d => {
+          if (d.nodes) setTables(d.nodes.map((n: any) => n.data.label));
+          else setTables([]);
+        })
+        .catch(() => setTables([]));
+    } else setTables([]);
+  }, [activeConn]);
 
   useEffect(() => {
     if (!user) return;
@@ -675,6 +714,7 @@ export function DualSidebar({ onProjectLoad }: SidebarProps) {
 
     localStorage.setItem('db_connection_string', project.connectionString);
     localStorage.setItem('project_name', project.projectName);
+    setActiveConn(project.connectionString);
     onProjectLoad(project.connectionString, project.projectName);
   };
 
@@ -691,7 +731,7 @@ export function DualSidebar({ onProjectLoad }: SidebarProps) {
   return (
     <div className="flex flex-row relative h-full">
       <IconNavigation activeSection={activeSection} onSectionChange={setActiveSection} />
-      <DetailSidebar activeSection={activeSection} projects={projects} onProjectClick={handleProjectClick} onProjectDelete={handleProjectDelete} router={router} />
+      <DetailSidebar activeSection={activeSection} projects={projects} activeConn={activeConn} tables={tables} onProjectClick={handleProjectClick} onProjectDelete={handleProjectDelete} router={router} />
     </div>
   );
 }

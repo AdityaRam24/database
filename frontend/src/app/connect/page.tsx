@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { saveProject } from "@/lib/projectStorage";
-import { Database, FileCode2, Sparkles, Github, ArrowLeft, CheckCircle2, Loader2 } from "lucide-react";
+import { Database, FileCode2, Sparkles, Github, ArrowLeft, CheckCircle2, Loader2, Zap } from "lucide-react";
 
 type Tab = "connection" | "file" | "ai" | "github";
 
@@ -278,7 +278,7 @@ export default function ConnectPage() {
                                     </div>
                                     {sqlDialect !== "postgresql" && (
                                         <p className="text-xs text-amber-600 mt-2 flex items-center gap-1 font-medium">
-                                            <span>⚡</span>
+                                            <Zap size={12} className="shrink-0" />
                                             Your {SQL_DIALECTS.find(d => d.value === sqlDialect)?.label} SQL will be automatically converted to PostgreSQL before import.
                                         </p>
                                     )}

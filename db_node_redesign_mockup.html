@@ -1,0 +1,195 @@
+
+<style>
+  * { box-sizing: border-box; }
+  .wrap { padding: 1.5rem 0; display: flex; flex-direction: column; gap: 1.75rem; }
+  .col-label { font-size: 11px; font-weight: 500; letter-spacing: 0.07em; text-transform: uppercase; color: var(--color-text-tertiary); margin-bottom: 10px; }
+  .canvas-demo { background: var(--color-background-secondary); border-radius: var(--border-radius-lg); padding: 1.5rem; position: relative; overflow: hidden; border: 0.5px solid var(--color-border-tertiary); }
+  .dot-grid { position: absolute; inset: 0; background-image: radial-gradient(circle, var(--color-border-tertiary) 1px, transparent 1px); background-size: 24px 24px; pointer-events: none; }
+  .nodes-row { display: flex; gap: 12px; flex-wrap: wrap; position: relative; z-index: 1; }
+
+  /* OLD nodes */
+  .old-node { background: #1a1a2e; border: 1px solid #444; border-radius: 8px; padding: 8px 10px; min-width: 120px; }
+  .old-node-header { display: flex; align-items: center; gap: 5px; margin-bottom: 4px; }
+  .old-node-icon { width: 10px; height: 10px; background: #5555aa; border-radius: 2px; }
+  .old-node-title { font-size: 11px; color: #ddd; font-weight: 400; }
+  .old-node-meta { font-size: 9px; color: #888; }
+  .old-node-badge { font-size: 9px; background: #333; color: #aaa; border-radius: 3px; padding: 1px 5px; display: inline-block; margin-top: 3px; }
+
+  /* NEW nodes */
+  .new-node { background: var(--color-background-primary); border-radius: 10px; padding: 10px 12px; min-width: 130px; border-left: 3px solid transparent; border-top: 0.5px solid var(--color-border-tertiary); border-right: 0.5px solid var(--color-border-tertiary); border-bottom: 0.5px solid var(--color-border-tertiary); cursor: pointer; transition: box-shadow 0.15s, transform 0.15s; }
+  .new-node:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+  .new-node.entity { border-left-color: #7F77DD; }
+  .new-node.junction { border-left-color: #1D9E75; }
+  .new-node.lookup { border-left-color: #BA7517; }
+  .new-node-header { display: flex; align-items: center; gap: 6px; margin-bottom: 5px; }
+  .new-node-icon { width: 14px; height: 14px; border-radius: 3px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .new-node-icon.entity  { background: #EEEDFE; }
+  .new-node-icon.junction { background: #E1F5EE; }
+  .new-node-icon.lookup  { background: #FAEEDA; }
+  .new-node-title { font-size: 13px; font-weight: 500; color: var(--color-text-primary); }
+  .new-node-divider { border: none; border-top: 0.5px solid var(--color-border-tertiary); margin: 6px 0; }
+  .new-node-meta { display: flex; justify-content: space-between; }
+  .meta-val { font-size: 11px; color: var(--color-text-secondary); }
+  .meta-label { font-size: 10px; color: var(--color-text-tertiary); }
+  .cat-badge { font-size: 10px; font-weight: 500; padding: 2px 7px; border-radius: 100px; display: inline-block; margin-top: 5px; }
+  .cat-badge.entity  { background: #EEEDFE; color: #3C3489; }
+  .cat-badge.junction { background: #E1F5EE; color: #0F6E56; }
+  .cat-badge.lookup  { background: #FAEEDA; color: #633806; }
+
+  /* Two-column layout */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+
+  /* Search preview mockup */
+  .search-box { background: var(--color-background-primary); border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); overflow: hidden; }
+  .search-input-row { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-bottom: 0.5px solid var(--color-border-tertiary); }
+  .search-icon { width: 14px; height: 14px; color: var(--color-text-tertiary); }
+  .search-placeholder { font-size: 13px; color: var(--color-text-tertiary); }
+  .search-result { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-bottom: 0.5px solid var(--color-border-tertiary); cursor: pointer; }
+  .search-result:last-child { border-bottom: none; }
+  .search-result:hover { background: var(--color-background-secondary); }
+  .result-type { font-size: 10px; font-weight: 500; padding: 2px 6px; border-radius: 100px; min-width: 44px; text-align: center; }
+  .type-table  { background: #EEEDFE; color: #3C3489; }
+  .type-column { background: var(--color-background-secondary); color: var(--color-text-secondary); }
+  .result-main { font-size: 13px; color: var(--color-text-primary); }
+  .result-sub  { font-size: 11px; color: var(--color-text-tertiary); }
+
+  /* Filter chips */
+  .chips-row { display: flex; gap: 6px; flex-wrap: wrap; }
+  .chip { font-size: 12px; padding: 5px 12px; border-radius: 100px; border: 0.5px solid var(--color-border-secondary); color: var(--color-text-secondary); cursor: pointer; background: var(--color-background-primary); transition: all 0.12s; }
+  .chip.active { background: #EEEDFE; color: #3C3489; border-color: #AFA9EC; font-weight: 500; }
+  .chip:hover:not(.active) { background: var(--color-background-secondary); }
+
+  /* Zoom controls */
+  .zoom-cluster { display: inline-flex; border: 0.5px solid var(--color-border-secondary); border-radius: var(--border-radius-md); overflow: hidden; background: var(--color-background-primary); }
+  .zoom-btn { padding: 6px 12px; font-size: 13px; color: var(--color-text-secondary); cursor: pointer; border-right: 0.5px solid var(--color-border-tertiary); }
+  .zoom-btn:last-child { border-right: none; }
+  .zoom-btn:hover { background: var(--color-background-secondary); }
+</style>
+
+<div class="wrap">
+
+  <!-- Node redesign -->
+  <div>
+    <div class="two-col">
+      <div>
+        <div class="col-label">Before — current nodes</div>
+        <div class="canvas-demo" style="background:#14142a; border-color:#333">
+          <div class="nodes-row">
+            <div class="old-node">
+              <div class="old-node-header"><div class="old-node-icon"></div><span class="old-node-title">playlisttrack</span></div>
+              <div class="old-node-meta">4715 ROWS · 440.0 B</div>
+            </div>
+            <div class="old-node">
+              <div class="old-node-header"><div class="old-node-icon"></div><span class="old-node-title">track</span></div>
+              <div class="old-node-meta">3561 ROWS · 536.0 B</div>
+            </div>
+            <div class="old-node">
+              <div class="old-node-header"><div class="old-node-icon"></div><span class="old-node-title">genre</span></div>
+              <div class="old-node-meta">~5 ROWS · 24.0 B</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div>
+        <div class="col-label">After — redesigned nodes</div>
+        <div class="canvas-demo">
+          <div class="dot-grid"></div>
+          <div class="nodes-row">
+            <div class="new-node junction">
+              <div class="new-node-header">
+                <div class="new-node-icon junction">
+                  <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><rect x="0" y="0" width="3" height="3" rx="1" fill="#1D9E75"/><rect x="5" y="0" width="3" height="3" rx="1" fill="#1D9E75"/><rect x="0" y="5" width="3" height="3" rx="1" fill="#1D9E75"/><rect x="5" y="5" width="3" height="3" rx="1" fill="#1D9E75"/></svg>
+                </div>
+                <span class="new-node-title">playlisttrack</span>
+              </div>
+              <hr class="new-node-divider">
+              <div class="new-node-meta">
+                <div><div class="meta-val">4,715</div><div class="meta-label">rows</div></div>
+                <div style="text-align:right"><div class="meta-val">440 B</div><div class="meta-label">size</div></div>
+              </div>
+              <span class="cat-badge junction">Junction</span>
+            </div>
+            <div class="new-node entity">
+              <div class="new-node-header">
+                <div class="new-node-icon entity">
+                  <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><rect x="1" y="1" width="6" height="6" rx="1" fill="#7F77DD"/></svg>
+                </div>
+                <span class="new-node-title">track</span>
+              </div>
+              <hr class="new-node-divider">
+              <div class="new-node-meta">
+                <div><div class="meta-val">3,561</div><div class="meta-label">rows</div></div>
+                <div style="text-align:right"><div class="meta-val">536 B</div><div class="meta-label">size</div></div>
+              </div>
+              <span class="cat-badge entity">Entity</span>
+            </div>
+            <div class="new-node lookup">
+              <div class="new-node-header">
+                <div class="new-node-icon lookup">
+                  <svg width="8" height="8" viewBox="0 0 8 8" fill="none"><circle cx="4" cy="4" r="3" fill="#BA7517"/></svg>
+                </div>
+                <span class="new-node-title">genre</span>
+              </div>
+              <hr class="new-node-divider">
+              <div class="new-node-meta">
+                <div><div class="meta-val">5</div><div class="meta-label">rows</div></div>
+                <div style="text-align:right"><div class="meta-val">24 B</div><div class="meta-label">size</div></div>
+              </div>
+              <span class="cat-badge lookup">Lookup</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Search typeahead + filter chips -->
+  <div class="two-col">
+    <div>
+      <div class="col-label">Typeahead search with grouped results</div>
+      <div class="search-box">
+        <div class="search-input-row">
+          <svg class="search-icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6.5" cy="6.5" r="4.5"/><path d="M10 10l3.5 3.5" stroke-linecap="round"/></svg>
+          <span class="search-placeholder">customer_id</span>
+          <span style="font-size:11px;color:var(--color-text-tertiary);margin-left:auto">↵ jump</span>
+        </div>
+        <div class="search-result">
+          <span class="result-type type-table">Table</span>
+          <div><div class="result-main">customer</div><div class="result-sub">59 rows · 53 KB</div></div>
+        </div>
+        <div class="search-result" style="background:var(--color-background-secondary)">
+          <span class="result-type type-column">Column</span>
+          <div><div class="result-main">customer_id <span style="color:var(--color-text-tertiary);font-size:11px">in invoice</span></div><div class="result-sub">FK → customer.customer_id</div></div>
+        </div>
+        <div class="search-result">
+          <span class="result-type type-column">Column</span>
+          <div><div class="result-main">customer_id <span style="color:var(--color-text-tertiary);font-size:11px">in customer</span></div><div class="result-sub">PK · INTEGER</div></div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="col-label">Table type filter chips</div>
+      <div class="chips-row" style="margin-bottom:16px">
+        <span class="chip active">All tables</span>
+        <span class="chip">Entities</span>
+        <span class="chip">Junctions</span>
+        <span class="chip">Lookups</span>
+      </div>
+      <div class="col-label" style="margin-top:8px">Zoom cluster (canvas bottom-right)</div>
+      <div class="zoom-cluster">
+        <div class="zoom-btn">−</div>
+        <div class="zoom-btn" style="font-size:11px;padding:7px 12px">Fit</div>
+        <div class="zoom-btn">+</div>
+      </div>
+      <div style="margin-top:16px">
+        <div class="col-label">Connection status (sidebar footer)</div>
+        <div style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--color-text-secondary)">
+          <span style="width:8px;height:8px;border-radius:50%;background:#1D9E75;display:inline-block;flex-shrink:0"></span>
+          Steve Team
+          <span style="font-size:10px;background:#E1F5EE;color:#0F6E56;padding:2px 7px;border-radius:100px;font-weight:500">DEV</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>

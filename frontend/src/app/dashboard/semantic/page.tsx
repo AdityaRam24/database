@@ -135,47 +135,35 @@ export default function SemanticLayerPage() {
 
     return (
         <DashboardShell>
-            {/* Top bar */}
-            <div className="flex items-center gap-4 py-6 md:py-8 bg-transparent border-b border-gray-200 mb-8">
-                <h1 className="m-0 text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-amber-600 to-orange-600 flex items-center gap-3 drop-shadow-sm">
-                    <BookOpen size={28} className="text-amber-500" /> Semantic Layer
-                </h1>
+            {/* Page header */}
+            <div className="px-6 py-5 flex items-center justify-between border-b border-gray-100">
+                <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center">
+                        <BookOpen size={18} className="text-amber-500" />
+                    </div>
+                    <div>
+                        <h1 className="text-lg font-bold text-gray-900 leading-tight">Company Knowledge</h1>
+                        <p className="text-xs text-gray-500 font-medium">Teach the AI your business rules and definitions</p>
+                    </div>
+                </div>
                 {saved && (
-                    <span className="flex items-center gap-1.5 text-xs text-emerald-700 bg-emerald-100 px-3 py-1 rounded-full border border-emerald-200 font-bold uppercase tracking-wider">
-                        <CheckCircle size={14} /> Saved
+                    <span className="flex items-center gap-1.5 text-xs text-emerald-700 bg-emerald-100 px-3 py-1.5 rounded-full border border-emerald-200 font-bold">
+                        <CheckCircle size={13} /> Saved
                     </span>
                 )}
             </div>
 
             <div className="w-full max-w-5xl mx-auto pb-12 px-4 md:px-8">
-                {/* MCP Badge */}
-                <div className="flex mb-8">
-                    <div className="flex-1 p-6 bg-white border border-blue-200 rounded-2xl flex flex-col md:flex-row md:items-center gap-5 shadow-sm relative overflow-hidden">
-                        <div className="absolute top-0 left-0 w-1.5 h-full bg-gradient-to-b from-blue-400 to-indigo-600"></div>
-                        <Globe size={28} className="text-blue-500 shrink-0 ml-1" />
-                        <div className="flex-1">
-                            <p className="m-0 mb-1.5 text-base font-bold text-gray-900 flex items-center">
-                                MCP Server
-                                <span className="ml-3 text-[10px] px-2 py-0.5 rounded-md border border-emerald-200 bg-emerald-50 text-emerald-700 font-bold tracking-wider">ONLINE</span>
-                            </p>
-                            <p className="m-0 text-sm text-gray-500 leading-relaxed max-w-2xl font-medium">
-                                Your schema & business rules are exposed as an MCP manifest for AI agents.
-                            </p>
-                        </div>
-                        <button onClick={copyMCPEndpoint} className="flex items-center justify-center gap-2 px-5 py-2.5 bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-xl cursor-pointer text-blue-700 text-sm font-bold transition-all shadow-sm shrink-0">
-                            {mcpCopied ? <CheckCircle size={16} /> : <Copy size={16} />} {mcpCopied ? 'Copied!' : 'Copy URL'}
-                        </button>
-                    </div>
-                </div>
+                {/* MCP Badge Removed - Too technical */}
 
                 {/* Explanation */}
                 <div className="p-6 bg-amber-50 border border-amber-200 rounded-2xl flex items-start gap-4 shadow-sm mb-10 relative overflow-hidden">
                     <div className="absolute top-0 right-0 w-64 h-64 bg-amber-100 blur-[80px] rounded-full pointer-events-none fade-in"></div>
                     <Lightbulb size={28} className="text-amber-500 shrink-0 mt-0.5" />
                     <div className="relative z-10">
-                        <p className="m-0 mb-2 text-base font-bold text-amber-900">What is the Semantic Layer?</p>
+                        <p className="m-0 mb-2 text-base font-bold text-amber-900">Teach AI Your Business</p>
                         <p className="m-0 text-sm text-amber-800 leading-relaxed max-w-3xl font-medium">
-                            Define business terms so the AI understands your domain. When you ask <em className="text-amber-900 bg-amber-200/50 px-2 py-0.5 rounded-md not-italic font-bold border border-amber-300 mx-1">"show me active users"</em>, the AI will use your definition of "Active User" to write the correct SQL automatically. Rules are saved server-side and included in the MCP manifest.
+                            Define terms so the AI understands your company perfectly. When you ask <em className="text-amber-900 bg-amber-200/50 px-2 py-0.5 rounded-md not-italic font-bold border border-amber-300 mx-1">"show me active users"</em>, the AI will use your exact definition of "Active User" to fetch the correct data automatically without any coding.
                         </p>
                     </div>
                 </div>

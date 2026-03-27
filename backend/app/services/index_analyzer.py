@@ -251,9 +251,13 @@ def detect_zombie_indexes(conn_str: str) -> list[dict]:
                 JOIN pg_indexes i
                   ON i.indexname = s.indexrelname
                  AND i.tablename = s.relname
+                JOIN pg_index pi
+                  ON pi.indexrelid = s.indexrelid
+                LEFT JOIN pg_constraint c
+                  ON c.conindid = s.indexrelid
                 WHERE s.idx_scan = 0
-                  AND i.indexdef NOT ILIKE '%primary%'
-                  AND s.indexrelname NOT LIKE '%_pkey'
+                  AND c.oid IS NULL
+                  AND pi.indisunique = false
                 ORDER BY size_bytes DESC
                 LIMIT 30
             """)).fetchall()
@@ -267,7 +271,7 @@ def detect_zombie_indexes(conn_str: str) -> list[dict]:
                     "idx_scan": int(idx_scan or 0),
                     "size_bytes": int(size_bytes or 0),
                     "size_human": size_human or "unknown",
-                    "drop_sql": f"DROP INDEX IF EXISTS {idx_name};",
+                    "drop_sql": f'DROP INDEX IF EXISTS "{idx_name}" CASCADE;',
                     "saving_note": (
                         f"Dropping this index frees {size_human} of storage and "
                         f"speeds up INSERT/UPDATE on '{tbl}' (no index maintenance needed)."
@@ -509,16 +513,15 @@ async def get_full_analysis(conn_str: str, ai_service=None) -> dict:
     ranked = rank_index_recommendations(raw)
 
     if ai_service and ranked:
-        async def _explain(rec: IndexRecommendation):
+        for rec in ranked:
             try:
                 rec.ai_explanation = await ai_service.generate_explanation(
                     finding=rec.index_sql,
                     context=rec.reason,
                 )
-            except Exception:
+            except Exception as e:
+                logger.error(f"Fallback generated explanation due to error: {e}")
                 rec.ai_explanation = rec.reason
-
-        await asyncio.gather(*[_explain(r) for r in ranked])
 
     return {
         "bottleneck_map": bottleneck,

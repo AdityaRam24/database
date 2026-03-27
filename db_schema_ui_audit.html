@@ -1,0 +1,216 @@
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font-sans); }
+  .wrap { padding: 1.5rem 0; display: flex; flex-direction: column; gap: 2rem; }
+  .section-label { font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-text-tertiary); margin-bottom: 0.75rem; }
+  .card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1rem 1.25rem; }
+  .change-row { display: flex; gap: 12px; align-items: flex-start; padding: 0.75rem 0; border-bottom: 0.5px solid var(--color-border-tertiary); }
+  .change-row:last-child { border-bottom: none; padding-bottom: 0; }
+  .pill { font-size: 11px; font-weight: 500; padding: 3px 9px; border-radius: 100px; white-space: nowrap; flex-shrink: 0; margin-top: 2px; }
+  .pill-high { background: var(--color-background-danger); color: var(--color-text-danger); }
+  .pill-med  { background: var(--color-background-warning); color: var(--color-text-warning); }
+  .pill-low  { background: var(--color-background-success); color: var(--color-text-success); }
+  .pill-info { background: var(--color-background-info); color: var(--color-text-info); }
+  .change-title { font-size: 14px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 3px; }
+  .change-desc { font-size: 13px; color: var(--color-text-secondary); line-height: 1.55; }
+  .change-fix { font-size: 12px; color: var(--color-text-tertiary); margin-top: 4px; font-style: italic; }
+  .area-header { display: flex; align-items: center; gap: 8px; margin-bottom: 0.75rem; }
+  .area-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .area-title { font-size: 15px; font-weight: 500; color: var(--color-text-primary); }
+  .score-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-bottom: 0.5rem; }
+  .score-chip { font-size: 12px; padding: 4px 10px; border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-secondary); color: var(--color-text-secondary); }
+  .before-after { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px; }
+  .ba-box { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 10px 12px; font-size: 12px; color: var(--color-text-secondary); line-height: 1.6; }
+  .ba-label { font-size: 10px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 4px; }
+  .ba-label.before { color: var(--color-text-danger); }
+  .ba-label.after { color: var(--color-text-success); }
+  .summary-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+  .stat-card { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 12px; text-align: center; }
+  .stat-num { font-size: 22px; font-weight: 500; color: var(--color-text-primary); }
+  .stat-label { font-size: 11px; color: var(--color-text-tertiary); margin-top: 2px; }
+</style>
+
+<div class="wrap">
+
+  <div class="summary-grid">
+    <div class="stat-card"><div class="stat-num" style="color:#A32D2D">4</div><div class="stat-label">Critical issues</div></div>
+    <div class="stat-card"><div class="stat-num" style="color:#854F0B">6</div><div class="stat-label">Medium fixes</div></div>
+    <div class="stat-card"><div class="stat-num" style="color:#3B6D11">5</div><div class="stat-label">Quick wins</div></div>
+    <div class="stat-card"><div class="stat-num">15</div><div class="stat-label">Total changes</div></div>
+  </div>
+
+  <!-- Area 1: Schema Canvas -->
+  <div class="card">
+    <div class="area-header">
+      <div class="area-dot" style="background:#7F77DD"></div>
+      <div class="area-title">Schema canvas & node cards</div>
+    </div>
+
+    <div class="change-row">
+      <span class="pill pill-high">Critical</span>
+      <div>
+        <div class="change-title">Node cards are too dark and low-contrast</div>
+        <div class="change-desc">The near-black card background with small white text violates WCAG AA. Table names, row counts, and size labels are all competing at similar visual weight — nothing has hierarchy.</div>
+        <div class="before-after">
+          <div class="ba-box"><div class="ba-label before">Now</div>bg ~#1a1a2e · all text same weight · no scan path</div>
+          <div class="ba-box"><div class="ba-label after">Fix</div>White/light card surface · table name 500 weight 14px · metadata muted 11px below</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="change-row">
+      <span class="pill pill-high">Critical</span>
+      <div>
+        <div class="change-title">Row count & size info is illegible at small scale</div>
+        <div class="change-desc">The "4715 ROWS / 440.0 B" metadata renders at ~10px and is barely readable. Data density is wasted because users can't skim it.</div>
+        <div class="change-fix">→ Minimum 12px for any data label. Use two tiers: table name at 13px/500, metadata at 11px/muted gray.</div>
+      </div>
+    </div>
+
+    <div class="change-row">
+      <span class="pill pill-med">Medium</span>
+      <div>
+        <div class="change-title">No visual weight difference between table types</div>
+        <div class="change-desc">Junction tables (playlisttrack, invoiceline), entity tables (customer, artist), and lookup tables (genre, mediatype) all look identical. There's no color-coding or shape signal to tell them apart.</div>
+        <div class="change-fix">→ Introduce subtle left-border accent colors: purple for entities, teal for junction/relation tables, amber for lookup/reference tables.</div>
+      </div>
+    </div>
+
+    <div class="change-row">
+      <span class="pill pill-med">Medium</span>
+      <div>
+        <div class="change-title">Foreign key edges are invisible against the dark background</div>
+        <div class="change-desc">The dashed relationship lines are 0.5–1px and nearly the same color as the canvas. Users can't follow relationships without zooming in significantly.</div>
+        <div class="change-fix">→ Increase edge opacity, use color-coded edges (same hue as the connected table category), add subtle arrowhead direction cues.</div>
+      </div>
+    </div>
+
+    <div class="change-row">
+      <span class="pill pill-low">Quick win</span>
+      <div>
+        <div class="change-title">No hover state on nodes</div>
+        <div class="change-desc">Hovering a node should highlight all its connected edges and dim everything else. Right now, nothing responds on hover — the canvas feels static and dead.</div>
+        <div class="change-fix">→ On hover: elevate the node + its edges to full opacity, reduce all unrelated nodes to 25% opacity.</div>
+      </div>
+    </div>
+
+    <div class="change-row">
+      <span class="pill pill-low">Quick win</span>
+      <div>
+        <div class="change-title">Canvas background is too neutral — no depth cue</div>
+        <div class="change-desc">The flat gray canvas and the dark cards have very low contrast between them. The schema "floats" but doesn't feel grounded.</div>
+        <div class="change-fix">→ Subtle dot-grid or cross-hatch canvas pattern (2px dots at 24px spacing, 8% opacity). Standard in draw.io, Figma, Miro.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Area 2: Top Bar & Navigation -->
+  <div class="card">
+    <div class="area-header">
+      <div class="area-dot" style="background:#1D9E75"></div>
+      <div class="area-title">Navigation & toolbar</div>
+    </div>
+
+    <div class="change-row">
+      <span class="pill pill-high">Critical</span>
+      <div>
+        <div class="change-title">Search bar does not show column-level results</div>
+        <div class="change-desc">The "Find table or column…" input exists but there's no visible feedback about what it's searching, and no autocomplete preview. Users searching for "customer_id" don't know if it will match column names or just table names.</div>
+        <div class="before-after">
+          <div class="ba-box"><div class="ba-label before">Now</div>Plain text input, no feedback, no results preview</div>
+          <div class="ba-box"><div class="ba-label after">Fix</div>Typeahead dropdown: table results grouped above column results · jump-to on click</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="change-row">
+      <span class="pill pill-high">Critical</span>
+      <div>
+        <div class="change-title">Heatmap button is isolated and unexplained</div>
+        <div class="change-desc">The "Heatmap" button sits alone in the top-right with no indication of what it does, what metric it colors, or how to read it. New users will not click it.</div>
+        <div class="change-fix">→ Add a tooltip on hover: "Color tables by row count" or "Color by storage size." When active, show the active legend inline in the top bar.</div>
+      </div>
+    </div>
+
+    <div class="change-row">
+      <span class="pill pill-med">Medium</span>
+      <div>
+        <div class="change-title">"All Tables" filter chip has no alternatives visible</div>
+        <div class="change-desc">The "All Tables" pill implies there are other filter states, but users can't see them without clicking. This hides important navigation.</div>
+        <div class="change-fix">→ Show chips for each table category inline: "All · Entities · Relations · Lookups" so users can filter by type at a glance.</div>
+      </div>
+    </div>
+
+    <div class="change-row">
+      <span class="pill pill-med">Medium</span>
+      <div>
+        <div class="change-title">No zoom controls visible</div>
+        <div class="change-desc">"Scroll to zoom · Drag to pan" is discoverable text but there are no visual controls. Users on trackpads with non-standard scroll behavior won't know they're stuck.</div>
+        <div class="change-fix">→ Add a small zoom control cluster: [−] [fit to screen] [+] in the bottom-right corner of the canvas.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Area 3: Optimization Report panel -->
+  <div class="card">
+    <div class="area-header">
+      <div class="area-dot" style="background:#BA7517"></div>
+      <div class="area-title">Optimization report panel</div>
+    </div>
+
+    <div class="change-row">
+      <span class="pill pill-med">Medium</span>
+      <div>
+        <div class="change-title">"All Good!" message is a dead end</div>
+        <div class="change-desc">When there are no issues, the panel shows a success state but offers nothing to do next. Users who open this section want to learn — give them something.</div>
+        <div class="change-fix">→ Below the success message, add: schema stats summary (total tables, total relations, heaviest table), and a "Run deep analysis" CTA for index coverage, missing FK constraints, etc.</div>
+      </div>
+    </div>
+
+    <div class="change-row">
+      <span class="pill pill-low">Quick win</span>
+      <div>
+        <div class="change-title">Report section lacks timestamp</div>
+        <div class="change-desc">Users can't tell when this optimization check was last run. Is it live? Cached? From yesterday?</div>
+        <div class="change-fix">→ Add "Last checked: 2 minutes ago" with a manual refresh icon next to the "Optimization Report" heading.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Area 4: Sidebar -->
+  <div class="card">
+    <div class="area-header">
+      <div class="area-dot" style="background:#D85A30"></div>
+      <div class="area-title">Left sidebar & workspace</div>
+    </div>
+
+    <div class="change-row">
+      <span class="pill pill-med">Medium</span>
+      <div>
+        <div class="change-title">Sidebar has no table list — forces canvas-only navigation</div>
+        <div class="change-desc">The sidebar shows only the database name "db1" and "+ Connect New Database." There's no list of tables, no recent queries, no favorites. For schemas with 20+ tables, canvas navigation alone is exhausting.</div>
+        <div class="change-fix">→ Add a collapsible table list in the sidebar with search + scroll. Click to focus the canvas on that node.</div>
+      </div>
+    </div>
+
+    <div class="change-row">
+      <span class="pill pill-low">Quick win</span>
+      <div>
+        <div class="change-title">Workspace name "Steve Team" has no context</div>
+        <div class="change-desc">The workspace footer shows name + "WORKSPACE" label but no connection status indicator, no environment tag (prod/dev/staging).</div>
+        <div class="change-fix">→ Add a small colored dot: green = connected, yellow = connecting, red = disconnected. Add an env badge if multiple DBs are supported.</div>
+      </div>
+    </div>
+
+    <div class="change-row">
+      <span class="pill pill-low">Quick win</span>
+      <div>
+        <div class="change-title">Legend is placed at bottom-left but rarely noticed</div>
+        <div class="change-desc">The Focal Node / Search Match / High-Degree Node legend is buried at the bottom of the canvas. Users encounter these states before reading the legend.</div>
+        <div class="change-fix">→ Move legend to a floating pill in the top-left of the canvas, or collapse it into a "?" icon that expands on hover.</div>
+      </div>
+    </div>
+  </div>
+
+</div>

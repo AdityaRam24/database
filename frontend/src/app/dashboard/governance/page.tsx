@@ -4,8 +4,9 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
     Loader2, ShieldCheck, ShieldAlert, AlertTriangle,
-    ArrowLeft, GitMerge, CheckCircle, XCircle, Shield,
-    Database, Wand2, Clock, ChevronDown, ChevronRight, Trash2
+    GitMerge, CheckCircle, XCircle, Shield,
+    Database, Wand2, Clock, ChevronDown, ChevronRight, Trash2,
+    Link2, Zap, Eye, Settings
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import DashboardShell from '@/components/DashboardShell';
@@ -36,17 +37,17 @@ interface HistoryItem {
 
 const EXAMPLE_PATCHES = [
     { category: 'Safe', items: [
-        { label: 'Add column', sql: 'ALTER TABLE users ADD COLUMN last_login TIMESTAMP;' },
-        { label: 'Create index', sql: 'CREATE INDEX idx_orders_user_id ON orders (user_id);' },
+        { label: 'Add column',     sql: 'ALTER TABLE users ADD COLUMN last_login TIMESTAMP;' },
+        { label: 'Create index',   sql: 'CREATE INDEX idx_orders_user_id ON orders (user_id);' },
         { label: 'Add constraint', sql: 'ALTER TABLE orders ADD CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users(id);' },
     ]},
     { category: 'Risky', items: [
-        { label: 'Drop column', sql: 'ALTER TABLE users DROP COLUMN email;' },
+        { label: 'Drop column',  sql: 'ALTER TABLE users DROP COLUMN email;' },
         { label: 'Rename table', sql: 'ALTER TABLE users RENAME TO app_users;' },
     ]},
     { category: 'Blocked', items: [
         { label: 'Truncate', sql: 'TRUNCATE TABLE orders;' },
-        { label: 'Drop DB', sql: 'DROP DATABASE mydb;' },
+        { label: 'Drop DB',  sql: 'DROP DATABASE mydb;' },
     ]},
 ];
 
@@ -98,11 +99,8 @@ export default function GovernancePage() {
                 setResult(null);
                 setApplySuccess(false);
             }
-        } catch (e) {
-            console.error(e);
-        } finally {
-            setGeneratingPatch(false);
-        }
+        } catch (e) { console.error(e); }
+        finally { setGeneratingPatch(false); }
     };
 
     const handleCheck = async () => {
@@ -116,14 +114,10 @@ export default function GovernancePage() {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ connection_string: connectionString, sql_patch: sqlPatch }),
             });
-            const data = await res.json();
-            setResult(data);
+            setResult(await res.json());
             setShowModal(true);
-        } catch (e) {
-            console.error(e);
-        } finally {
-            setChecking(false);
-        }
+        } catch (e) { console.error(e); }
+        finally { setChecking(false); }
     };
 
     const handleApply = async () => {
@@ -146,91 +140,93 @@ export default function GovernancePage() {
                 saveHistory({ sql: sqlPatch, timestamp: new Date().toLocaleString(), success: false });
                 alert(err.detail?.message || err.detail || 'Failed to apply patch');
             }
-        } catch (e) {
-            console.error(e);
-        } finally {
-            setApplying(false);
-        }
+        } catch (e) { console.error(e); }
+        finally { setApplying(false); }
     };
 
     if (!mounted) return null;
 
     return (
         <DashboardShell>
-            {/* Top bar */}
-            <div className="flex items-center justify-between p-6 px-4 md:px-8 bg-transparent border-b border-gray-200">
-                <div className="flex items-center gap-4">
-                    <h1 className="m-0 text-xl font-bold text-gray-900 flex items-center gap-2">
-                        <GitMerge size={22} className="text-blue-600" /> Migration Safety Center
-                    </h1>
-                    <button onClick={() => router.push('/dashboard/data')} className="ml-2 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold cursor-pointer hover:bg-emerald-100 transition-colors shadow-sm">
-                        <Database size={14} /> View Data
-                    </button>
-                </div>
+            {/* ── Page header ── */}
+            <div className="px-6 py-5 flex items-center justify-between flex-wrap gap-3 border-b border-gray-100">
                 <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-blue-50 flex items-center justify-center">
+                        <GitMerge size={18} className="text-blue-600" />
+                    </div>
+                    <div>
+                        <h1 className="text-lg font-bold text-gray-900 leading-tight">Safe Changes</h1>
+                        <p className="text-xs text-gray-500 font-medium">AI-powered migration safety checks and schema patch assistant</p>
+                    </div>
                     <button
-                        onClick={() => setShowHistory(h => !h)}
-                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-700 text-xs font-semibold cursor-pointer hover:bg-amber-100 transition-colors shadow-sm"
+                        onClick={() => router.push('/dashboard/data')}
+                        className="ml-2 flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-semibold cursor-pointer hover:bg-emerald-100 transition-colors"
                     >
-                        <Clock size={14} /> History {history.length > 0 && `(${history.length})`}
+                        <Database size={13} /> View Data
                     </button>
                 </div>
+                <button
+                    onClick={() => setShowHistory(h => !h)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-50 border border-amber-200 text-amber-700 text-xs font-semibold cursor-pointer hover:bg-amber-100 transition-colors"
+                >
+                    <Clock size={13} /> History {history.length > 0 && `(${history.length})`}
+                </button>
             </div>
 
             <div className="flex flex-1 flex-col lg:flex-row w-full max-w-[1400px] mx-auto pb-10">
                 {/* Main content */}
-                <div className="flex-1 p-4 md:p-8 max-w-[900px] mx-auto w-full">
+                <div className="flex-1 p-4 md:p-8 max-w-[900px] mx-auto w-full space-y-5">
+
                     {/* Success banner */}
                     {applySuccess && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '12px 18px', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 10, marginBottom: 24, boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}>
-                            <CheckCircle size={18} style={{ color: '#16a34a' }} />
-                            <p style={{ margin: 0, color: '#166534', fontWeight: 600 }}>Patch applied successfully to the shadow database.</p>
+                        <div className="flex items-center gap-2.5 px-4 py-3 bg-green-50 border border-green-200 rounded-xl text-green-700 text-sm font-semibold">
+                            <CheckCircle size={16} className="shrink-0" />
+                            Patch applied successfully to the shadow database.
                         </div>
                     )}
 
                     {/* AI Patch Writer */}
-                    <div className="bg-white border border-gray-200 shadow-sm rounded-xl p-5 mb-6">
+                    <div className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm">
                         <div className="flex items-center gap-2 mb-3">
-                            <Wand2 size={18} className="text-violet-600" />
-                            <h2 className="m-0 text-base font-bold text-violet-700">AI Patch Writer</h2>
-                            <span className="text-xs text-gray-500 ml-2">Describe what to change in plain language</span>
+                            <Wand2 size={16} className="text-violet-600" />
+                            <h2 className="text-sm font-bold text-violet-700">Tell AI what to change</h2>
+                            <span className="text-xs text-gray-400 ml-1">We will make sure it doesn't break your app</span>
                         </div>
                         <div className="flex flex-col sm:flex-row gap-3">
                             <input
                                 value={nlDescription}
                                 onChange={e => setNlDescription(e.target.value)}
                                 onKeyDown={e => e.key === 'Enter' && handleGeneratePatch()}
-                                placeholder="e.g. 'add phone_number column to users' or 'create index on orders.created_at'"
-                                className="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-4 py-2.5 text-gray-900 text-sm outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-colors placeholder-gray-400"
+                                placeholder="e.g. 'add a phone number to customers' or 'delete the test_users table'"
+                                className="flex-1 bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5 text-gray-900 text-sm outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-colors placeholder-gray-400 font-medium"
                             />
                             <Button
                                 onClick={handleGeneratePatch}
                                 disabled={!nlDescription.trim() || generatingPatch}
-                                className="bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white border-0 min-w-[120px] shadow-sm"
+                                className="bg-violet-600 hover:bg-violet-700 text-white font-semibold rounded-xl cursor-pointer min-w-[120px]"
                             >
-                                {generatingPatch ? <><Loader2 size={14} className="mr-2 animate-spin" /> Generating…</> : <><Wand2 size={14} className="mr-2" /> Generate</>}
+                                {generatingPatch ? <><Loader2 size={13} className="mr-1.5 animate-spin" /> Generating…</> : <><Wand2 size={13} className="mr-1.5" /> Generate</>}
                             </Button>
                         </div>
                     </div>
 
                     {/* Info box */}
-                    <div className="bg-blue-50 rounded-lg border border-blue-100 p-4 mb-5 shadow-sm">
-                        <p style={{ margin: 0, fontSize: 13, color: '#1e40af', lineHeight: 1.6 }}>
-                            <strong>How it works:</strong> Paste or generate a SQL patch. The system checks for broken FK constraints, dependent indexes, views, and functions — and blocks unsafe operations like <code style={{ color: '#dc2626', background: '#fee2e2', padding: '2px 4px', borderRadius: 4, fontSize: 12 }}>DROP DATABASE</code> or <code style={{ color: '#dc2626', background: '#fee2e2', padding: '2px 4px', borderRadius: 4, fontSize: 12 }}>TRUNCATE</code>. All changes apply only to the shadow DB.
+                    <div className="bg-blue-50 rounded-xl border border-blue-100 px-4 py-3">
+                        <p className="text-xs text-blue-700 leading-relaxed font-medium">
+                            <strong>How it works:</strong> Tell AI what you want to change. We translate it to code and simulate the change in a secure sandbox. The AI verifies that your changes won't break existing data connections, active lookups, or app logic before allowing you to apply it.
                         </p>
                     </div>
 
                     {/* SQL Editor */}
-                    <div style={{ marginBottom: 12 }}>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
-                            <label style={{ fontSize: 13, fontWeight: 600, color: '#6d28d9' }}>SQL Patch</label>
+                    <div>
+                        <div className="flex items-center justify-between mb-2">
+                            <label className="text-xs font-bold text-violet-700 uppercase tracking-wider">AI Generated Plan</label>
                             {sqlPatch && (
                                 <button
                                     onClick={() => { setSqlPatch(''); setResult(null); setApplySuccess(false); }}
-                                    style={{ display: 'flex', alignItems: 'center', gap: 4, background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', fontSize: 12 }}
-                                    className="hover:text-gray-900 transition-colors"
+                                    className="flex items-center gap-1 text-xs text-gray-400 hover:text-gray-700 transition-colors cursor-pointer font-medium"
                                 >
-                                    <Trash2 size={12} /> Clear
+                                    <Trash2 size={11} /> Clear
                                 </button>
                             )}
                         </div>
@@ -239,76 +235,61 @@ export default function GovernancePage() {
                             onChange={e => { setSqlPatch(e.target.value); setResult(null); setApplySuccess(false); }}
                             placeholder={`ALTER TABLE users ADD COLUMN phone VARCHAR(20);`}
                             rows={7}
-                            style={{
-                                width: '100%', boxSizing: 'border-box',
-                                background: '#f8fafc', color: '#0f172a',
-                                border: '1px solid #cbd5e1', borderRadius: 10,
-                                padding: '14px 16px', fontSize: 13,
-                                fontFamily: 'monospace', lineHeight: 1.7,
-                                resize: 'vertical', outline: 'none', transition: 'border-color 0.2s, box-shadow 0.2s',
-                            }}
-                            onFocus={e => { e.target.style.borderColor = '#8b5cf6'; e.target.style.boxShadow = '0 0 0 1px #8b5cf6'; }}
-                            onBlur={e => { e.target.style.borderColor = '#cbd5e1'; e.target.style.boxShadow = 'none'; }}
+                            className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-sm font-mono text-gray-900 resize-vertical outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-all leading-relaxed"
                         />
                     </div>
 
-                    {/* Safety result inline preview */}
+                    {/* Inline safety preview */}
                     {result && !showModal && (
-                        <div style={{ marginBottom: 12, padding: '10px 14px', borderRadius: 10, background: result.is_safe ? '#f0fdf4' : '#fef2f2', border: `1px solid ${result.is_safe ? '#bbf7d0' : '#fecaca'}`, boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                                {result.is_safe ? <ShieldCheck size={16} style={{ color: '#16a34a' }} /> : <ShieldAlert size={16} style={{ color: '#dc2626' }} />}
-                                <span style={{ fontSize: 13, fontWeight: 600, color: result.is_safe ? '#166534' : '#991b1b' }}>
-                                    {result.is_safe ? 'Safe to Apply' : 'Blocked'}: {result.warning_message}
-                                </span>
-                                <button onClick={() => setShowModal(true)} style={{ marginLeft: 'auto', fontSize: 12, color: '#4b5563', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500 }} className="hover:text-gray-900 transition-colors">View Details</button>
-                            </div>
+                        <div className={`flex items-center gap-2.5 px-4 py-3 rounded-xl border text-sm font-semibold ${result.is_safe ? 'bg-green-50 border-green-200 text-green-700' : 'bg-red-50 border-red-200 text-red-700'}`}>
+                            {result.is_safe ? <ShieldCheck size={15} className="shrink-0" /> : <ShieldAlert size={15} className="shrink-0" />}
+                            <span>{result.is_safe ? 'Safe to Apply' : 'Dangerous Change Blocked'}: {result.warning_message}</span>
+                            <button onClick={() => setShowModal(true)} className="ml-auto text-xs text-gray-500 hover:text-gray-900 transition-colors font-medium cursor-pointer">View Details</button>
                         </div>
                     )}
 
-                    <div style={{ display: 'flex', gap: 10 }}>
+                    {/* Action buttons */}
+                    <div className="flex gap-3 flex-wrap">
                         <Button
                             disabled={!sqlPatch.trim() || checking}
                             onClick={handleCheck}
-                            className="bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 shadow-sm font-semibold"
+                            className="bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 font-semibold rounded-xl cursor-pointer"
                         >
-                            {checking ? <><Loader2 size={14} className="mr-2 animate-spin" /> Analysing…</> : <><ShieldCheck size={14} className="mr-2" /> Check Safety</>}
+                            {checking ? <><Loader2 size={13} className="mr-1.5 animate-spin" /> Verifying…</> : <><ShieldCheck size={13} className="mr-1.5" /> Simulate in Sandbox</>}
                         </Button>
                         {result?.is_safe && (
                             <Button
                                 disabled={applying}
                                 onClick={handleApply}
-                                className="bg-emerald-600 text-white hover:bg-emerald-700 shadow-sm font-semibold"
+                                className="bg-emerald-600 text-white hover:bg-emerald-700 font-semibold rounded-xl cursor-pointer"
                             >
-                                {applying ? <><Loader2 size={14} className="mr-1 animate-spin" /> Applying…</> : <><CheckCircle size={14} className="mr-1" /> Apply to Shadow DB</>}
+                                {applying ? <><Loader2 size={13} className="mr-1.5 animate-spin" /> Deploying…</> : <><CheckCircle size={13} className="mr-1.5" /> Deploy Change Safely</>}
                             </Button>
                         )}
                     </div>
 
                     {/* Example patches */}
-                    <div style={{ marginTop: 28 }}>
+                    <div className="pt-2">
                         <button
                             onClick={() => setShowExamples(s => !s)}
-                            style={{ display: 'flex', alignItems: 'center', gap: 6, background: 'none', border: 'none', color: '#4b5563', cursor: 'pointer', fontSize: 13, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: 12 }}
-                            className="hover:text-gray-900 transition-colors"
+                            className="flex items-center gap-1.5 text-xs font-bold text-gray-500 uppercase tracking-widest mb-3 hover:text-gray-900 transition-colors cursor-pointer"
                         >
-                            {showExamples ? <ChevronDown size={14} /> : <ChevronRight size={14} />} Example Patches
+                            {showExamples ? <ChevronDown size={13} /> : <ChevronRight size={13} />} Example Patches
                         </button>
                         {showExamples && (
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                            <div className="space-y-4">
                                 {EXAMPLE_PATCHES.map(cat => (
                                     <div key={cat.category}>
-                                        <p style={{ fontSize: 11, color: '#6b7280', fontWeight: 700, marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{cat.category}</p>
-                                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 10 }}>
+                                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest mb-2">{cat.category}</p>
+                                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
                                             {cat.items.map(ex => (
                                                 <button
                                                     key={ex.label}
                                                     onClick={() => { setSqlPatch(ex.sql); setResult(null); setShowExamples(false); }}
-                                                    style={{ background: '#ffffff', border: '1px solid #e2e8f0', borderRadius: 8, padding: '12px 14px', cursor: 'pointer', textAlign: 'left', transition: 'all 0.15s ease', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}
-                                                    onMouseEnter={e => { e.currentTarget.style.borderColor = '#8b5cf6'; e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'; }}
-                                                    onMouseLeave={e => { e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 1px 2px 0 rgba(0, 0, 0, 0.05)'; }}
+                                                    className="bg-white border border-gray-200 rounded-xl p-3 cursor-pointer text-left hover:border-violet-300 hover:shadow-sm transition-all"
                                                 >
-                                                    <p style={{ margin: '0 0 6px', fontWeight: 600, color: '#6d28d9', fontSize: 13 }}>{ex.label}</p>
-                                                    <code style={{ fontFamily: 'monospace', fontSize: 11, color: '#475569', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{ex.sql}</code>
+                                                    <p className="text-xs font-bold text-violet-700 mb-1">{ex.label}</p>
+                                                    <code className="text-[10px] text-gray-500 font-mono line-clamp-2">{ex.sql}</code>
                                                 </button>
                                             ))}
                                         </div>
@@ -321,40 +302,38 @@ export default function GovernancePage() {
 
                 {/* History sidebar */}
                 {showHistory && (
-                    <div className="w-full lg:w-80 border-l border-gray-200 bg-gray-50 p-6 overflow-y-auto lg:rounded-l-2xl shadow-inner">
-                        <div className="flex items-center justify-between mb-5">
-                            <h3 style={{ margin: 0, fontSize: 14, fontWeight: 700, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                                <Clock size={14} className="inline mr-1.5" /> Migration History
+                    <div className="w-full lg:w-72 border-l border-gray-100 bg-gray-50/60 p-5 overflow-y-auto">
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-xs font-bold text-gray-500 uppercase tracking-widest flex items-center gap-1.5">
+                                <Clock size={13} /> Migration History
                             </h3>
                             {history.length > 0 && (
                                 <button
                                     onClick={() => { setHistory([]); localStorage.removeItem('governance_history'); }}
-                                    style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: 12, fontWeight: 500 }}
-                                    className="hover:text-red-600 transition-colors"
+                                    className="text-xs text-red-500 hover:text-red-600 transition-colors font-medium cursor-pointer"
                                 >
                                     Clear all
                                 </button>
                             )}
                         </div>
                         {history.length === 0 ? (
-                            <p style={{ fontSize: 13, color: '#9ca3af', textAlign: 'center', marginTop: 40 }}>No migrations yet.</p>
+                            <p className="text-xs text-gray-400 text-center mt-10 font-medium">No migrations yet.</p>
                         ) : (
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                            <div className="space-y-2">
                                 {history.map((item, i) => (
                                     <button
                                         key={i}
                                         onClick={() => setSqlPatch(item.sql)}
-                                        style={{ textAlign: 'left', background: '#ffffff', border: `1px solid ${item.success ? '#bbf7d0' : '#fecaca'}`, borderRadius: 8, padding: '12px', cursor: 'pointer', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)', transition: 'transform 0.15s, box-shadow 0.15s' }}
-                                        onMouseEnter={e => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0, 0, 0, 0.1)'; }}
-                                        onMouseLeave={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 1px 2px 0 rgba(0, 0, 0, 0.05)'; }}
+                                        className={`w-full text-left bg-white border rounded-xl p-3 cursor-pointer hover:shadow-sm transition-all ${item.success ? 'border-green-200' : 'border-red-200'}`}
                                     >
-                                        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
-                                            {item.success ? <CheckCircle size={14} style={{ color: '#16a34a' }} /> : <XCircle size={14} style={{ color: '#dc2626' }} />}
-                                            <span style={{ fontSize: 11, color: '#6b7280', fontWeight: 500 }}>{item.timestamp}</span>
+                                        <div className="flex items-center gap-1.5 mb-1.5">
+                                            {item.success
+                                                ? <CheckCircle size={12} className="text-green-600 shrink-0" />
+                                                : <XCircle size={12} className="text-red-500 shrink-0" />
+                                            }
+                                            <span className="text-[10px] text-gray-400 font-medium">{item.timestamp}</span>
                                         </div>
-                                        <code style={{ fontSize: 11, color: '#334155', fontFamily: 'monospace', display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                            {item.sql}
-                                        </code>
+                                        <code className="text-[10px] text-gray-600 font-mono block truncate">{item.sql}</code>
                                     </button>
                                 ))}
                             </div>
@@ -363,39 +342,45 @@ export default function GovernancePage() {
                 )}
             </div>
 
-            {/* Safety Modal */}
+            {/* ── Safety Modal ── */}
             {showModal && result && (
-                <div style={{ position: 'fixed', inset: 0, background: 'rgba(255,255,255,0.8)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: 24 }}>
-                    <div style={{ background: '#ffffff', border: `1px solid ${result.is_safe ? '#bbf7d0' : '#fecaca'}`, borderRadius: 18, padding: 32, maxWidth: 540, width: '100%', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20 }}>
-                            {result.is_safe ? <ShieldCheck size={30} style={{ color: '#16a34a' }} /> : <ShieldAlert size={30} style={{ color: '#dc2626' }} />}
+                <div className="fixed inset-0 bg-white/80 backdrop-blur-sm flex items-center justify-center z-50 p-6">
+                    <div className={`bg-white border rounded-2xl p-8 max-w-lg w-full shadow-2xl ${result.is_safe ? 'border-green-200' : 'border-red-200'}`}>
+                        {/* Modal header */}
+                        <div className="flex items-center gap-3 mb-5">
+                            {result.is_safe
+                                ? <ShieldCheck size={28} className="text-green-600 shrink-0" />
+                                : <ShieldAlert size={28} className="text-red-600 shrink-0" />
+                            }
                             <div>
-                                <h2 style={{ margin: 0, fontSize: 18, fontWeight: 700, color: result.is_safe ? '#166534' : '#991b1b' }}>
-                                    {result.is_safe ? '✅ Safe to Apply' : '⛔ Migration Blocked'}
+                                <h2 className={`text-lg font-bold ${result.is_safe ? 'text-green-700' : 'text-red-700'}`}>
+                                    {result.is_safe ? 'Safe to Apply' : 'Dangerous Change Blocked'}
                                 </h2>
                                 {result.parsed.operation !== 'UNKNOWN' && (
-                                    <p style={{ margin: 0, fontSize: 13, color: '#6b7280' }}>
+                                    <p className="text-xs text-gray-500 font-medium">
                                         {result.parsed.operation}{result.parsed.table && ` on ${result.parsed.table}`}{result.parsed.column && `.${result.parsed.column}`}
                                     </p>
                                 )}
                             </div>
                         </div>
 
-                        <p style={{ fontSize: 14, color: '#374151', marginBottom: 24, lineHeight: 1.6, background: '#f8fafc', padding: '12px 16px', borderRadius: 8, border: '1px solid #e2e8f0' }}>{result.warning_message}</p>
+                        <p className="text-sm text-gray-600 leading-relaxed bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 mb-5 font-medium">
+                            {result.warning_message}
+                        </p>
 
                         {(result.broken_queries > 0 || result.dependent_indexes > 0 || result.dependent_views > 0 || result.dependent_functions > 0) && (
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 24 }}>
+                            <div className="grid grid-cols-2 gap-3 mb-5">
                                 {[
-                                    { label: 'FK Constraints', value: result.broken_queries, icon: '🔗' },
-                                    { label: 'Indexes', value: result.dependent_indexes, icon: '⚡' },
-                                    { label: 'Views', value: result.dependent_views, icon: '👁' },
-                                    { label: 'Functions', value: result.dependent_functions, icon: '⚙️' },
+                                    { label: 'Connections',    value: result.broken_queries,      icon: Link2    },
+                                    { label: 'Lookups',        value: result.dependent_indexes,   icon: Zap      },
+                                    { label: 'Virtual Tables', value: result.dependent_views,     icon: Eye      },
+                                    { label: 'App Logic',      value: result.dependent_functions, icon: Settings },
                                 ].map(dep => (
-                                    <div key={dep.label} style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 10, padding: '12px 16px', display: 'flex', alignItems: 'center', gap: 12 }}>
-                                        <span style={{ fontSize: 18 }}>{dep.icon}</span>
+                                    <div key={dep.label} className="bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 flex items-center gap-3">
+                                        <dep.icon size={16} className="text-violet-600 shrink-0" />
                                         <div>
-                                            <p style={{ margin: 0, fontSize: 12, color: '#64748b', fontWeight: 500 }}>{dep.label}</p>
-                                            <p style={{ margin: 0, fontSize: 22, fontWeight: 800, color: dep.value > 0 ? '#ef4444' : '#10b981' }}>{dep.value}</p>
+                                            <p className="text-xs text-gray-500 font-medium">{dep.label}</p>
+                                            <p className={`text-xl font-black ${dep.value > 0 ? 'text-red-500' : 'text-green-600'}`}>{dep.value}</p>
                                         </div>
                                     </div>
                                 ))}
@@ -403,27 +388,31 @@ export default function GovernancePage() {
                         )}
 
                         {result.warnings.length > 0 && (
-                            <div style={{ background: '#fef2f2', border: '1px solid #fecaca', borderRadius: 10, padding: '12px 16px', marginBottom: 24, maxHeight: 150, overflowY: 'auto' }}>
+                            <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-5 max-h-36 overflow-y-auto space-y-1.5">
                                 {result.warnings.map((w, i) => (
-                                    <p key={i} style={{ margin: '0 0 6px', fontSize: 12, color: '#b91c1c', display: 'flex', gap: 8, lineHeight: 1.4 }}>
-                                        <AlertTriangle size={14} style={{ flexShrink: 0, marginTop: 1 }} /> {w}
+                                    <p key={i} className="text-xs text-red-700 font-medium flex items-start gap-2">
+                                        <AlertTriangle size={12} className="shrink-0 mt-0.5" /> {w}
                                     </p>
                                 ))}
                             </div>
                         )}
 
-                        <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end', marginTop: 8 }}>
-                            <Button variant="outline" size="sm" onClick={() => setShowModal(false)} style={{ borderColor: '#cbd5e1', color: '#4b5563' }} className="hover:bg-gray-50">
-                                <XCircle size={14} className="mr-2" /> Cancel
+                        <div className="flex gap-3 justify-end">
+                            <Button variant="outline" size="sm" onClick={() => setShowModal(false)} className="rounded-xl cursor-pointer">
+                                <XCircle size={13} className="mr-1.5" /> Cancel
                             </Button>
                             <Button
                                 size="sm"
                                 disabled={!result.is_safe || applying}
                                 onClick={handleApply}
-                                style={{ background: result.is_safe ? '#16a34a' : '#ef4444', color: '#fff', opacity: result.is_safe ? 1 : 0.6 }}
-                                className={result.is_safe ? 'hover:bg-green-700' : ''}
+                                className={`rounded-xl cursor-pointer font-semibold ${result.is_safe ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : 'bg-red-100 text-red-400 cursor-not-allowed'}`}
                             >
-                                {applying ? <><Loader2 size={14} className="mr-2 animate-spin" /> Applying…</> : result.is_safe ? <><CheckCircle size={14} className="mr-2" /> Apply to Shadow DB</> : '⛔ Blocked'}
+                                {applying
+                                    ? <><Loader2 size={13} className="mr-1.5 animate-spin" /> Deploying…</>
+                                    : result.is_safe
+                                        ? <><CheckCircle size={13} className="mr-1.5" /> Deploy Change Safely</>
+                                        : <><Shield size={13} className="mr-1.5" /> Blocked</>
+                                }
                             </Button>
                         </div>
                     </div>
