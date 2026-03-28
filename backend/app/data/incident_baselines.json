@@ -519,9 +519,369 @@
         "total_seq_scans": 4025,
         "xact_rollback": 4967
       }
+    },
+    {
+      "timestamp": "2026-03-27T16:19:01.274989",
+      "metrics": {
+        "queries": [],
+        "query_stats": {
+          "total_calls": 0,
+          "avg_mean_time": 0.0,
+          "max_mean_time": 0.0
+        },
+        "table_sizes": {
+          "artist": 57344,
+          "album": 65536,
+          "employee": 24576,
+          "customer": 57344,
+          "invoice": 122880,
+          "invoiceline": 270336,
+          "track": 548864,
+          "playlist": 24576,
+          "playlisttrack": 655360,
+          "genre": 24576,
+          "mediatype": 24576
+        },
+        "connection_count": 1,
+        "table_seq_scans": {
+          "employee": 1453,
+          "customer": 1452,
+          "invoice": 831,
+          "track": 421,
+          "album": 221,
+          "artist": 215,
+          "genre": 208,
+          "playlist": 208,
+          "mediatype": 208,
+          "invoiceline": 5,
+          "playlisttrack": 4
+        },
+        "total_seq_scans": 5226,
+        "xact_rollback": 7328
+      }
+    },
+    {
+      "timestamp": "2026-03-27T16:19:01.340657",
+      "metrics": {
+        "queries": [],
+        "query_stats": {
+          "total_calls": 0,
+          "avg_mean_time": 0.0,
+          "max_mean_time": 0.0
+        },
+        "table_sizes": {
+          "artist": 57344,
+          "album": 65536,
+          "employee": 24576,
+          "customer": 57344,
+          "invoice": 122880,
+          "invoiceline": 270336,
+          "track": 548864,
+          "playlist": 24576,
+          "playlisttrack": 655360,
+          "genre": 24576,
+          "mediatype": 24576
+        },
+        "connection_count": 1,
+        "table_seq_scans": {
+          "employee": 1453,
+          "customer": 1452,
+          "invoice": 831,
+          "track": 421,
+          "album": 221,
+          "artist": 215,
+          "genre": 208,
+          "playlist": 208,
+          "mediatype": 208,
+          "invoiceline": 5,
+          "playlisttrack": 4
+        },
+        "total_seq_scans": 5226,
+        "xact_rollback": 7331
+      }
+    },
+    {
+      "timestamp": "2026-03-27T17:18:06.893001",
+      "metrics": {
+        "queries": [],
+        "query_stats": {
+          "total_calls": 0,
+          "avg_mean_time": 0.0,
+          "max_mean_time": 0.0
+        },
+        "table_sizes": {
+          "user_profiles": 1204224,
+          "users": 2007040,
+          "order_items": 1925120,
+          "orders": 925696,
+          "products": 172032,
+          "categories": 24576
+        },
+        "connection_count": 1,
+        "table_seq_scans": {
+          "users": 162,
+          "products": 161,
+          "user_profiles": 81,
+          "categories": 81,
+          "orders": 81,
+          "order_items": 1
+        },
+        "total_seq_scans": 567,
+        "xact_rollback": 2706
+      }
+    },
+    {
+      "timestamp": "2026-03-27T17:18:07.032200",
+      "metrics": {
+        "queries": [],
+        "query_stats": {
+          "total_calls": 0,
+          "avg_mean_time": 0.0,
+          "max_mean_time": 0.0
+        },
+        "table_sizes": {
+          "user_profiles": 1204224,
+          "users": 2007040,
+          "order_items": 1925120,
+          "orders": 925696,
+          "products": 172032,
+          "categories": 24576
+        },
+        "connection_count": 1,
+        "table_seq_scans": {
+          "users": 162,
+          "products": 161,
+          "user_profiles": 81,
+          "categories": 81,
+          "orders": 81,
+          "order_items": 1
+        },
+        "total_seq_scans": 567,
+        "xact_rollback": 2712
+      }
+    },
+    {
+      "timestamp": "2026-03-27T17:18:09.302870",
+      "metrics": {
+        "queries": [],
+        "query_stats": {
+          "total_calls": 0,
+          "avg_mean_time": 0.0,
+          "max_mean_time": 0.0
+        },
+        "table_sizes": {
+          "user_profiles": 1204224,
+          "users": 2007040,
+          "order_items": 1925120,
+          "orders": 925696,
+          "products": 172032,
+          "categories": 24576
+        },
+        "connection_count": 1,
+        "table_seq_scans": {
+          "users": 162,
+          "products": 161,
+          "user_profiles": 81,
+          "categories": 81,
+          "orders": 81,
+          "order_items": 1
+        },
+        "total_seq_scans": 567,
+        "xact_rollback": 2715
+      }
+    },
+    {
+      "timestamp": "2026-03-27T17:18:21.033579",
+      "metrics": {
+        "queries": [],
+        "query_stats": {
+          "total_calls": 0,
+          "avg_mean_time": 0.0,
+          "max_mean_time": 0.0
+        },
+        "table_sizes": {
+          "user_profiles": 1204224,
+          "users": 2007040,
+          "order_items": 1925120,
+          "orders": 925696,
+          "products": 172032,
+          "categories": 24576
+        },
+        "connection_count": 1,
+        "table_seq_scans": {
+          "users": 162,
+          "products": 161,
+          "user_profiles": 81,
+          "categories": 81,
+          "orders": 81,
+          "order_items": 1
+        },
+        "total_seq_scans": 567,
+        "xact_rollback": 2718
+      }
+    },
+    {
+      "timestamp": "2026-03-27T17:48:45.566930",
+      "metrics": {
+        "queries": [],
+        "query_stats": {
+          "total_calls": 0,
+          "avg_mean_time": 0.0,
+          "max_mean_time": 0.0
+        },
+        "table_sizes": {
+          "artist": 57344,
+          "album": 81920,
+          "employee": 24576,
+          "customer": 57344,
+          "invoice": 122880,
+          "invoiceline": 270336,
+          "track": 499712,
+          "playlist": 24576,
+          "playlisttrack": 655360,
+          "genre": 24576,
+          "mediatype": 24576
+        },
+        "connection_count": 1,
+        "table_seq_scans": {
+          "employee": 2104,
+          "customer": 2104,
+          "invoice": 1203,
+          "track": 607,
+          "album": 316,
+          "artist": 310,
+          "genre": 301,
+          "playlist": 301,
+          "mediatype": 301,
+          "invoiceline": 5,
+          "playlisttrack": 4
+        },
+        "total_seq_scans": 7556,
+        "xact_rollback": 13644
+      }
+    },
+    {
+      "timestamp": "2026-03-27T17:48:45.623692",
+      "metrics": {
+        "queries": [],
+        "query_stats": {
+          "total_calls": 0,
+          "avg_mean_time": 0.0,
+          "max_mean_time": 0.0
+        },
+        "table_sizes": {
+          "artist": 57344,
+          "album": 81920,
+          "employee": 24576,
+          "customer": 57344,
+          "invoice": 122880,
+          "invoiceline": 270336,
+          "track": 499712,
+          "playlist": 24576,
+          "playlisttrack": 655360,
+          "genre": 24576,
+          "mediatype": 24576
+        },
+        "connection_count": 1,
+        "table_seq_scans": {
+          "employee": 2104,
+          "customer": 2104,
+          "invoice": 1203,
+          "track": 607,
+          "album": 316,
+          "artist": 310,
+          "genre": 301,
+          "playlist": 301,
+          "mediatype": 301,
+          "invoiceline": 5,
+          "playlisttrack": 4
+        },
+        "total_seq_scans": 7556,
+        "xact_rollback": 13647
+      }
+    },
+    {
+      "timestamp": "2026-03-27T17:57:17.143449",
+      "metrics": {
+        "queries": [],
+        "query_stats": {
+          "total_calls": 0,
+          "avg_mean_time": 0.0,
+          "max_mean_time": 0.0
+        },
+        "table_sizes": {
+          "artist": 57344,
+          "album": 81920,
+          "employee": 24576,
+          "customer": 57344,
+          "invoice": 122880,
+          "invoiceline": 270336,
+          "track": 499712,
+          "playlist": 24576,
+          "playlisttrack": 655360,
+          "genre": 24576,
+          "mediatype": 24576
+        },
+        "connection_count": 1,
+        "table_seq_scans": {
+          "employee": 2209,
+          "customer": 2209,
+          "invoice": 1263,
+          "track": 637,
+          "album": 331,
+          "artist": 325,
+          "genre": 316,
+          "playlist": 316,
+          "mediatype": 316,
+          "invoiceline": 5,
+          "playlisttrack": 4
+        },
+        "total_seq_scans": 7931,
+        "xact_rollback": 14169
+      }
+    },
+    {
+      "timestamp": "2026-03-27T17:57:17.223656",
+      "metrics": {
+        "queries": [],
+        "query_stats": {
+          "total_calls": 0,
+          "avg_mean_time": 0.0,
+          "max_mean_time": 0.0
+        },
+        "table_sizes": {
+          "artist": 57344,
+          "album": 81920,
+          "employee": 24576,
+          "customer": 57344,
+          "invoice": 122880,
+          "invoiceline": 270336,
+          "track": 499712,
+          "playlist": 24576,
+          "playlisttrack": 655360,
+          "genre": 24576,
+          "mediatype": 24576
+        },
+        "connection_count": 1,
+        "table_seq_scans": {
+          "employee": 2209,
+          "customer": 2209,
+          "invoice": 1263,
+          "track": 637,
+          "album": 331,
+          "artist": 325,
+          "genre": 316,
+          "playlist": 316,
+          "mediatype": 316,
+          "invoiceline": 5,
+          "playlisttrack": 4
+        },
+        "total_seq_scans": 7931,
+        "xact_rollback": 14172
+      }
     }
   ],
-  "last_updated": "2026-03-27T09:50:44.677338",
+  "last_updated": "2026-03-27T17:57:17.223656",
   "incident_history": [
     {
       "id": "INC-1773203843-4561",
@@ -745,6 +1105,70 @@
         "latency_increase_score": 100,
         "z_score": 13.08,
         "deviation_pct": 510.7
+      }
+    },
+    {
+      "id": "INC-1774613925-1643",
+      "type": "High Error Rate",
+      "affected_table": "Global",
+      "detected_at": "2026-03-27T17:48:45.590078",
+      "root_cause": "Transaction rollback spike. 10872 new rollbacks detected.",
+      "severity_score": 89,
+      "severity_level": "CRITICAL",
+      "metrics": {
+        "impact_score": 80,
+        "frequency_score": 100,
+        "latency_increase_score": 98,
+        "z_score": 4.83,
+        "deviation_pct": 392.3
+      }
+    },
+    {
+      "id": "INC-1774613925-1038",
+      "type": "Sequential Scans Spike",
+      "affected_table": "employee",
+      "detected_at": "2026-03-27T17:48:45.589120",
+      "root_cause": "Sudden spike in sequential scans on employee (jump of 1581 from expectation). Possible missing index.",
+      "severity_score": 54,
+      "severity_level": "MEDIUM",
+      "metrics": {
+        "impact_score": 15,
+        "frequency_score": 100,
+        "latency_increase_score": 80,
+        "z_score": 3.12,
+        "deviation_pct": 302.8
+      }
+    },
+    {
+      "id": "INC-1774613925-1062",
+      "type": "Sequential Scans Spike",
+      "affected_table": "customer",
+      "detected_at": "2026-03-27T17:48:45.589269",
+      "root_cause": "Sudden spike in sequential scans on customer (jump of 1581 from expectation). Possible missing index.",
+      "severity_score": 54,
+      "severity_level": "MEDIUM",
+      "metrics": {
+        "impact_score": 15,
+        "frequency_score": 100,
+        "latency_increase_score": 80,
+        "z_score": 3.12,
+        "deviation_pct": 303.0
+      }
+    },
+    {
+      "id": "INC-1774613925-1643",
+      "type": "High Error Rate",
+      "affected_table": "Global",
+      "detected_at": "2026-03-27T17:48:45.634324",
+      "root_cause": "Transaction rollback spike. 10332 new rollbacks detected.",
+      "severity_score": 86,
+      "severity_level": "CRITICAL",
+      "metrics": {
+        "impact_score": 80,
+        "frequency_score": 100,
+        "latency_increase_score": 82,
+        "z_score": 3.2,
+        "deviation_pct": 311.7
       }
     }
   ]

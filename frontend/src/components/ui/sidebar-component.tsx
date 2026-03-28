@@ -363,7 +363,7 @@ function IconNavigation({
   ];
 
   return (
-    <aside className="sidebar-icon-rail flex flex-col gap-2 items-center p-4 w-16 h-full relative z-20">
+    <aside className="sidebar-icon-rail flex flex-col gap-2 items-center p-4 w-16 h-full relative z-20 bg-white/60 dark:bg-slate-950/60 border-r border-black/[0.06] dark:border-white/[0.06]">
       {/* Logo */}
       <div className="mb-4 size-10 flex items-center justify-center cursor-pointer hover:scale-110 transition-transform">
         <div className="size-7">
@@ -462,7 +462,7 @@ function DetailSidebar({ activeSection, projects, activeConn, tables, onProjectC
 
   return (
     <aside
-      className={`sidebar-detail-panel flex flex-col gap-2 items-start p-4 transition-all duration-500 h-full relative z-10 ${isCollapsed ? "w-16 min-w-[4rem] !px-0 justify-center" : "w-[240px] md:w-[260px] lg:w-[280px] shrink-0"
+      className={`sidebar-detail-panel flex flex-col gap-2 items-start p-4 transition-all duration-500 h-full relative z-10 bg-white/50 dark:bg-slate-950/50 border-r border-black/[0.06] dark:border-white/[0.06] ${isCollapsed ? "w-16 min-w-[4rem] !px-0 justify-center" : "w-[240px] md:w-[260px] lg:w-[280px] shrink-0"
         }`}
       style={{ transitionTimingFunction: softSpringEasing }}
     >
@@ -729,7 +729,7 @@ export function DualSidebar({ onProjectLoad }: SidebarProps) {
   };
 
   return (
-    <div className="flex flex-row relative h-full">
+    <div className="flex flex-row relative h-full min-h-screen bg-white/40 dark:bg-slate-950/40 backdrop-blur-sm">
       <IconNavigation activeSection={activeSection} onSectionChange={setActiveSection} />
       <DetailSidebar activeSection={activeSection} projects={projects} activeConn={activeConn} tables={tables} onProjectClick={handleProjectClick} onProjectDelete={handleProjectDelete} router={router} />
     </div>

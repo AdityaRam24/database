@@ -3,5 +3,15 @@
     "id": "1773641324350",
     "name": "Active User",
     "definition": "A user who has logged in within the last 7 days"
+  },
+  {
+    "id": "1774629824901",
+    "name": "High Value Order",
+    "definition": "An order with total_amount > 1000"
+  },
+  {
+    "id": "1774630017524",
+    "name": "show",
+    "definition": "show me active users"
   }
 ]
