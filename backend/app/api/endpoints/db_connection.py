@@ -160,6 +160,38 @@ async def generate_schema(request: GenerateSchemaRequest):
         logger.error(f"Schema generation failed: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to generate schema: {str(e)}")
 
+class MongoDBConnectionRequest(BaseModel):
+    connection_string: str
+    project_name: str = "My MongoDB"
+
+@router.post("/mongodb", response_model=DBConnectionResponse)
+async def connect_mongodb(request: MongoDBConnectionRequest):
+    """
+    Connects to a user's MongoDB database and returns collection info.
+    """
+    from app.services.mongodb_service import MongoDBService
+    logger.info(f"MongoDB connection request for project: {request.project_name}")
+
+    if not MongoDBService.verify_connection(request.connection_string):
+        raise HTTPException(status_code=400, detail="Could not connect to MongoDB. Check your URI and network access.")
+
+    try:
+        service = MongoDBService(request.connection_string)
+        collection_count = service.get_collection_count()
+        project_id = str(uuid.uuid4())
+
+        return DBConnectionResponse(
+            success=True,
+            project_id=project_id,
+            message=f"Connected to MongoDB. Found {collection_count} collections.",
+            table_count=collection_count,
+            connection_string=request.connection_string,
+        )
+    except Exception as e:
+        logger.error(f"MongoDB connection failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"MongoDB connection error: {str(e)}")
+
+
 class GitHubImportRequest(BaseModel):
     github_url: str
     project_name: str = "GitHub Import"

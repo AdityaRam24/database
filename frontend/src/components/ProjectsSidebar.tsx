@@ -29,7 +29,6 @@ const ProjectsSidebar: React.FC<ProjectsSidebarProps> = ({ onProjectLoad }) => {
     }, [user]);
 
     const handleProjectClick = async (project: Project) => {
-        // Restore project to shadow DB via backend if it has SQL content
         if (project.sqlContent && project.connectionString === 'SHADOW_DB') {
             try {
                 const blob = new Blob([project.sqlContent], { type: 'text/plain' });
@@ -55,11 +54,10 @@ const ProjectsSidebar: React.FC<ProjectsSidebarProps> = ({ onProjectLoad }) => {
     const sidebarWidth = collapsed ? 48 : 240;
 
     return (
-        <div 
+        <div
             className="flex flex-col shrink-0 min-h-screen border-r border-white/5 bg-[#0b0b14]/60 backdrop-blur-xl relative z-20"
             style={{ width: sidebarWidth, transition: 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1)' }}
         >
-            {/* Header */}
             <div className="flex items-center justify-between p-4 border-b border-white/5 h-[72px]">
                 {!collapsed && <span className="text-purple-300 font-bold text-sm tracking-wide truncate">My Databases</span>}
                 <button onClick={() => setCollapsed(!collapsed)} className="text-slate-400 hover:text-white hover:bg-white/5 p-1.5 rounded-lg transition-colors ml-auto">
@@ -67,7 +65,6 @@ const ProjectsSidebar: React.FC<ProjectsSidebarProps> = ({ onProjectLoad }) => {
                 </button>
             </div>
 
-            {/* Project list */}
             {!collapsed && (
                 <div className="flex-1 overflow-y-auto py-2">
                     {loading ? (
@@ -103,7 +100,6 @@ const ProjectsSidebar: React.FC<ProjectsSidebarProps> = ({ onProjectLoad }) => {
                 </div>
             )}
 
-            {/* Add new */}
             {!collapsed && (
                 <div className="p-4 mt-auto border-t border-white/5">
                     <button

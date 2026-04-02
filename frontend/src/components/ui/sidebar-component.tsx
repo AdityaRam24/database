@@ -96,15 +96,32 @@ function BrandBadge() {
 
 /* --------------------------------- Avatar -------------------------------- */
 
-function AvatarCircle() {
+function AvatarCircle({ user }: { user: any }) {
+  if (user?.photoURL) {
+    return (
+      <div className="relative rounded-full shrink-0 size-8 overflow-hidden border border-black/10 dark:border-white/10">
+        <img
+          src={user.photoURL}
+          alt="avatar"
+          referrerPolicy="no-referrer"
+          className="size-full object-cover"
+        />
+      </div>
+    );
+  }
+
+  const initials = user?.displayName
+    ? user.displayName.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()
+    : user?.email?.[0].toUpperCase() ?? '?';
+
   return (
-    <div className="relative rounded-full shrink-0 size-8 bg-black">
-      <div className="flex items-center justify-center size-8">
-        <UserIcon size={16} className="text-neutral-50" />
+    <div className="relative rounded-full shrink-0 size-8 bg-violet-500/20 flex items-center justify-center border border-violet-500/30">
+      <div className="text-[10px] font-bold text-violet-600 dark:text-violet-300">
+        {initials}
       </div>
       <div
         aria-hidden="true"
-        className="absolute inset-0 rounded-full border border-neutral-800 pointer-events-none"
+        className="absolute inset-0 rounded-full border border-black/5 dark:border-white/5 pointer-events-none"
       />
     </div>
   );
@@ -444,7 +461,7 @@ function SectionTitle({
   );
 }
 
-function DetailSidebar({ activeSection, projects, activeConn, tables, onProjectClick, onProjectDelete, router }: { activeSection: string, projects: Project[], activeConn: string | null, tables: string[], onProjectClick: (p: Project) => void, onProjectDelete: (p: Project) => void, router: any }) {
+function DetailSidebar({ activeSection, projects, activeConn, tables, onProjectClick, onProjectDelete, router, user }: { activeSection: string, projects: Project[], activeConn: string | null, tables: string[], onProjectClick: (p: Project) => void, onProjectDelete: (p: Project) => void, router: any, user: any }) {
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
   const [isCollapsed, setIsCollapsed] = useState(false);
   const content = useSidebarContent(activeSection, projects, activeConn, tables, onProjectClick, onProjectDelete, router);
@@ -490,14 +507,18 @@ function DetailSidebar({ activeSection, projects, activeConn, tables, onProjectC
       {!isCollapsed && (
         <div className="w-full mt-auto pt-4 border-t border-border">
           <div className="flex items-center gap-3 px-3 py-2.5 bg-black/3 dark:bg-white/5 border border-border hover:bg-black/6 dark:hover:bg-white/10 rounded-xl cursor-pointer transition-colors shadow-sm">
-            <AvatarCircle />
-            <div className="flex flex-col">
+            <AvatarCircle user={user} />
+            <div className="flex flex-col min-w-0">
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
-                <div className="font-['Lexend:Regular',_sans-serif] text-[13.5px] text-foreground font-medium">Steve Team</div>
-                <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-indigo-100 text-indigo-700 uppercase tracking-wider">DEV</span>
+                <div className="font-['Lexend:Regular',_sans-serif] text-[13.5px] text-foreground font-medium truncate max-w-[100px]">
+                  {user?.displayName || "Steve Team"}
+                </div>
+                {!user && <span className="px-1.5 py-0.5 rounded text-[9px] font-bold bg-indigo-100 text-indigo-700 uppercase tracking-wider">DEV</span>}
               </div>
-              <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Workspace</div>
+              <div className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold truncate max-w-[140px]">
+                {user?.email || "Workspace"}
+              </div>
             </div>
             <SettingsIcon size={16} className="text-muted-foreground ml-auto opacity-75 hover:opacity-100" />
           </div>
@@ -720,7 +741,6 @@ export function DualSidebar({ onProjectLoad }: SidebarProps) {
 
   const handleProjectDelete = (deletedProject: Project) => {
     setProjects(prev => prev.filter(p => p.id !== deletedProject.id));
-    // If the deleted project was the active one, clear the connection
     const activeConn = localStorage.getItem('db_connection_string');
     if (activeConn === deletedProject.connectionString) {
       localStorage.removeItem('db_connection_string');
@@ -731,7 +751,7 @@ export function DualSidebar({ onProjectLoad }: SidebarProps) {
   return (
     <div className="flex flex-row relative h-full min-h-screen bg-white/40 dark:bg-slate-950/40 backdrop-blur-sm">
       <IconNavigation activeSection={activeSection} onSectionChange={setActiveSection} />
-      <DetailSidebar activeSection={activeSection} projects={projects} activeConn={activeConn} tables={tables} onProjectClick={handleProjectClick} onProjectDelete={handleProjectDelete} router={router} />
+      <DetailSidebar activeSection={activeSection} projects={projects} activeConn={activeConn} tables={tables} onProjectClick={handleProjectClick} onProjectDelete={handleProjectDelete} router={router} user={user} />
     </div>
   );
 }

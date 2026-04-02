@@ -33,9 +33,15 @@ class TableDataRequest(BaseModel):
     table_name: str
 
 
+def _is_mongodb(conn: str) -> bool:
+    return conn.startswith("mongodb://") or conn.startswith("mongodb+srv://")
+
 @router.post("/dashboard")
 async def get_dashboard_summary(request: AnalysisRequest):
     try:
+        if _is_mongodb(request.connection_string):
+            from app.services.mongodb_service import MongoDBService
+            return MongoDBService(request.connection_string).get_dashboard_stats()
         service = SchemaAnalysisService(request.connection_string)
         return await service.get_dashboard_stats(request.connection_string)
     except Exception as e:
@@ -44,6 +50,9 @@ async def get_dashboard_summary(request: AnalysisRequest):
 @router.post("/graph")
 def get_schema_graph(request: AnalysisRequest):
     try:
+        if _is_mongodb(request.connection_string):
+            from app.services.mongodb_service import MongoDBService
+            return MongoDBService(request.connection_string).get_schema_graph_data()
         service = SchemaAnalysisService(request.connection_string)
         return service.get_schema_graph_data()
     except Exception as e:

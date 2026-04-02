@@ -119,7 +119,7 @@ const TableNode = memo(({ id, data }: NodeProps<TableNodeData>) => {
 
             <div className="flex justify-between items-end gap-3">
                 <div>
-                    <div className="text-[11px] text-gray-600 font-medium leading-none mb-0.5">{data.rows.toLocaleString()}</div>
+                    <div className="text-[11px] text-gray-600 font-medium leading-none mb-0.5">{(data.rows ?? 0).toLocaleString()}</div>
                     <div className="text-[10px] text-gray-400 leading-none">rows</div>
                 </div>
                 <div className="text-right">

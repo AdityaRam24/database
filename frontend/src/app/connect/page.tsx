@@ -3,13 +3,14 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { Database, FileCode2, Sparkles, Github, ArrowLeft, CheckCircle2, Loader2, Zap, Leaf } from "lucide-react";
 import { saveProject } from "@/lib/projectStorage";
-import { Database, FileCode2, Sparkles, Github, ArrowLeft, CheckCircle2, Loader2, Zap } from "lucide-react";
 
-type Tab = "connection" | "file" | "ai" | "github";
+type Tab = "connection" | "file" | "ai" | "github" | "mongodb";
 
 const TABS: { id: Tab; icon: React.ReactNode; label: string; desc: string }[] = [
-    { id: "connection", icon: <Database size={18} />, label: "PostgreSQL", desc: "Live connection string" },
+    { id: "connection", icon: <Database size={18} />,  label: "PostgreSQL",  desc: "Live connection string" },
+    { id: "mongodb",    icon: <Leaf size={18} />,      label: "MongoDB",     desc: "MongoDB URI" },
     { id: "file",       icon: <FileCode2 size={18} />, label: "SQL File",    desc: "Upload a .sql schema" },
     { id: "ai",         icon: <Sparkles size={18} />,  label: "Generate AI", desc: "Describe your database" },
     { id: "github",     icon: <Github size={18} />,    label: "GitHub",      desc: "Import from a repo" },
@@ -37,11 +38,14 @@ export default function ConnectPage() {
         { value: "oracle",     label: "Oracle",      icon: "🔴" },
     ];
 
+    const [mongoUri, setMongoUri] = useState("");
+
     const defaultNames: Record<Tab, string> = {
         connection: "My PostgreSQL DB",
-        file: "SQL Schema",
-        ai: "AI Generated DB",
-        github: "GitHub Import",
+        mongodb:    "My MongoDB",
+        file:       "SQL Schema",
+        ai:         "AI Generated DB",
+        github:     "GitHub Import",
     };
 
     const handleConnect = async (e: React.FormEvent) => {
@@ -51,7 +55,17 @@ export default function ConnectPage() {
 
         let res;
         try {
-            if (activeTab === "connection") {
+            if (activeTab === "mongodb") {
+                if (!mongoUri) throw new Error("Please enter your MongoDB URI.");
+                res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/connect-db/mongodb`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        connection_string: mongoUri,
+                        project_name: projectName || defaultNames.mongodb,
+                    }),
+                });
+            } else if (activeTab === "connection") {
                 res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/connect-db/`, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -96,37 +110,27 @@ export default function ConnectPage() {
             }
 
             const data = await res.json();
-            const finalConnStr = data.connection_string || connectionString;
+            const finalConnStr = data.connection_string || (activeTab === "mongodb" ? mongoUri : connectionString);
             const finalName = projectName || defaultNames[activeTab];
 
             localStorage.setItem("db_connection_string", finalConnStr);
             localStorage.setItem("project_name", finalName);
 
-            // Persist to backend (Firebase Admin → Firestore)
             if (user) {
                 let sqlContent = "";
 
                 if (activeTab === "file" && file) {
-                    // Save full .sql file content
                     try { sqlContent = await file.text(); } catch { }
-
                 } else if (activeTab === "github") {
-                    // Convert GitHub blob URL → raw URL and fetch actual SQL content
                     try {
                         const rawUrl = githubUrl
                             .replace("github.com", "raw.githubusercontent.com")
                             .replace("/blob/", "/");
                         const rawRes = await fetch(rawUrl);
-                        if (rawRes.ok) {
-                            sqlContent = await rawRes.text();
-                        } else {
-                            // Fallback: save URL if fetch fails
-                            sqlContent = githubUrl;
-                        }
+                        sqlContent = rawRes.ok ? await rawRes.text() : githubUrl;
                     } catch {
                         sqlContent = githubUrl;
                     }
-
                 } else if (activeTab === "ai") {
                     sqlContent = aiDescription;
                 }
@@ -177,7 +181,7 @@ export default function ConnectPage() {
                 </div>
 
                 {/* Tab pills */}
-                <div className="grid grid-cols-4 gap-2 mb-6">
+                <div className="grid grid-cols-5 gap-2 mb-6">
                     {TABS.map((t) => (
                         <button
                             key={t.id}
@@ -214,6 +218,25 @@ export default function ConnectPage() {
                         </div>
 
                         {/* Dynamic field */}
+                        {activeTab === "mongodb" && (
+                            <div>
+                                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                                    MongoDB URI
+                                </label>
+                                <input
+                                    type="text"
+                                    placeholder="mongodb+srv://user:pass@cluster.mongodb.net/dbname"
+                                    value={mongoUri}
+                                    onChange={(e) => setMongoUri(e.target.value)}
+                                    required
+                                    className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-colors font-mono shadow-sm"
+                                />
+                                <p className="text-xs text-gray-500 mt-2 font-medium">
+                                    Supports <code className="bg-gray-100 px-1 rounded">mongodb://</code> and <code className="bg-gray-100 px-1 rounded">mongodb+srv://</code> URIs.
+                                </p>
+                            </div>
+                        )}
+
                         {activeTab === "connection" && (
                             <div>
                                 <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
@@ -340,10 +363,10 @@ export default function ConnectPage() {
                             {loading ? (
                                 <>
                                     <div className="w-4 h-4 border-2 border-violet-200 border-t-violet-500 rounded-full animate-spin" />
-                                    {activeTab === "connection" ? "Connecting..." : "Creating Database..."}
+                                    {activeTab === "connection" || activeTab === "mongodb" ? "Connecting..." : "Creating Database..."}
                                 </>
                             ) : (
-                                activeTab === "connection" ? "Connect Database" : "Create Database"
+                                activeTab === "connection" || activeTab === "mongodb" ? "Connect Database" : "Create Database"
                             )}
                         </button>
                     </form>
