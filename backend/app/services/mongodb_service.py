@@ -112,6 +112,56 @@ class MongoDBService:
 
         return {"nodes": nodes, "edges": edges}
 
+    def _serialize_mongo_item(self, item: Any) -> Any:
+        """
+        Recursively converts BSON types (ObjectId, Decimal128, datetime) 
+        to JSON-serializable types.
+        """
+        import bson
+        from datetime import datetime
+
+        if isinstance(item, list):
+            return [self._serialize_mongo_item(i) for i in item]
+        if isinstance(item, dict):
+            return {k: self._serialize_mongo_item(v) for k, v in item.items()}
+        if isinstance(item, bson.ObjectId):
+            return str(item)
+        if isinstance(item, bson.decimal128.Decimal128):
+            return str(item)  # Preserve precision with string
+        if isinstance(item, datetime):
+            return item.isoformat()
+        return item
+
+    def get_collection_data(self, collection_name: str, limit: int = 100) -> Dict[str, Any]:
+        """
+        Returns columns (field names) and rows (documents) for a collection.
+        """
+        collection = self.db[collection_name]
+        cursor = collection.find().limit(limit)
+        docs = list(cursor)
+
+        if not docs:
+            return {"columns": [], "rows": []}
+
+        # Collect all unique keys across all sampled documents
+        all_keys = set()
+        for doc in docs:
+            all_keys.update(doc.keys())
+
+        # Sort keys, keeping _id first
+        columns = sorted(list(all_keys))
+        if "_id" in columns:
+            columns.remove("_id")
+            columns.insert(0, "_id")
+
+        # Recursively serialize all documents
+        serialized_docs = [self._serialize_mongo_item(doc) for doc in docs]
+
+        return {
+            "columns": columns,
+            "rows": serialized_docs,
+        }
+
     def get_dashboard_stats(self) -> Dict[str, Any]:
         collection_names = self.db.list_collection_names()
         total_collections = len(collection_names)

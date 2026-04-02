@@ -145,6 +145,9 @@ async def explain_sql(request: ExplainRequest):
 @router.post("/table-data")
 def get_table_data(request: TableDataRequest):
     try:
+        if _is_mongodb(request.connection_string):
+            from app.services.mongodb_service import MongoDBService
+            return MongoDBService(request.connection_string).get_collection_data(request.table_name)
         service = SchemaAnalysisService(request.connection_string)
         return service.get_table_data(request.table_name)
     except Exception as e:

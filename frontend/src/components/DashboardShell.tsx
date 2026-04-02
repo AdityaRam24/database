@@ -96,15 +96,33 @@ export default function DashboardShell({ children }: { children: React.ReactNode
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
-    const update = () => setProjectName(localStorage.getItem('project_name') || '');
+    const update = () => {
+      setProjectName(localStorage.getItem('project_name') || '');
+    };
     update();
     window.addEventListener('project-changed', update);
     return () => window.removeEventListener('project-changed', update);
   }, []);
 
-  const handleProjectLoad = (connStr: string, name: string) => {
+  const handleProjectLoad = (connStr: string, name: string, connectionType?: string) => {
     setProjectName(name);
-    window.dispatchEvent(new CustomEvent('project-changed', { detail: { connStr, name } }));
+    localStorage.setItem('project_name', name);
+    localStorage.setItem('db_connection_string', connStr);
+    if (connectionType) {
+      localStorage.setItem('db_type', connectionType);
+    } else {
+      // Auto-detect if not provided
+      const isMongo = connStr.startsWith('mongodb://') || connStr.startsWith('mongodb+srv://');
+      localStorage.setItem('db_type', isMongo ? 'mongodb' : 'sql');
+    }
+    
+    window.dispatchEvent(new CustomEvent('project-changed', { 
+      detail: { 
+        connStr, 
+        name, 
+        connectionType: connectionType || (localStorage.getItem('db_type'))
+      } 
+    }));
   };
 
   if (authLoading) {
@@ -122,7 +140,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
     <EtheralShadow
       className="w-full h-screen overflow-hidden font-sans text-slate-900 dark:text-slate-200"
       color={resolvedTheme === 'dark' ? 'rgba(99,102,241,0.10)' : 'rgba(99,102,241,0.04)'}
-      animation={{ scale: 60, speed: 40 }}
+      animation={{ scale: 0, speed: 0 }} // Disabled heavy SVG turbulence filter causing lag
       noise={{ opacity: 0.08, scale: 1.5 }}
       sizing="fill"
       style={{ backgroundColor: resolvedTheme === 'dark' ? 'hsl(224 25% 5%)' : '#f8fafc' }}

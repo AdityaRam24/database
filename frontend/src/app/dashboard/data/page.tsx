@@ -24,6 +24,7 @@ export default function DataExplorerPage() {
     const [tableData, setTableData] = useState<{ columns: string[], rows: any[] } | null>(null);
     const [dataLoading, setDataLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [dbType, setDbType] = useState<string>('sql');
 
     const fetchTablesList = async (connStr: string) => {
         setTablesLoading(true);
@@ -69,9 +70,11 @@ export default function DataExplorerPage() {
     useEffect(() => {
         const connStr = localStorage.getItem("db_connection_string");
         const name = localStorage.getItem("project_name") || "Dashboard";
+        const savedType = localStorage.getItem("db_type") || "sql";
         if (!connStr) { setTablesLoading(false); return; }
         setConnectionString(connStr);
         setProjectName(name);
+        setDbType(savedType);
         fetchTablesList(connStr);
     }, []);
 
@@ -101,7 +104,7 @@ export default function DataExplorerPage() {
                     </div>
                     <div>
                         <h1 className="text-lg font-bold text-gray-900 leading-tight">Data Explorer</h1>
-                        <p className="text-xs text-gray-500 font-medium">Browse your database tables and records safely</p>
+                        <p className="text-xs text-gray-500 font-medium">Browse your {dbType === 'mongodb' ? 'collections and documents' : 'database tables and records'} safely</p>
                     </div>
                 </div>
             </div>
@@ -111,8 +114,8 @@ export default function DataExplorerPage() {
                 {/* Inner Sidebar: Collections List */}
                 <Card className="w-full lg:w-[280px] shrink-0 border border-gray-200 bg-white flex flex-col shadow-sm rounded-xl">
                     <CardHeader className="pb-4 border-b border-gray-100 bg-gray-50/50 rounded-t-xl">
-                        <CardTitle className="text-gray-900 text-lg flex items-center gap-2"><Database size={18} className="text-violet-500" /> Data Collections</CardTitle>
-                        <CardDescription className="text-gray-500">Select a collection to view records</CardDescription>
+                        <CardTitle className="text-gray-900 text-lg flex items-center gap-2"><Database size={18} className="text-violet-500" /> {dbType === 'mongodb' ? 'Data Collections' : 'Database Tables'}</CardTitle>
+                        <CardDescription className="text-gray-500">Select a {dbType === 'mongodb' ? 'collection' : 'table'} to view {dbType === 'mongodb' ? 'documents' : 'records'}</CardDescription>
                     </CardHeader>
                     <CardContent className="p-0 overflow-y-auto w-full custom-scrollbar bg-white">
                             {tablesLoading ? (
@@ -133,7 +136,7 @@ export default function DataExplorerPage() {
                                                 <div className="font-medium flex items-center gap-2">
                                                     <Table size={14} className="text-gray-400" /> {node.data.label}
                                                 </div>
-                                                <div className="text-xs text-gray-400 mt-1 pl-6">{node.data.rows} records</div>
+                                                <div className="text-xs text-gray-400 mt-1 pl-6">{node.data.rows} {dbType === 'mongodb' ? 'documents' : 'records'}</div>
                                             </button>
                                         </li>
                                     ))}
@@ -150,12 +153,12 @@ export default function DataExplorerPage() {
                                 <div className="flex items-center gap-2">
                                     <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
                                     <h1 className="text-xl font-bold text-gray-900">
-                                        {selectedTable ? `Collection: ${selectedTable}` : 'Data Explorer'}
+                                        {selectedTable ? `${dbType === 'mongodb' ? 'Collection' : 'Table'}: ${selectedTable}` : 'Data Explorer'}
                                     </h1>
                                 </div>
                                 {selectedTable && (
                                     <div className="text-sm font-medium text-gray-500 bg-gray-100 px-3 py-1 rounded-full border border-gray-200">
-                                        Showing {tableData?.rows?.length || 0} records
+                                        Showing {tableData?.rows?.length || 0} {dbType === 'mongodb' ? 'documents' : 'records'}
                                     </div>
                                 )}
                             </div>
@@ -166,11 +169,11 @@ export default function DataExplorerPage() {
                             {!selectedTable ? (
                                 <div className="flex flex-col items-center justify-center h-full text-gray-400 gap-4">
                                     <Database size={48} className="text-gray-200" />
-                                    <p className="font-medium text-gray-500">Select a collection from the left sidebar to view data safely.</p>
+                                    <p className="font-medium text-gray-500">Select a {dbType === 'mongodb' ? 'collection' : 'table'} from the left sidebar to view data safely.</p>
                                 </div>
                             ) : dataLoading ? (
                                 <div className="flex items-center justify-center h-full text-violet-500 animate-pulse">
-                                    Fetching records...
+                                    Fetching {dbType === 'mongodb' ? 'documents' : 'records'}...
                                 </div>
                             ) : error ? (
                                 <div className="flex items-center justify-center h-full text-red-500">
@@ -225,7 +228,7 @@ export default function DataExplorerPage() {
                                     
                                     {tableData.rows.length === 0 && (
                                         <div className="px-6 py-10 text-center text-gray-500">
-                                            This table is empty.
+                                            This {dbType === 'mongodb' ? 'collection' : 'table'} is empty.
                                         </div>
                                     )}
                                 </motion.div>

@@ -41,7 +41,7 @@ interface StatTileProps {
   label: string;
   value: string | number;
   unit?: string;
-  icon: React.ElementType;
+  icon: any;
   color: string;
   gradient: string;
   sub: string;
@@ -152,7 +152,7 @@ function EmptyState({ onConnect }: { onConnect: () => void }) {
           No database connected
         </h3>
         <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
-          Connect a PostgreSQL database to unlock schema visualization, AI-powered optimizations, and real-time insights.
+          Connect a database to unlock schema visualization, AI-powered optimizations, and real-time insights.
         </p>
       </div>
 
@@ -297,6 +297,7 @@ export default function DashboardPage() {
   const [statsLoading, setStatsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [connectionString, setConnectionString] = useState<string | null>(null);
+  const [dbType, setDbType] = useState<string>('sql');
   const [graphKey, setGraphKey] = useState(0);
   const [mounted, setMounted] = useState(false);
 
@@ -336,15 +337,18 @@ export default function DashboardPage() {
 
   useEffect(() => {
     const handler = (e: any) => {
-      const { connStr } = e.detail;
+      const { connStr, connectionType } = e.detail;
       setConnectionString(connStr);
+      if (connectionType) setDbType(connectionType);
       fetchStats(connStr);
     };
     window.addEventListener("project-changed", handler);
 
     const saved = localStorage.getItem("db_connection_string");
+    const savedType = localStorage.getItem("db_type");
     if (saved) {
       setConnectionString(saved);
+      if (savedType) setDbType(savedType);
       fetchStats(saved);
     } else {
       setStatsLoading(false);
@@ -357,39 +361,39 @@ export default function DashboardPage() {
     ? [
       {
         label: "Storage Used",
-        value: stats.total_size_mb,
+        value: stats.total_size_mb || 0,
         unit: "MB",
         icon: Database,
         color: "#6366f1",
         gradient: "linear-gradient(135deg, #6366f1 0%, #818cf8 100%)",
-        sub: "Total disk space consumed",
+        sub: dbType === 'mongodb' ? "Total collection size" : "Total disk space consumed",
         delay: 0,
       },
       {
-        label: "Data Collections",
+        label: dbType === 'mongodb' ? "Collections" : "Data Collections",
         value: stats.total_tables,
         icon: Folder,
         color: "#3b82f6",
         gradient: "linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%)",
-        sub: "Active database tables",
+        sub: dbType === 'mongodb' ? "Active MongoDB collections" : "Active database tables",
         delay: 60,
       },
       {
-        label: "Safe Connections",
-        value: stats.total_fk_count ?? stats.total_foreign_keys ?? "—",
+        label: dbType === 'mongodb' ? "Indexes" : "Safe Connections",
+        value: dbType === 'mongodb' ? (stats.total_indexes ?? "—") : (stats.total_fk_count ?? stats.total_foreign_keys ?? "—"),
         icon: GitMerge,
         color: "#10b981",
         gradient: "linear-gradient(135deg, #059669 0%, #34d399 100%)",
-        sub: "Data relationships verified",
+        sub: dbType === 'mongodb' ? "Optimized query paths" : "Data relationships verified",
         delay: 120,
       },
       {
-        label: "Primary Keys",
-        value: stats.total_pk_count ?? "—",
+        label: dbType === 'mongodb' ? "Documents" : "Primary Keys",
+        value: dbType === 'mongodb' ? (stats.total_documents ?? "—") : (stats.total_pk_count ?? "—"),
         icon: Key,
         color: "#f59e0b",
         gradient: "linear-gradient(135deg, #d97706 0%, #fbbf24 100%)",
-        sub: "Unique row identifiers",
+        sub: dbType === 'mongodb' ? "Total document count" : "Unique row identifiers",
         delay: 180,
       },
     ]

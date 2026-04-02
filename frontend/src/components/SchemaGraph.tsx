@@ -132,7 +132,7 @@ const TableNode = memo(({ id, data }: NodeProps<TableNodeData>) => {
                 className="inline-block px-[7px] py-[2px] rounded-full text-[10px] font-medium mt-1.5"
                 style={{ background: cat.badgeBg, color: cat.badgeText }}
             >
-                {cat.label}
+                {localStorage.getItem('db_type') === 'mongodb' ? 'Collection' : cat.label}
             </span>
 
             <Handle type="source" position={Position.Right} className="opacity-0" />
@@ -211,6 +211,11 @@ const SchemaGraphContent = ({ connectionString }: { connectionString: string }) 
     const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
     const [hoveredEdgeScope, setHoveredEdgeScope] = useState<{ source: string, target: string } | null>(null);
     const [breadcrumbs, setBreadcrumbs] = useState<{ id: string, label: string }[]>([]);
+    const [dbType, setDbType] = useState<string>('sql');
+
+    useEffect(() => {
+        setDbType(localStorage.getItem('db_type') || 'sql');
+    }, []);
 
     // Top bar interactions
     const [searchQuery, setSearchQuery] = useState('');
@@ -478,7 +483,7 @@ const SchemaGraphContent = ({ connectionString }: { connectionString: string }) 
         return (
             <div className="w-full h-full flex flex-col items-center justify-center bg-white border border-gray-100 rounded-b-3xl">
                 <Database size={16} className="animate-pulse text-violet-500 mb-2" />
-                <div className="text-gray-500 font-medium text-sm">Analyzing & Clustering Schema...</div>
+                <div className="text-gray-500 font-medium text-sm">{dbType === 'mongodb' ? 'Analyzing Collections...' : 'Analyzing & Clustering Schema...'}</div>
             </div>
         );
     }
@@ -496,13 +501,15 @@ const SchemaGraphContent = ({ connectionString }: { connectionString: string }) 
                             {(['All', 'Entities', 'Junctions', 'Lookups'] as const).map(f => (
                                 <button key={f} onClick={() => setActiveFilter(f)}
                                     className={`px-3 py-1 text-[12px] font-medium rounded-full transition-colors ${activeFilter === f ? 'bg-indigo-50 text-indigo-700 border border-indigo-200' : 'bg-transparent text-gray-500 hover:bg-gray-100'}`}>
-                                    {f === 'All' ? 'All tables' : f}
+                                    {f === 'All' ? (dbType === 'mongodb' ? 'All collections' : 'All tables') : f}
                                 </button>
                             ))}
                         </div>
                     ) : (
                         <div className="flex items-center gap-2 bg-white/90 backdrop-blur-md px-4 py-2 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
-                            <button onClick={handleClearFocus} className="text-[13px] font-bold text-gray-500 hover:text-gray-900 transition-colors">All Tables</button>
+                            <button onClick={handleClearFocus} className="text-[13px] font-bold text-gray-500 hover:text-gray-900 transition-colors">
+                                {dbType === 'mongodb' ? 'All Collections' : 'All Tables'}
+                            </button>
                             {breadcrumbs.map((crumb, idx) => (
                                 <div key={crumb.id} className="flex items-center gap-2">
                                     <ChevronRight size={14} className="text-gray-400" />
@@ -547,7 +554,7 @@ const SchemaGraphContent = ({ connectionString }: { connectionString: string }) 
                                 <Search size={14} className="absolute left-3 text-gray-400 z-10" />
                                 <input
                                     type="text"
-                                    placeholder="Find table or column..."
+                                    placeholder={dbType === 'mongodb' ? "Find collection or field..." : "Find table or column..."}
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                     className="pl-9 pr-14 py-2 w-64 text-[13px] text-gray-900 border-none outline-none placeholder:text-gray-400 bg-transparent"
@@ -562,10 +569,12 @@ const SchemaGraphContent = ({ connectionString }: { connectionString: string }) 
                                         <div className="p-1">
                                             {searchResults.tables.map(n => (
                                                 <button key={n.id} onClick={() => { handleFocusNode(n.id, true); setSearchQuery(''); }} className="w-full text-left px-3 py-2 flex items-center gap-2 hover:bg-gray-50 rounded-lg group">
-                                                    <span className="text-[10px] font-medium bg-indigo-50 text-indigo-700 px-1.5 py-0.5 rounded-full shrink-0">Table</span>
+                                                    <span className="text-[10px] font-medium bg-indigo-50 text-indigo-700 px-1.5 py-0.5 rounded-full shrink-0">
+                                                        {dbType === 'mongodb' ? 'Collection' : 'Table'}
+                                                    </span>
                                                     <div className="min-w-0 flex-1">
                                                         <div className="text-[13px] text-gray-900 font-medium truncate group-hover:text-indigo-600 transition-colors">{n.data.label}</div>
-                                                        <div className="text-[11px] text-gray-400 mt-0.5">{n.data.rows} rows</div>
+                                                        <div className="text-[11px] text-gray-400 mt-0.5">{(n.data.rows ?? 0).toLocaleString()} {dbType === 'mongodb' ? 'docs' : 'rows'}</div>
                                                     </div>
                                                 </button>
                                             ))}
@@ -581,7 +590,9 @@ const SchemaGraphContent = ({ connectionString }: { connectionString: string }) 
                                                             <span>{r.col.name}</span>
                                                             <span className="text-[10px] text-gray-400 font-normal">in {r.table.data.label}</span>
                                                         </div>
-                                                        <div className="text-[11px] text-gray-500 mt-0.5 truncate">{r.col.is_pk ? 'Primary Key' : r.col.is_fk ? 'Foreign Key' : r.col.type}</div>
+                                                        <div className="text-[11px] text-gray-500 mt-0.5 truncate">
+                                                            {r.col.is_pk ? (dbType === 'mongodb' ? 'Object ID' : 'Primary Key') : r.col.is_fk ? 'Ref' : r.col.type}
+                                                        </div>
                                                     </div>
                                                 </button>
                                             ))}
