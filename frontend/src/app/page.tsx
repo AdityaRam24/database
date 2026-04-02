@@ -4,6 +4,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import dynamic from "next/dynamic";
 import {
     Database, Zap, Shield, BarChart3, MessageSquare,
     ArrowRight, CheckCircle2, Activity, BookOpen,
@@ -11,6 +12,11 @@ import {
 } from "lucide-react";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { toast } from "sonner";
+
+const HeroScene3D = dynamic(() => import("@/components/HeroScene3D"), {
+    ssr: false,
+    loading: () => <div className="w-full h-full" />,
+});
 
 // ─── Static Data ──────────────────────────────────────────────────────────────
 
@@ -241,7 +247,8 @@ export default function Home() {
 
             {/* Ambient background glow */}
             <div className="fixed inset-0 pointer-events-none overflow-hidden" aria-hidden>
-                <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[900px] h-[600px] rounded-full bg-violet-500/6 blur-[140px]" />
+                <div className="absolute -top-40 left-1/2 -translate-x-1/2 w-[1100px] h-[700px] rounded-full bg-violet-500/6 blur-[160px]" />
+                <div className="absolute top-1/4 right-0 w-[500px] h-[500px] rounded-full bg-purple-600/4 blur-[120px]" />
             </div>
 
             {/* ── HEADER ─────────────────────────────────────────────────────── */}
@@ -282,95 +289,119 @@ export default function Home() {
             </header>
 
             {/* ── HERO ───────────────────────────────────────────────────────── */}
-            <section className="pt-36 pb-24 px-4 sm:px-6">
-                <div className="max-w-3xl mx-auto text-center">
-                    <motion.div initial="hidden" animate="visible" variants={FADE_UP}>
+            <section className="pt-24 pb-8 px-4 sm:px-6 overflow-hidden">
+                <div className="max-w-6xl mx-auto">
+                    <div className="grid lg:grid-cols-2 gap-6 lg:gap-4 items-center">
 
-                        {/* Badge */}
-                        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-violet-500/10 border border-violet-500/20 text-violet-600 dark:text-violet-400 text-xs font-semibold mb-8">
-                            <span className="w-1.5 h-1.5 rounded-full bg-violet-500 animate-pulse" />
-                            AI-Powered PostgreSQL Intelligence
-                        </div>
-
-                        {/* Headline */}
-                        <h1 className="text-5xl sm:text-6xl lg:text-[68px] font-extrabold tracking-tight text-foreground leading-[1.07] mb-6">
-                            Understand your database
-                            <br />
-                            <span className="bg-gradient-to-r from-violet-600 via-purple-600 to-violet-800 bg-clip-text text-transparent">
-                                in plain English
-                            </span>
-                        </h1>
-
-                        <p className="text-xl text-muted-foreground leading-relaxed mb-10 max-w-2xl mx-auto">
-                            Ask questions, spot problems, and optimize performance — without writing a single line of SQL.
-                            Built for every member of your team.
-                        </p>
-
-                        {/* Dual CTA */}
-                        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 mb-10">
-                            <button
-                                onClick={user ? () => router.push('/dashboard') : signInWithGoogle}
-                                className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white font-bold text-base transition-all duration-200 shadow-xl shadow-violet-500/25 hover:shadow-violet-500/40 hover:-translate-y-0.5 cursor-pointer"
-                            >
-                                {user ? 'Go to Dashboard' : 'Get Started Free'}
-                                <ArrowRight size={16} />
-                            </button>
-                            <a
-                                href="#how-it-works"
-                                className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-card border border-border text-foreground font-semibold text-base transition-all duration-200 hover:border-violet-500/40 hover:bg-muted/40 cursor-pointer"
-                            >
-                                See how it works
-                            </a>
-                        </div>
-
-                        {/* Search demo input */}
-                        <form onSubmit={handleSubmit} className="max-w-2xl mx-auto mb-5">
-                            <div className="flex items-center gap-3 p-3 bg-card border-2 border-border rounded-2xl shadow-sm hover:border-violet-500/40 focus-within:border-violet-500/60 focus-within:shadow-violet-500/10 focus-within:shadow-lg transition-all duration-300">
-                                <Search size={17} className="text-muted-foreground shrink-0 ml-1" />
-                                <input
-                                    type="text"
-                                    value={prompt}
-                                    onChange={e => setPrompt(e.target.value)}
-                                    onKeyDown={e => e.key === 'Enter' && handleSubmit()}
-                                    placeholder="Ask your database anything…"
-                                    className="flex-1 bg-transparent text-foreground placeholder:text-muted-foreground text-base outline-none font-medium"
-                                />
-                                <button
-                                    type="submit"
-                                    disabled={isLoading || !prompt.trim()}
-                                    className="shrink-0 px-5 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 disabled:opacity-40 text-white text-sm font-bold transition-all flex items-center gap-2 cursor-pointer"
-                                >
-                                    {isLoading
-                                        ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                        : <><span className="hidden sm:inline">Ask</span> <ArrowRight size={14} /></>
-                                    }
-                                </button>
+                        {/* Left — text, CTAs, search */}
+                        <motion.div
+                            initial="hidden"
+                            animate="visible"
+                            variants={FADE_UP}
+                            className="flex flex-col items-center lg:items-start text-center lg:text-left order-2 lg:order-1 py-8 lg:py-0"
+                        >
+                            {/* Badge */}
+                            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-violet-500/10 border border-violet-500/20 text-violet-600 dark:text-violet-400 text-xs font-semibold mb-7">
+                                <span className="w-1.5 h-1.5 rounded-full bg-violet-500 animate-pulse" />
+                                AI-Powered PostgreSQL Intelligence
                             </div>
-                        </form>
 
-                        {/* Example prompts */}
-                        <div className="flex flex-wrap justify-center gap-2 mb-10">
-                            {EXAMPLE_PROMPTS.map((q) => (
-                                <button
-                                    key={q}
-                                    onClick={() => setPrompt(q)}
-                                    className="px-3 py-1.5 rounded-full text-[11px] font-medium bg-muted hover:bg-muted/70 text-muted-foreground hover:text-foreground transition-all border border-border cursor-pointer"
-                                >
-                                    {q}
-                                </button>
-                            ))}
-                        </div>
-
-                        {/* Trust strip */}
-                        <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-muted-foreground">
-                            {["PostgreSQL native", "No SQL required", "Privacy first", "Open source"].map((item) => (
-                                <span key={item} className="flex items-center gap-1.5">
-                                    <CheckCircle2 size={13} className="text-violet-500 shrink-0" />
-                                    {item}
+                            {/* Headline */}
+                            <h1 className="text-4xl sm:text-5xl lg:text-[58px] xl:text-[64px] font-extrabold tracking-tight text-foreground leading-[1.07] mb-5">
+                                Understand your database
+                                <br />
+                                <span className="bg-gradient-to-r from-violet-500 via-purple-500 to-violet-700 bg-clip-text text-transparent">
+                                    in plain English
                                 </span>
-                            ))}
-                        </div>
-                    </motion.div>
+                            </h1>
+
+                            <p className="text-lg sm:text-xl text-muted-foreground leading-relaxed mb-8 max-w-xl">
+                                Ask questions, spot problems, and optimize performance — without writing a single line of SQL.
+                                Built for every member of your team.
+                            </p>
+
+                            {/* Dual CTA */}
+                            <div className="flex flex-col sm:flex-row items-center lg:justify-start justify-center gap-3 mb-8 w-full">
+                                <button
+                                    onClick={user ? () => router.push('/dashboard') : signInWithGoogle}
+                                    className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-violet-600 hover:bg-violet-500 text-white font-bold text-base transition-all duration-200 shadow-xl shadow-violet-500/25 hover:shadow-violet-500/40 hover:-translate-y-0.5 cursor-pointer"
+                                >
+                                    {user ? 'Go to Dashboard' : 'Get Started Free'}
+                                    <ArrowRight size={16} />
+                                </button>
+                                <a
+                                    href="#how-it-works"
+                                    className="inline-flex items-center gap-2 px-6 py-3.5 rounded-xl bg-card border border-border text-foreground font-semibold text-base transition-all duration-200 hover:border-violet-500/40 hover:bg-muted/40 cursor-pointer"
+                                >
+                                    See how it works
+                                </a>
+                            </div>
+
+                            {/* Search demo input */}
+                            <form onSubmit={handleSubmit} className="w-full max-w-lg mb-4">
+                                <div className="flex items-center gap-3 p-3 bg-card border-2 border-border rounded-2xl shadow-sm hover:border-violet-500/40 focus-within:border-violet-500/60 focus-within:shadow-violet-500/10 focus-within:shadow-lg transition-all duration-300">
+                                    <Search size={17} className="text-muted-foreground shrink-0 ml-1" />
+                                    <input
+                                        type="text"
+                                        value={prompt}
+                                        onChange={e => setPrompt(e.target.value)}
+                                        onKeyDown={e => e.key === 'Enter' && handleSubmit()}
+                                        placeholder="Ask your database anything…"
+                                        className="flex-1 bg-transparent text-foreground placeholder:text-muted-foreground text-base outline-none font-medium"
+                                    />
+                                    <button
+                                        type="submit"
+                                        disabled={isLoading || !prompt.trim()}
+                                        className="shrink-0 px-5 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-500 disabled:opacity-40 text-white text-sm font-bold transition-all flex items-center gap-2 cursor-pointer"
+                                    >
+                                        {isLoading
+                                            ? <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                            : <><span className="hidden sm:inline">Ask</span> <ArrowRight size={14} /></>
+                                        }
+                                    </button>
+                                </div>
+                            </form>
+
+                            {/* Example prompts */}
+                            <div className="flex flex-wrap justify-center lg:justify-start gap-2 mb-7 max-w-lg">
+                                {EXAMPLE_PROMPTS.map((q) => (
+                                    <button
+                                        key={q}
+                                        onClick={() => setPrompt(q)}
+                                        className="px-3 py-1.5 rounded-full text-[11px] font-medium bg-muted hover:bg-muted/70 text-muted-foreground hover:text-foreground transition-all border border-border cursor-pointer"
+                                    >
+                                        {q}
+                                    </button>
+                                ))}
+                            </div>
+
+                            {/* Trust strip */}
+                            <div className="flex flex-wrap items-center justify-center lg:justify-start gap-x-5 gap-y-2 text-sm text-muted-foreground">
+                                {["PostgreSQL native", "No SQL required", "Privacy first", "Open source"].map((item) => (
+                                    <span key={item} className="flex items-center gap-1.5">
+                                        <CheckCircle2 size={13} className="text-violet-500 shrink-0" />
+                                        {item}
+                                    </span>
+                                ))}
+                            </div>
+                        </motion.div>
+
+                        {/* Right — 3D scene */}
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.88 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ duration: 0.9, ease: [0.25, 0.1, 0.25, 1], delay: 0.15 }}
+                            className="relative order-1 lg:order-2 h-[340px] sm:h-[420px] lg:h-[600px]"
+                        >
+                            {/* Multi-layer glow behind the orb */}
+                            <div className="absolute inset-0 pointer-events-none">
+                                <div className="absolute inset-[15%] rounded-full bg-violet-600/18 blur-[70px]" />
+                                <div className="absolute inset-[25%] rounded-full bg-purple-500/12 blur-[100px]" />
+                            </div>
+                            <HeroScene3D />
+                        </motion.div>
+
+                    </div>
                 </div>
             </section>
 
