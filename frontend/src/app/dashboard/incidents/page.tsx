@@ -5,10 +5,11 @@ import { useRouter } from 'next/navigation';
 import {
     Loader2, ArrowLeft, AlertTriangle, CheckCircle,
     RefreshCw, Zap, TrendingUp, XCircle, ShieldAlert,
-    ThermometerSun, DatabaseZap, Clock, WifiOff
+    ThermometerSun, DatabaseZap, Clock, WifiOff, Activity, ShieldCheck, Crosshair
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import DashboardShell from '@/components/DashboardShell';
+import { motion } from 'framer-motion';
 
 /* ── Types ─────────────────────────────────────────────────────────── */
 
@@ -43,13 +44,6 @@ interface HistoryResult {
 
 /* ── UI Config ─────────────────────────────────────────────────────── */
 
-const SEVERITY_CONFIG = {
-    CRITICAL: { color: '#dc2626', bg: '#fef2f2', border: '#fecaca', label: 'Critical' },
-    HIGH: { color: '#ea580c', bg: '#fff7ed', border: '#fed7aa', label: 'High' },
-    MEDIUM: { color: '#ca8a04', bg: '#fefce8', border: '#fef08a', label: 'Medium' },
-    LOW: { color: '#2563eb', bg: '#eff6ff', border: '#bfdbfe', label: 'Low' },
-};
-
 const getIncidentIcon = (type: string) => {
     if (type.includes('Latency') || type.includes('Slow')) return <Clock size={16} />;
     if (type.includes('Growth')) return <DatabaseZap size={16} />;
@@ -59,19 +53,29 @@ const getIncidentIcon = (type: string) => {
     return <AlertTriangle size={16} />;
 };
 
-/* ── Components ────────────────────────────────────────────────────── */
+/* ── Sweeping Radar Animation ────────────────────────────────────────── */
 
-function ScoreGauge({ score, color }: { score: number, color: string }) {
-    const r = 16;
-    const circ = 2 * Math.PI * r;
-    const strokeDasharray = `${(score / 100) * circ} ${circ}`;
+function TriageScanner() {
     return (
-        <div style={{ position: 'relative', width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <svg width="40" height="40" viewBox="0 0 40 40" style={{ transform: 'rotate(-90deg)' }}>
-                <circle cx="20" cy="20" r={r} fill="none" stroke="#e2e8f0" strokeWidth="4" />
-                <circle cx="20" cy="20" r={r} fill="none" stroke={color} strokeWidth="4" strokeDasharray={strokeDasharray} strokeLinecap="round" />
-            </svg>
-            <span style={{ position: 'absolute', fontSize: 11, fontWeight: 800, color: '#0f172a' }}>{score}</span>
+        <div className="relative w-48 h-48 mx-auto -mb-6 flex items-center justify-center overflow-hidden rounded-full border-4 border-emerald-50 bg-emerald-50/50 shadow-inner">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_0%,rgba(16,185,129,0.05)_100%)]"></div>
+            
+            {/* Grid Rings */}
+            <div className="absolute inset-2 rounded-full border border-emerald-200/50"></div>
+            <div className="absolute inset-8 rounded-full border border-emerald-200/30"></div>
+            <div className="absolute inset-16 rounded-full border border-emerald-200/20"></div>
+            
+            <ShieldCheck size={48} className="text-emerald-400 relative z-10" />
+
+            {/* Sweep */}
+            <motion.div
+                className="absolute inset-0 origin-center"
+                animate={{ rotate: 360 }}
+                transition={{ duration: 4, ease: "linear", repeat: Infinity }}
+            >
+                <div className="w-1/2 h-full absolute right-0 bg-gradient-to-l from-emerald-400/20 to-transparent blur-md"></div>
+                <div className="w-px h-1/2 absolute right-1/2 top-0 bg-emerald-400 shadow-[0_0_8px_rgba(16,185,129,0.8)]"></div>
+            </motion.div>
         </div>
     );
 }
@@ -126,208 +130,228 @@ export default function IncidentsPage() {
 
     if (!mounted) return null;
 
-    const incidentCount = scanResult?.incidents?.length ?? 0;
+    const incidents = scanResult?.incidents || [];
+    const criticalIncidents = incidents.filter(i => i.severity_level === 'CRITICAL' || i.severity_level === 'HIGH');
+    const minorIncidents = incidents.filter(i => i.severity_level === 'MEDIUM' || i.severity_level === 'LOW');
+    
     const isInsufficient = scanResult?.status === 'insufficient_data';
-    const summary = scanResult?.summary || { CRITICAL: 0, HIGH: 0, MEDIUM: 0, LOW: 0 };
+    const isCrisis = criticalIncidents.length > 0;
 
     return (
         <DashboardShell>
-
-            {/* ── Top bar ── */}
-            <div className="flex items-center justify-between p-6 px-4 md:px-8 bg-transparent">
-                <div className="flex items-center gap-4">
-                    <h1 className="m-0 text-xl font-bold text-gray-900 flex items-center gap-2">
-                        <ShieldAlert size={22} className="text-red-600" /> Incident Panel
-                    </h1>
-                    {incidentCount > 0 && (
-                        <span className="animate-pulse ml-2 px-3 py-1 text-xs font-bold rounded-full bg-red-50 border border-red-200 text-red-600 shadow-sm">
-                            {incidentCount} active incident{incidentCount === 1 ? '' : 's'}
-                        </span>
-                    )}
-                </div>
-                <div className="flex items-center gap-3">
-                    <Button size="sm" disabled={!connectionString || scanning}
-                        onClick={() => connectionString && doScan(connectionString)}
-                        className="bg-red-600 hover:bg-red-700 text-white font-semibold text-xs transition-colors shadow-sm">
-                        {scanning ? <Loader2 size={14} className="animate-spin mr-2" /> : <RefreshCw size={14} className="mr-2" />}
-                        {scanning ? 'Scanning…' : 'Scan Now'}
-                    </Button>
-                </div>
-            </div>
-
-            {/* ── Error banner ── */}
-            {error && (
-                <div className="px-6 py-3 bg-red-50 border-b border-red-200 text-red-600 text-sm flex items-center gap-2">
-                    <XCircle size={16} /> {error}
-                </div>
-            )}
-
-            <div className="flex flex-col flex-1 w-full max-w-[1200px] mx-auto pb-10 px-4 md:px-8 mt-2">
-
-                {scanning && !scanResult ? (
-                    <div style={{ textAlign: 'center', marginTop: 80 }}>
-                        <ThermometerSun size={40} style={{ color: '#dc2626', animation: 'pulse 2s infinite', margin: '0 auto 16px' }} />
-                        <h3 className="m-0 text-gray-900 text-lg font-bold">Scanning Database Telemetry...</h3>
-                        <p className="text-gray-500 mt-2">Analyzing query latency, table growth, and connection pools.</p>
+            <div className="flex flex-col h-full w-full max-w-[1400px] mx-auto pb-16">
+                
+                {/* ── Page Header ── */}
+                <div className="px-6 py-5 flex items-center justify-between flex-wrap gap-3 border-b border-slate-100 bg-white shadow-sm z-10 relative">
+                    <div className="flex items-center gap-4">
+                        <div className={`w-10 h-10 rounded-xl flex items-center justify-center relative shadow-inner ring-1 ${isCrisis ? 'bg-rose-50 ring-rose-300' : 'bg-slate-50 ring-slate-200'}`}>
+                            <Crosshair size={22} className={isCrisis ? 'text-rose-600' : 'text-slate-500'} />
+                            {isCrisis && <div className="absolute top-0 right-0 -mr-1 -mt-1 w-3 h-3 bg-rose-500 rounded-full animate-ping border border-rose-300"></div>}
+                        </div>
+                        <div>
+                            <h1 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+                                Active Alert Triage Engine
+                                {isCrisis ? (
+                                    <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-md bg-rose-100 text-rose-700 border border-rose-300 shadow-[0_0_12px_rgba(244,63,94,0.3)] animate-pulse ml-2 flex items-center gap-1.5">
+                                        <AlertTriangle size={12} /> Priority Targeting Engaged
+                                    </span>
+                                ) : (
+                                    <span className="text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200 ml-2">
+                                        Monitoring Active
+                                    </span>
+                                )}
+                            </h1>
+                            <p className="text-[13px] text-slate-500 font-bold mt-0.5 uppercase tracking-widest flex items-center gap-1.5">
+                                <Activity size={12}/> Threat Intelligence Logs
+                            </p>
+                        </div>
                     </div>
-                ) : (
-                    <>
-                        {/* ── Insufficient data info ── */}
-                        {isInsufficient && (
-                            <div className="bg-white rounded-xl p-6 mb-8 border border-blue-200 shadow-sm">
-                                <div className="flex items-start gap-4">
-                                    <TrendingUp size={24} className="text-blue-500 flex-shrink-0 mt-1" />
-                                    <div>
-                                        <p className="m-0 mb-2 text-base font-bold text-blue-900">Building Incident Baseline…</p>
-                                        <p className="m-0 text-sm text-gray-600 leading-relaxed">
-                                            {scanResult?.message} Click <strong className="text-red-500">Scan Now</strong> a few times to build the baseline. Incidents require baseline telemetry to compare current performance against normal behavior.
+
+                    <div className="flex items-center gap-3">
+                        <Button
+                            size="sm"
+                            disabled={!connectionString || scanning}
+                            onClick={() => connectionString && doScan(connectionString)}
+                            className="bg-slate-900 hover:bg-slate-800 text-white shadow-[0_4px_14px_0_rgba(15,23,42,0.39)] font-black uppercase tracking-widest text-[10px] rounded-xl cursor-pointer h-9 px-6 transition-all"
+                        >
+                            {scanning ? <><Loader2 size={13} className="animate-spin mr-2" /> Engaging Sensor Suite...</> : <><RefreshCw size={13} className="mr-2 text-emerald-400" /> Execute Deep Threat Sweep</>}
+                        </Button>
+                    </div>
+                </div>
+
+                {/* ── Error banner ── */}
+                {error && (
+                    <div className="mx-6 mt-6 px-5 py-4 bg-rose-50 border border-rose-200 rounded-2xl text-rose-700 text-[13px] font-bold flex items-center gap-3 shadow-sm">
+                        <XCircle size={18} className="shrink-0" /> {error}
+                    </div>
+                )}
+
+                <div className="flex flex-col w-full mx-auto px-4 md:px-8 mt-8 gap-10">
+
+                    {/* ── Visual Threat Level Matrix ── */}
+                    {scanning && !scanResult ? (
+                        <div className="flex flex-col items-center justify-center py-32 gap-5 pointer-events-none">
+                            <div className="w-24 h-24 rounded-full border-4 border-slate-100 border-t-rose-500 animate-spin flex items-center justify-center">
+                                <div className="w-16 h-16 rounded-full border-4 border-slate-100 border-b-rose-400 animate-[spin_1.5s_linear_infinite_reverse]"></div>
+                            </div>
+                            <h3 className="m-0 text-slate-900 text-base font-black uppercase tracking-widest">Scanning Operating Environment...</h3>
+                            <p className="text-[13px] text-slate-500 font-bold max-w-md text-center bg-slate-50 border border-slate-100 px-4 py-2 rounded-lg">Running highly complex heuristic analysis on vector logs, latency signatures, and structural scaling behaviors.</p>
+                        </div>
+                    ) : isInsufficient ? (
+                        <div className="bg-gradient-to-br from-indigo-50 to-blue-50 border border-indigo-200/60 rounded-3xl p-6 flex flex-col md:flex-row items-center md:items-start gap-5 shadow-sm">
+                            <div className="w-12 h-12 rounded-2xl bg-white shadow-sm border border-indigo-100 flex items-center justify-center shrink-0">
+                                <TrendingUp size={24} className="text-indigo-500" />
+                            </div>
+                            <div className="text-center md:text-left">
+                                <h3 className="text-base font-black text-indigo-900 uppercase tracking-widest mb-1">Building Incident Baseline Matrix</h3>
+                                <p className="text-[13px] text-indigo-800/80 leading-relaxed font-bold max-w-4xl">
+                                    {scanResult?.message} Click <strong className="text-slate-800 bg-white px-1.5 py-0.5 rounded ml-1 uppercase shadow-sm">Execute Deep Threat Sweep</strong> a few more times. The Threat Engine requires a sufficient matrix of standard operations before it can definitively rank anomalous activity versus standard operations.
+                                </p>
+                            </div>
+                        </div>
+                    ) : (
+                        <>
+                            {/* ALL CLEAR RADAR */}
+                            {!isCrisis && minorIncidents.length === 0 && (
+                                <div className="mt-6 text-center bg-white border border-slate-200/60 shadow-sm rounded-3xl py-16 px-6 overflow-hidden relative">
+                                    <TriageScanner />
+                                    <div className="relative z-10 mt-10">
+                                        <h2 className="text-emerald-700 m-0 mb-2 text-xl font-black uppercase tracking-tight">Perimeter Secure</h2>
+                                        <p className="text-emerald-600/80 m-0 text-[13px] font-bold max-w-md mx-auto leading-relaxed">
+                                            Deep threat sweep completed. No critical anomalies, scaling faults, or immediate structural vulnerabilities detected across standard operational limits.
                                         </p>
                                     </div>
                                 </div>
-                            </div>
-                        )}
+                            )}
 
-                        {/* ── Summary bar ── */}
-                        {!isInsufficient && scanResult && (
-                            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-                                {(Object.keys(SEVERITY_CONFIG) as Array<keyof typeof SEVERITY_CONFIG>).map((level) => {
-                                    const cfg = SEVERITY_CONFIG[level];
-                                    const count = summary[level] || 0;
-                                    const isActive = count > 0;
-                                    return (
-                                        <div key={level} className={`bg-white overflow-hidden relative rounded-xl p-5 border shadow-sm transition-all ${isActive ? 'hover:-translate-y-1 hover:shadow-md' : ''}`} style={{ borderColor: isActive ? cfg.border : '#e2e8f0', background: isActive ? cfg.bg : '' }}>
-                                            {isActive && <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 3, background: cfg.color }} />}
-                                            <div className="flex justify-between items-center">
-                                                <div>
-                                                    <p style={{ color: isActive ? cfg.color : '#64748b' }} className="m-0 mb-1 text-xs font-bold uppercase tracking-wider">
-                                                        {cfg.label}
-                                                    </p>
-                                                    <p className={`m-0 text-3xl font-extrabold ${isActive ? 'text-gray-900' : 'text-gray-400'}`}>
-                                                        {count}
-                                                    </p>
-                                                </div>
-                                                {isActive && (
-                                                    <div style={{ width: 10, height: 10, borderRadius: '50%', background: cfg.color, boxShadow: `0 0 12px ${cfg.color}` }} className="animate-pulse" />
-                                                )}
-                                            </div>
+                            {/* ── PRIORITY TARGETS: CRITICAL/HIGH ── */}
+                            {criticalIncidents.length > 0 && (
+                                <section>
+                                    <div className="flex items-center gap-3 mb-6 bg-rose-50 border border-rose-200 shadow-sm px-4 py-3 rounded-2xl">
+                                        <div className="w-8 h-8 rounded-full bg-rose-500 flex items-center justify-center text-white shrink-0 animate-pulse">
+                                            <ShieldAlert size={16} />
                                         </div>
-                                    );
-                                })}
-                            </div>
-                        )}
+                                        <div>
+                                            <h2 className="text-[14px] font-black text-rose-800 uppercase tracking-widest m-0 leading-tight">Priority 1 Triage Dossiers</h2>
+                                            <p className="text-[11px] font-bold text-rose-600/80 uppercase tracking-widest mt-0.5 m-0">Require immediate manual intervention!</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                                        {criticalIncidents.map((inc, i) => (
+                                            <div key={i} className="bg-white rounded-3xl overflow-hidden flex flex-col border border-rose-200 shadow-[0_8px_30px_rgb(225,29,72,0.08)] transition-all hover:shadow-[0_8px_40px_rgb(225,29,72,0.15)] relative group">
+                                                
+                                                {/* Left structural bounding line */}
+                                                <div className="absolute top-0 bottom-0 left-0 w-2 bg-rose-500 shadow-[0_0_12px_rgba(244,63,94,0.6)]"></div>
 
-                        {/* ── All clear ── */}
-                        {!isInsufficient && scanResult && incidentCount === 0 && (
-                            <div className="text-center my-10 p-10 bg-white border border-emerald-200 shadow-sm rounded-2xl flex flex-col items-center justify-center">
-                                <div className="w-16 h-16 rounded-full bg-emerald-50 flex items-center justify-center mb-5 border border-emerald-100">
-                                    <CheckCircle size={32} className="text-emerald-500" />
-                                </div>
-                                <h2 className="text-emerald-700 m-0 mb-3 text-xl font-bold">System Healthy</h2>
-                                <p className="text-emerald-600/80 m-0 text-sm max-w-[400px]">No incidents detected. Database metrics are within normal baseline ranges.</p>
-                            </div>
-                        )}
-
-                        {/* ── Active Incidents ── */}
-                        {incidentCount > 0 && (
-                            <div className="mb-10">
-                                <h2 className="m-0 mb-5 text-lg font-bold text-gray-900">
-                                    Live Incidents
-                                </h2>
-                                <div className="flex flex-col gap-4">
-                                    {scanResult?.incidents.map((inc, i) => {
-                                        const cfg = SEVERITY_CONFIG[inc.severity_level];
-                                        return (
-                                            <div key={i} className="bg-white rounded-xl overflow-hidden flex flex-col border shadow-sm transition-all" style={{ borderColor: cfg.border }}>
-                                                {/* Header */}
-                                                <div className="p-4 px-6 flex items-center justify-between border-b border-gray-100" style={{ background: `linear-gradient(90deg, ${cfg.bg}80 0%, transparent 100%)` }}>
-                                                    <div className="flex items-center gap-3">
-                                                        <span style={{ color: cfg.color }}>{getIncidentIcon(inc.type)}</span>
-                                                        <span className="font-bold text-base text-gray-900">{inc.type}</span>
-                                                        <span className="text-xs px-2.5 py-1 bg-gray-50 rounded text-gray-500 font-mono ml-2 border border-gray-200">{inc.affected_table}</span>
-                                                    </div>
-                                                    <div className="flex items-center gap-4">
-                                                        <span className="text-xs text-gray-500 font-medium">
-                                                            {new Date(inc.detected_at).toLocaleTimeString()}
-                                                        </span>
-                                                        <span className="text-xs font-bold px-3 py-1 rounded tracking-wide uppercase text-white shadow-sm" style={{ background: cfg.color }}>
-                                                            {inc.severity_level}
-                                                        </span>
-                                                    </div>
-                                                </div>
-
-                                                {/* Body */}
-                                                <div className="p-6 flex flex-col md:flex-row gap-8 items-center md:items-start bg-gray-50/50">
-                                                    {/* Score */}
-                                                    <div className="text-center min-w-[100px] flex flex-col items-center justify-center">
-                                                        <ScoreGauge score={inc.severity_score} color={cfg.color} />
-                                                        <p className="m-0 mt-3 text-xs text-gray-500 font-bold tracking-wider">SEVERITY</p>
-                                                    </div>
+                                                <div className="p-6 pl-8 flex flex-col h-full relative z-10">
                                                     
-                                                    {/* Details */}
-                                                    <div className="flex-1 md:border-l border-gray-200 md:pl-8">
-                                                        <p className="m-0 mb-5 text-sm text-gray-700 leading-relaxed whitespace-pre-line bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+                                                    {/* Header */}
+                                                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 border-b border-slate-100 pb-5">
+                                                        <div>
+                                                            <div className="flex items-center gap-2 mb-2">
+                                                                <span className="text-[9px] font-black text-white bg-rose-600 px-2.5 py-1 rounded shadow-sm border border-rose-700 uppercase tracking-widest flex items-center gap-1.5">
+                                                                    <div className="w-1.5 h-1.5 rounded-full bg-rose-300 animate-ping"></div> {inc.severity_level} THREAT
+                                                                </span>
+                                                                <span className="text-[10px] font-bold text-slate-400 bg-slate-50 border border-slate-100 px-2 py-0.5 rounded-md mono uppercase shadow-inner">
+                                                                    Vector: {inc.affected_table}
+                                                                </span>
+                                                            </div>
+                                                            <h3 className="m-0 text-xl font-black text-slate-800 flex items-center gap-2 tracking-tight">
+                                                                <span className="text-rose-600">{getIncidentIcon(inc.type)}</span> {inc.type}
+                                                            </h3>
+                                                        </div>
+                                                        <div className="flex flex-col items-end shrink-0 hidden md:flex">
+                                                             <div className="text-[32px] font-black text-rose-600 leading-none tracking-tighter">
+                                                                {inc.severity_score}<span className="text-[12px] font-bold text-slate-400 tracking-wider inline-block ml-1">/100</span>
+                                                             </div>
+                                                             <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1">Severity Matrix Score</span>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Root Cause Analysis Text area */}
+                                                    <div className="flex-1 bg-rose-50/50 p-5 rounded-2xl border border-rose-100 mb-6">
+                                                        <p className="m-0 text-[13px] text-slate-700 leading-relaxed font-bold">
                                                             {inc.root_cause}
                                                         </p>
-                                                        <div className="flex flex-wrap gap-3">
-                                                            <div className="bg-white border border-gray-200 px-4 py-2.5 rounded-lg flex flex-col shadow-sm">
-                                                                <span className="text-[10px] text-gray-500 uppercase tracking-widest mb-1 font-semibold">Z-Score</span>
-                                                                <span className={`text-sm font-bold ${inc.metrics.z_score > 3 ? 'text-red-500' : 'text-gray-900'}`}>{inc.metrics.z_score}</span>
-                                                            </div>
-                                                            <div className="bg-white border border-gray-200 px-4 py-2.5 rounded-lg flex flex-col shadow-sm">
-                                                                <span className="text-[10px] text-gray-500 uppercase tracking-widest mb-1 font-semibold">Deviation</span>
-                                                                <span className="text-sm font-bold text-gray-900">+{inc.metrics.deviation_pct}%</span>
-                                                            </div>
-                                                            <div className="bg-white border border-gray-200 px-4 py-2.5 rounded-lg flex flex-col shadow-sm">
-                                                                <span className="text-[10px] text-gray-500 uppercase tracking-widest mb-1 font-semibold">Impact</span>
-                                                                <span className="text-sm font-bold text-gray-900">{inc.metrics.impact_score}</span>
-                                                            </div>
+                                                    </div>
+
+                                                    {/* Metrics Data Payload Row */}
+                                                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                                                        <div className="bg-white border border-slate-200 px-4 py-3 rounded-xl shadow-sm flex flex-col justify-center">
+                                                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Total Deviation</span>
+                                                            <span className="text-[14px] font-black text-slate-800 tracking-tight font-mono">+{inc.metrics.deviation_pct}%</span>
+                                                        </div>
+                                                        <div className="bg-white border border-slate-200 px-4 py-3 rounded-xl shadow-sm flex flex-col justify-center">
+                                                            <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Impact Mass</span>
+                                                            <span className="text-[14px] font-black text-rose-600 tracking-tight font-mono group-hover:animate-pulse">Severe</span>
+                                                        </div>
+                                                        <div className="col-span-2 bg-slate-50 border border-slate-100 px-4 py-3 rounded-xl shadow-inner flex flex-col justify-center">
+                                                            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 flex justify-between">Detected Time Signature <span className="opacity-0 group-hover:opacity-100 transition-opacity">Live Sync Active</span></span>
+                                                            <span className="text-[12px] font-bold text-slate-600 font-mono tracking-tight">{new Date(inc.detected_at).toLocaleString()}</span>
                                                         </div>
                                                     </div>
+
                                                 </div>
                                             </div>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-                        )}
+                                        ))}
+                                    </div>
+                                </section>
+                            )}
 
-                        {/* ── Historical Timeline ── */}
-                        {history && history.incidents.length > 0 && (
-                            <div>
-                                <h2 className="m-0 mb-4 text-base font-bold text-gray-500 flex items-center gap-2">
-                                    <Clock size={18} /> Recent Incident History
-                                </h2>
-                                <div className="bg-white rounded-xl p-6 border border-gray-200 shadow-sm">
-                                    <div className="flex flex-col gap-0">
-                                        {history.incidents.slice(0, 10).map((inc, i) => {
-                                            const cfg = SEVERITY_CONFIG[inc.severity_level];
-                                            return (
-                                                <div key={i} className="flex gap-5 relative pb-6">
-                                                    {i < Math.min(history.incidents.length, 10) - 1 && (
-                                                        <div className="absolute left-[7px] top-4 bottom-0 w-0.5 bg-gray-200" />
-                                                    )}
-                                                    <div className="w-4 h-4 rounded-full mt-1 z-10 border-2 border-white shadow-sm ml-[-1px]" style={{ background: cfg.color }} />
-                                                    <div className="flex-1">
-                                                        <div className="flex justify-between items-start mb-1">
-                                                            <div>
-                                                                <span className="font-bold text-sm text-gray-900 mr-2">{inc.type}</span>
-                                                                <span className="text-xs text-gray-500 font-mono bg-gray-50 px-1.5 py-0.5 rounded">on {inc.affected_table}</span>
-                                                            </div>
-                                                            <span className="text-xs text-gray-400 font-medium">{new Date(inc.detected_at).toLocaleString()}</span>
+                            {/* ── ROUTINE / LOW LEVEL ANOMALIES ── */}
+                            {minorIncidents.length > 0 && (
+                                <section className="mt-4">
+                                    <div className="flex items-center gap-3 mb-6 bg-amber-50 border border-amber-200 shadow-sm px-4 py-3 rounded-2xl max-w-max mx-auto md:mx-0">
+                                        <div className="w-8 h-8 rounded-full bg-amber-300 flex items-center justify-center text-amber-800 shrink-0">
+                                            <Clock size={16} />
+                                        </div>
+                                        <div>
+                                            <h2 className="text-[12px] font-black text-amber-800 uppercase tracking-widest m-0 leading-tight">Routine Warning Logs</h2>
+                                            <p className="text-[10px] font-bold text-amber-600/80 uppercase tracking-widest mt-0.5 m-0">Non-fatal occurrences suppressed for visual clarity</p>
+                                        </div>
+                                    </div>
+
+                                    <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden text-left">
+                                        <div className="grid grid-cols-1 lg:grid-cols-2 divide-y lg:divide-y-0 lg:divide-x divide-slate-100">
+                                            {minorIncidents.map((inc, i) => (
+                                                <div key={i} className="p-5 flex flex-col md:flex-row hover:bg-slate-50 transition-colors relative group">
+                                                    
+                                                    {/* Side structural tracker */}
+                                                    <div className="absolute left-0 top-0 bottom-0 w-1 bg-amber-300 opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                                                    
+                                                    <div className="flex-1 md:pr-4">
+                                                        <div className="flex items-center gap-2 mb-2">
+                                                            <span className="text-[8px] font-black px-2 py-0.5 rounded border uppercase tracking-widest bg-amber-50 text-amber-700 border-amber-200 shadow-sm">
+                                                                {inc.severity_level}
+                                                            </span>
+                                                            <span className="text-[13px] font-bold text-slate-800 flex items-center gap-1.5"><span className="text-amber-500">{getIncidentIcon(inc.type)}</span> {inc.type}</span>
                                                         </div>
-                                                        <p className="m-0 text-sm text-gray-600 leading-relaxed">
-                                                            Severity Score: {inc.severity_score} <span style={{ color: cfg.color }} className="font-medium">({inc.severity_level})</span> — Deviation: <span className="text-gray-900 font-medium">+{inc.metrics.deviation_pct}%</span>
+                                                        <p className="text-[11px] font-bold text-slate-500 leading-relaxed m-0 line-clamp-2 md:line-clamp-none pl-1">
+                                                            {inc.root_cause}
                                                         </p>
                                                     </div>
+
+                                                    <div className="mt-4 md:mt-0 pt-4 md:pt-0 border-t md:border-t-0 md:border-l border-slate-100 md:pl-5 shrink-0 flex flex-row md:flex-col justify-between md:justify-center">
+                                                         <div>
+                                                             <div className="text-[18px] font-black text-amber-600 text-left md:text-right font-mono tracking-tighter">
+                                                                {inc.severity_score}
+                                                             </div>
+                                                             <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest text-left md:text-right block">Score</span>
+                                                         </div>
+                                                         <div className="text-right">
+                                                            <span className="text-[10px] font-bold text-slate-400 bg-slate-50 px-2 py-1 rounded inline-block mt-2 font-mono uppercase border border-slate-100">{inc.affected_table}</span>
+                                                         </div>
+                                                    </div>
                                                 </div>
-                                            );
-                                        })}
+                                            ))}
+                                        </div>
                                     </div>
-                                </div>
-                            </div>
-                        )}
-                    </>
-                )}
+                                </section>
+                            )}
+                        </>
+                    )}
+                </div>
             </div>
         </DashboardShell>
     );

@@ -1,14 +1,22 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
-import { Loader2, Send, Bot, User, StopCircle, Globe, Play, BarChart2, Lightbulb, Shield, ChevronDown, Trash2, DollarSign, Leaf, Sparkles, Database, Table2, Hash, GitMerge, Zap, HardDrive, Tag, RefreshCw } from 'lucide-react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import {
+    Loader2, Send, Bot, User, StopCircle, Globe,
+    Play, BarChart2, Lightbulb, Shield, ChevronDown, Trash2,
+    DollarSign, Leaf, Sparkles, Database, Table2, Hash, GitMerge,
+    Zap, HardDrive, Tag, RefreshCw, Mic, MicOff, Volume2, VolumeX,
+    MessageCircle, CheckCircle2, AlertCircle, Wand2, Stars, Info
+} from 'lucide-react';
 import DashboardShell from '@/components/DashboardShell';
+import { motion, AnimatePresence } from 'framer-motion';
 
+/* ─── Types ─────────────────────────────────────────────────────── */
 interface Message {
+    id: string;
     role: 'user' | 'ai';
     content: string;
     suggested_action?: string;
-    sql?: string;
     query_result?: {
         rows: any[][];
         columns: string[];
@@ -18,16 +26,15 @@ interface Message {
         attempts: number;
         sql: string;
         firewall_blocked?: boolean;
-        threat_type?: string;
         query_cost?: {
             rating: string;
             cost_estimate: { dollar_cost_display: string; co2_display: string };
-            plan_summary: { estimated_rows: number; node_type: string };
         } | null;
     } | null;
     loading_query?: boolean;
 }
 
+/* ─── Constants ──────────────────────────────────────────────────── */
 const LANGUAGES = [
     { code: 'english', label: '🇺🇸 English' },
     { code: 'hindi',   label: '🇮🇳 Hindi'   },
@@ -37,36 +44,91 @@ const LANGUAGES = [
     { code: 'german',  label: '🇩🇪 German'   },
 ];
 
-const SUGGESTIONS = [
-    { icon: Table2,    text: 'Show top 10 rows from each table' },
-    { icon: Hash,      text: 'Which table has the most records?' },
-    { icon: GitMerge,  text: 'List all foreign key relationships' },
-    { icon: Zap,       text: 'Find any tables missing indexes' },
-    { icon: HardDrive, text: 'Total storage used per table?' },
-    { icon: Tag,       text: 'Show column types for all tables' },
+const FRIENDLY_TUTOR_RULES = `
+CRITICAL COMMUNICATION RULES you MUST always follow:
+1. Always explain as if talking to a curious 10-year-old — smart but no tech background.
+2. Replace ALL jargon with everyday analogies in parentheses.
+   Example: "INDEX (like a book's table of contents that helps you find pages fast)"
+3. Keep paragraphs SHORT. Use bullet points for lists.
+4. Use 1-2 emojis per response to feel warm — never overdo it.
+5. Always end with "In short: [one simple sentence summary]."
+6. Be encouraging and friendly. Never be cold or robotic.
+7. For query results: describe what it means in human terms BEFORE showing data.
+`;
+
+const STARTERS = [
+    { text: 'What tables are in my database?', emoji: '📋', color: '#7c3aed' },
+    { text: 'Which table has the most records?', emoji: '📊', color: '#0891b2' },
+    { text: 'How are my tables connected?', emoji: '🔗', color: '#059669' },
+    { text: 'Is my database running fast?', emoji: '⚡', color: '#d97706' },
+    { text: 'How much storage am I using?', emoji: '💾', color: '#dc2626' },
+    { text: 'What type of data do I store?', emoji: '🏷️', color: '#7c3aed' },
 ];
 
+/* ─── Utility: simple text formatter (bold + line-breaks) ─────────── */
+function FormattedText({ text }: { text: string }) {
+    const lines = text.split('\n');
+    return (
+        <div className="flex flex-col gap-1.5">
+            {lines.map((line, i) => {
+                if (!line.trim()) return <div key={i} className="h-1" />;
+                const isBullet = line.trim().startsWith('•') || line.trim().startsWith('-') || /^\d+\./.test(line.trim());
+                const parts = line.split(/(\*\*[^*]+\*\*)/g);
+                const rendered = parts.map((part, j) =>
+                    part.startsWith('**') && part.endsWith('**')
+                        ? <strong key={j} className="font-black text-slate-900">{part.slice(2, -2)}</strong>
+                        : <span key={j}>{part}</span>
+                );
+                return (
+                    <div key={i} className={isBullet ? 'flex gap-2 items-start' : ''}>
+                        {isBullet && <span className="text-violet-400 mt-0.5 shrink-0">›</span>}
+                        <span className="leading-relaxed">{rendered}</span>
+                    </div>
+                );
+            })}
+        </div>
+    );
+}
+
+/* ─── Subcomponents ──────────────────────────────────────────────── */
+function TypingWave() {
+    return (
+        <div className="flex items-end gap-1 h-5">
+            {[0, 0.15, 0.30].map((d, i) => (
+                <motion.div
+                    key={i}
+                    className="w-1.5 rounded-full bg-violet-400"
+                    animate={{ height: ['6px', '14px', '6px'] }}
+                    transition={{ duration: 0.7, repeat: Infinity, delay: d, ease: 'easeInOut' }}
+                />
+            ))}
+        </div>
+    );
+}
+
 function MiniBarChart({ columns, rows }: { columns: string[]; rows: any[][] }) {
-    if (rows.length === 0 || columns.length < 2) return null;
+    if (!rows.length || columns.length < 2) return null;
     const values = rows.map(r => Number(r[1]) || 0);
     const max = Math.max(...values, 1);
     return (
-        <div className="mt-3 p-3 rounded-xl border border-violet-100 bg-gradient-to-br from-violet-50 to-indigo-50">
-            <div className="text-xs text-violet-600 font-semibold mb-2.5 uppercase tracking-wider flex items-center gap-1.5">
-                <BarChart2 size={11} /> Auto Chart
-            </div>
-            <div className="space-y-2">
+        <div className="mt-4 p-4 rounded-2xl bg-gradient-to-br from-violet-50 via-indigo-50 to-white border border-violet-100">
+            <p className="text-[10px] font-black text-violet-500 uppercase tracking-widest mb-3 flex items-center gap-1.5">
+                <BarChart2 size={11}/> Visual Breakdown
+            </p>
+            <div className="space-y-2.5">
                 {rows.slice(0, 8).map((row, i) => (
-                    <div key={i} className="flex items-center gap-2 text-xs">
-                        <span className="text-gray-500 w-24 truncate shrink-0 font-medium">{String(row[0])}</span>
+                    <div key={i} className="flex items-center gap-3 text-xs">
+                        <span className="w-24 text-slate-600 font-bold truncate shrink-0">{String(row[0])}</span>
                         <div className="flex-1 flex items-center gap-2">
-                            <div className="flex-1 h-3 bg-gray-100 rounded-full overflow-hidden">
-                                <div className="h-full rounded-full transition-all duration-500" style={{
-                                    width: `${Math.max(4, (values[i] / max) * 100)}%`,
-                                    background: `linear-gradient(90deg, hsl(${260 - i * 15}, 80%, 60%), hsl(${240 - i * 15}, 75%, 55%))`
-                                }} />
+                            <div className="flex-1 h-2.5 bg-white rounded-full overflow-hidden shadow-inner border border-violet-100">
+                                <motion.div className="h-full rounded-full"
+                                    initial={{ width: 0 }}
+                                    animate={{ width: `${Math.max(4, (values[i] / max) * 100)}%` }}
+                                    transition={{ duration: 0.9, delay: i * 0.06, ease: 'easeOut' }}
+                                    style={{ background: `linear-gradient(90deg, hsl(${255 - i*14},80%,65%), hsl(${238 - i*14},70%,58%))` }}
+                                />
                             </div>
-                            <span className="text-gray-700 font-semibold w-10 text-right">{row[1]}</span>
+                            <span className="text-slate-800 font-black w-10 text-right tabular-nums">{row[1]}</span>
                         </div>
                     </div>
                 ))}
@@ -75,34 +137,46 @@ function MiniBarChart({ columns, rows }: { columns: string[]; rows: any[][] }) {
     );
 }
 
-function ResultTable({ columns, rows }: { columns: string[]; rows: any[][] }) {
+function DataTable({ columns, rows }: { columns: string[]; rows: any[][] }) {
+    const [limit, setLimit] = useState(8);
     return (
-        <div className="mt-3 overflow-x-auto rounded-xl border border-gray-100 shadow-sm">
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
-                <thead>
-                    <tr style={{ background: 'linear-gradient(135deg, #f5f3ff, #ede9fe)' }}>
-                        {columns.map(col => (
-                            <th key={col} className="text-violet-700 font-semibold text-left px-4 py-2.5 whitespace-nowrap border-b border-violet-100">{col}</th>
-                        ))}
-                    </tr>
-                </thead>
-                <tbody>
-                    {rows.slice(0, 20).map((row, i) => (
-                        <tr key={i} className={`border-b border-gray-50 transition-colors hover:bg-violet-50/40 ${i % 2 === 0 ? 'bg-white' : 'bg-gray-50/30'}`}>
-                            {row.map((cell, j) => (
-                                <td key={j} className="text-gray-700 px-4 py-2 whitespace-nowrap" style={{ maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                    {cell === null ? <span className="text-gray-300 italic text-xs">NULL</span> : String(cell)}
-                                </td>
+        <div className="mt-4 rounded-2xl overflow-hidden border border-slate-200 shadow-sm">
+            <div className="overflow-x-auto">
+                <table className="w-full text-[12px]">
+                    <thead>
+                        <tr style={{ background: 'linear-gradient(135deg,#f5f3ff,#ede9fe)' }}>
+                            {columns.map(c => (
+                                <th key={c} className="text-violet-700 font-black text-left px-4 py-2.5 whitespace-nowrap text-[10px] uppercase tracking-widest border-b border-violet-100">{c}</th>
                             ))}
                         </tr>
-                    ))}
-                </tbody>
-            </table>
-            {rows.length > 20 && <p className="text-gray-400 text-xs px-4 py-2 bg-gray-50">… and {rows.length - 20} more rows</p>}
+                    </thead>
+                    <tbody>
+                        {rows.slice(0, limit).map((row, i) => (
+                            <tr key={i} className={`border-b border-slate-50 hover:bg-violet-50/30 transition-colors ${i % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'}`}>
+                                {row.map((cell, j) => (
+                                    <td key={j} className="px-4 py-2 font-medium text-slate-700" style={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                        {cell === null ? <span className="italic text-slate-300">empty</span> : String(cell)}
+                                    </td>
+                                ))}
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
+            {rows.length > limit ? (
+                <button onClick={() => setLimit(rows.length)} className="w-full text-center text-[11px] font-black text-violet-600 py-3 bg-violet-50 hover:bg-violet-100 transition-colors border-t border-violet-100 uppercase tracking-widest">
+                    Show all {rows.length} rows ↓
+                </button>
+            ) : rows.length > 8 && (
+                <button onClick={() => setLimit(8)} className="w-full text-center text-[11px] font-black text-slate-400 py-2.5 bg-slate-50 hover:bg-slate-100 transition-colors border-t border-slate-100 uppercase tracking-widest">
+                    Show less ↑
+                </button>
+            )}
         </div>
     );
 }
 
+/* ─── Main Page ────────────────────────────────────────────────────── */
 export default function AskAIPage() {
     const [connectionString, setConnectionString] = useState('');
     const [messages, setMessages] = useState<Message[]>([]);
@@ -111,309 +185,692 @@ export default function AskAIPage() {
     const [language, setLanguage] = useState('english');
     const [showLangPicker, setShowLangPicker] = useState(false);
     const [abortController, setAbortController] = useState<AbortController | null>(null);
-    const [executing, setExecuting] = useState<number | null>(null);
+    const [executing, setExecuting] = useState<string | null>(null);
+    const [isListening, setIsListening] = useState(false);
+    const [speechSupported, setSpeechSupported] = useState(false);
+    const [ttsEnabled, setTtsEnabled] = useState(false);
+    const [voiceError, setVoiceError] = useState<string | null>(null);
+    const [micPermission, setMicPermission] = useState<'unknown' | 'granted' | 'denied'>('unknown');
+
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const messagesContainerRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
+    const activeRecogRef = useRef<any>(null);
+    const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+    const audioChunksRef = useRef<Blob[]>([]);
+    const [useWhisperFallback, setUseWhisperFallback] = useState(false);
+    const [isTranscribing, setIsTranscribing] = useState(false);
 
+    const genId = () => `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
+    const addMessage = (msg: Omit<Message, 'id'>) =>
+        setMessages(prev => [...prev, { ...msg, id: genId() }]);
+
+    /* Scroll to bottom */
+    useEffect(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }, [messages, loading]);
+
+    /* Init connection */
     useEffect(() => {
         const cs = localStorage.getItem('db_connection_string') || '';
         setConnectionString(cs);
-        const handleChange = () => setConnectionString(localStorage.getItem('db_connection_string') || '');
-        window.addEventListener('project-changed', handleChange);
-        return () => window.removeEventListener('project-changed', handleChange);
+        const handler = () => setConnectionString(localStorage.getItem('db_connection_string') || '');
+        window.addEventListener('project-changed', handler);
+        return () => window.removeEventListener('project-changed', handler);
     }, []);
 
+    /* Check browser speech support + detect if we should use Whisper fallback */
     useEffect(() => {
-        if (messagesContainerRef.current) {
-            messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+        const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+        // Always show the mic button — we'll try SpeechRecognition first and fall back to Whisper
+        setSpeechSupported(true);
+        // If not on HTTPS and not a secure context, pre-select Whisper mode
+        if (!window.isSecureContext) {
+            setUseWhisperFallback(true);
         }
-    }, [messages, loading]);
+    }, []);
 
+    /* Welcome message */
     useEffect(() => {
         if (connectionString) {
-            setMessages([{ role: 'ai', content: `✦ Connected to your database!\n\nAsk me anything — I can query your data, explain your schema, suggest optimizations, or help you make safe schema changes.\n\nType in any language you prefer! 🌍` }]);
+            setMessages([{
+                id: 'welcome',
+                role: 'ai',
+                content: `👋 Hey there! I'm **Lumina**, your friendly database guide!\n\nI'm connected to your database and ready to help. Think of me as a super-smart friend who can look inside your data and explain everything in everyday language — no tech skills needed!\n\nYou can:\n• Type your question in the box below\n• 🎤 Tap the microphone and just speak to me\n• 🔊 Enable my voice so I can talk back to you\n\nIn short: I make databases easy and fun to understand! 🚀`,
+                query_result: null,
+            }]);
         }
     }, [connectionString]);
+
+    /* ── MediaRecorder → local Whisper fallback ─────────────────────────
+       Works on HTTP localhost without Google's servers.
+       Records audio, POSTs to /api/voice/transcribe (faster-whisper).
+    ─────────────────────────────────────────────────────────────────── */
+    const startWhisperRecording = useCallback(async () => {
+        setVoiceError(null);
+        let stream: MediaStream;
+        try {
+            stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            setMicPermission('granted');
+        } catch {
+            setMicPermission('denied');
+            setVoiceError('🚫 Microphone access blocked. Click the 🔒 in your address bar and allow the microphone.');
+            return;
+        }
+
+        audioChunksRef.current = [];
+        const mimeType = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/ogg';
+        const recorder = new MediaRecorder(stream, { mimeType });
+        mediaRecorderRef.current = recorder;
+
+        recorder.ondataavailable = (e) => {
+            if (e.data.size > 0) audioChunksRef.current.push(e.data);
+        };
+
+        recorder.onstop = async () => {
+            stream.getTracks().forEach(t => t.stop());
+            setIsListening(false);
+            setIsTranscribing(true);
+            setInput('');
+
+            const blob = new Blob(audioChunksRef.current, { type: mimeType });
+            const form = new FormData();
+            form.append('audio', blob, `speech.${mimeType.split('/')[1]}`);
+
+            try {
+                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/voice/transcribe`, {
+                    method: 'POST',
+                    body: form,
+                });
+                if (!res.ok) {
+                    const err = await res.json().catch(() => ({}));
+                    throw new Error(err.detail || `HTTP ${res.status}`);
+                }
+                const data = await res.json();
+                if (data.transcript) {
+                    setInput(data.transcript);
+                } else {
+                    setVoiceError('🤫 Couldn\'t hear what you said. Please try again!');
+                }
+            } catch (e: any) {
+                if (e.message?.includes('faster-whisper')) {
+                    setVoiceError('⚙️ Local transcription not set up yet. Run: pip install faster-whisper  (in your backend)');
+                } else {
+                    setVoiceError(`Transcription error: ${e.message}`);
+                }
+            } finally {
+                setIsTranscribing(false);
+            }
+        };
+
+        recorder.start();
+        setIsListening(true);
+    }, []);
+
+    /* ── Browser SpeechRecognition (HTTPS / secure context) ──────────── */
+    const startBrowserSpeech = useCallback(async () => {
+        setVoiceError(null);
+        const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+        if (!SR) { setUseWhisperFallback(true); startWhisperRecording(); return; }
+
+        try {
+            const s = await navigator.mediaDevices.getUserMedia({ audio: true });
+            s.getTracks().forEach(t => t.stop());
+            setMicPermission('granted');
+        } catch {
+            setMicPermission('denied');
+            setVoiceError('🚫 Microphone blocked. Allow it in your browser settings.');
+            return;
+        }
+
+        const recognition = new SR();
+        recognition.lang = language === 'hindi' ? 'hi-IN' : language === 'spanish' ? 'es-ES' : language === 'french' ? 'fr-FR' : language === 'arabic' ? 'ar-SA' : language === 'german' ? 'de-DE' : 'en-US';
+        recognition.continuous = false;
+        recognition.interimResults = true;
+        recognition.maxAlternatives = 1;
+        let finalTranscript = '';
+
+        recognition.onstart = () => { setIsListening(true); setInput(''); };
+
+        recognition.onresult = (e: any) => {
+            let interim = '';
+            finalTranscript = '';
+            for (let i = e.resultIndex; i < e.results.length; i++) {
+                const t = e.results[i][0].transcript;
+                if (e.results[i].isFinal) finalTranscript += t;
+                else interim += t;
+            }
+            setInput(finalTranscript || interim);
+        };
+
+        recognition.onerror = (e: any) => {
+            setIsListening(false);
+            activeRecogRef.current = null;
+
+            if (e.error === 'network' || e.error === 'service-not-allowed') {
+                // Auto-switch to Whisper fallback instead of showing an error
+                setUseWhisperFallback(true);
+                setVoiceError('🔄 Switching to local voice mode (works offline). Tap the mic again!');
+            } else if (e.error === 'no-speech') {
+                setVoiceError('🤫 Didn\'t catch that — try speaking a bit closer to the mic!');
+            } else if (e.error === 'not-allowed' || e.error === 'permission-denied') {
+                setMicPermission('denied');
+                setVoiceError('🚫 Mic blocked. Click the 🔒 in your address bar to allow it.');
+            } else if (e.error !== 'aborted') {
+                setVoiceError(`Voice error: "${e.error}". Try tapping the mic again.`);
+            }
+        };
+
+        recognition.onend = () => {
+            setIsListening(false);
+            activeRecogRef.current = null;
+            if (finalTranscript.trim()) setInput(finalTranscript.trim());
+        };
+
+        try {
+            recognition.start();
+            activeRecogRef.current = recognition;
+        } catch {
+            setVoiceError('Could not start voice. Tap the mic again.');
+            setIsListening(false);
+        }
+    }, [language, startWhisperRecording]);
+
+    const startListening = useCallback(() => {
+        if (useWhisperFallback) {
+            startWhisperRecording();
+        } else {
+            startBrowserSpeech();
+        }
+    }, [useWhisperFallback, startWhisperRecording, startBrowserSpeech]);
+
+    const stopListening = useCallback(() => {
+        if (activeRecogRef.current) {
+            try { activeRecogRef.current.stop(); } catch {}
+            activeRecogRef.current = null;
+        }
+        if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
+            mediaRecorderRef.current.stop();
+            mediaRecorderRef.current = null;
+        }
+        setIsListening(false);
+    }, []);
+
+    const toggleListening = () => {
+        if (isListening) {
+            stopListening();
+        } else {
+            startListening();
+        }
+    };
+
+    /* TTS */
+    const speak = useCallback((text: string) => {
+        if (!ttsEnabled || !window.speechSynthesis) return;
+        window.speechSynthesis.cancel();
+        const clean = text.replace(/\*\*/g, '').replace(/[#`]/g, '').replace(/\n/g, ' ').slice(0, 600);
+        const utter = new SpeechSynthesisUtterance(clean);
+        utter.rate = 0.95;
+        utter.pitch = 1.05;
+        window.speechSynthesis.speak(utter);
+    }, [ttsEnabled]);
 
     const getHistory = () => messages.map(m => ({ role: m.role === 'ai' ? 'assistant' : 'user', content: m.content }));
 
     const handleSend = async (text?: string) => {
-        const question = (text ?? input).trim();
-        if (!question || loading || !connectionString) return;
+        const q = (text ?? input).trim();
+        if (!q || loading || !connectionString) return;
         setInput('');
-        setMessages(prev => [...prev, { role: 'user', content: question }]);
+        setVoiceError(null);
+        if (isListening) stopListening();
+
+        addMessage({ role: 'user', content: q, query_result: null });
         setLoading(true);
         const ctrl = new AbortController();
         setAbortController(ctrl);
+
         try {
             const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/analysis/ask`, {
-                method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ connection_string: connectionString, question, language, conversation_history: getHistory(), business_rules: '' }),
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ connection_string: connectionString, question: q, language, conversation_history: getHistory(), business_rules: FRIENDLY_TUTOR_RULES }),
                 signal: ctrl.signal,
             });
             const data = await res.json();
-            setMessages(prev => [...prev, { role: 'ai', content: data.answer || 'Sorry, I got an empty response.', suggested_action: data.suggested_action }]);
+            const reply = data.answer || 'Hmm, I got an empty response. Could you try rephrasing?';
+            addMessage({ role: 'ai', content: reply, suggested_action: data.suggested_action, query_result: null });
+            speak(reply);
         } catch (e: any) {
-            if (e.name !== 'AbortError') setMessages(prev => [...prev, { role: 'ai', content: '❌ Could not reach the AI service. Please check your Ollama server.' }]);
-        } finally { setLoading(false); setAbortController(null); }
+            if (e.name !== 'AbortError') {
+                addMessage({ role: 'ai', content: "😕 I couldn't reach the AI server. Please make sure your Ollama server is running!", query_result: null });
+            }
+        } finally {
+            setLoading(false);
+            setAbortController(null);
+        }
     };
 
-    const handleRunQuery = async (msgIndex: number, question: string) => {
-        setMessages(prev => { const n = [...prev]; n[msgIndex] = { ...n[msgIndex], loading_query: true, query_result: null }; return n; });
+    const handleRunQuery = async (msgId: string, question: string) => {
+        setMessages(p => p.map(m => m.id === msgId ? { ...m, loading_query: true, query_result: null } : m));
         try {
             const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/analysis/query`, {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ connection_string: connectionString, question, language, conversation_history: getHistory(), business_rules: '' }),
+                body: JSON.stringify({ connection_string: connectionString, question, language, conversation_history: getHistory(), business_rules: FRIENDLY_TUTOR_RULES }),
             });
             const data = await res.json();
             let costData = null;
             if (data.sql && !data.error) {
-                try { const cr = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/analysis/query-cost`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ connection_string: connectionString, sql: data.sql }) }); costData = await cr.json(); } catch {}
+                try {
+                    const cr = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/analysis/query-cost`, {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ connection_string: connectionString, sql: data.sql }),
+                    });
+                    costData = await cr.json();
+                } catch {}
             }
-            setMessages(prev => { const n = [...prev]; n[msgIndex] = { ...n[msgIndex], loading_query: false, query_result: { ...data, query_cost: costData } }; return n; });
-        } catch { setMessages(prev => { const n = [...prev]; n[msgIndex] = { ...n[msgIndex], loading_query: false, query_result: { rows: [], columns: [], error: 'Failed to run query.', chart_type: null, explanation: null, attempts: 0, sql: '' } }; return n; }); }
+            setMessages(p => p.map(m => m.id === msgId ? { ...m, loading_query: false, query_result: { ...data, query_cost: costData } } : m));
+        } catch {
+            setMessages(p => p.map(m => m.id === msgId ? { ...m, loading_query: false, query_result: { rows: [], columns: [], error: 'Failed to run query.', chart_type: null, explanation: null, attempts: 0, sql: '' } } : m));
+        }
     };
 
-    const handleExecuteAction = async (msgIndex: number, sql: string) => {
-        setExecuting(msgIndex);
+    const handleExecute = async (msgId: string, sql: string) => {
+        setExecuting(msgId);
         try {
             const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/optimization/apply`, {
                 method: 'POST', headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ connection_string: connectionString, sql_command: sql, id: `chat-${Date.now()}` }),
             });
             const data = await res.json();
-            if (data.success) { setMessages(prev => { const n = [...prev]; delete n[msgIndex].suggested_action; return [...n, { role: 'ai', content: '✅ Command executed successfully! Your schema has been updated.' }]; }); }
-            else { setMessages(prev => [...prev, { role: 'ai', content: `❌ Execution failed: ${data.error || data.detail}` }]); }
-        } catch { setMessages(prev => [...prev, { role: 'ai', content: '❌ Failed to connect to server.' }]); }
-        finally { setExecuting(null); }
+            if (data.success) {
+                setMessages(p => p.map(m => m.id === msgId ? { ...m, suggested_action: undefined } : m));
+                addMessage({ role: 'ai', content: '✅ Done! The change was applied successfully. Your database is now updated!', query_result: null });
+            } else {
+                addMessage({ role: 'ai', content: `😕 Something went wrong: ${data.error || data.detail}. Your database was NOT changed — don't worry!`, query_result: null });
+            }
+        } catch {
+            addMessage({ role: 'ai', content: "😕 Couldn't connect to the server. Please try again!", query_result: null });
+        } finally { setExecuting(null); }
     };
 
     const selectedLang = LANGUAGES.find(l => l.code === language) || LANGUAGES[0];
+    const clearChat = () => setMessages(connectionString ? [{ id: genId(), role: 'ai', content: '🧹 Chat cleared! What would you like to explore next?', query_result: null }] : []);
 
+    /* ─────────────────────────── RENDER ─────────────────────────────── */
     return (
         <DashboardShell>
-            <div className="flex flex-col mx-4 sm:mx-6 mb-4 rounded-2xl overflow-hidden border border-gray-100 shadow-sm" style={{ height: 'calc(100vh - 110px)', background: 'linear-gradient(180deg, #fafafa 0%, #f5f3ff08 100%)' }}>
+            <div
+                className="flex flex-col mx-3 sm:mx-5 mb-4 rounded-3xl overflow-hidden"
+                style={{
+                    height: 'calc(100vh - 108px)',
+                    background: 'linear-gradient(165deg, #fdfcff 0%, #f8f5ff 100%)',
+                    border: '1px solid #ede9fe',
+                    boxShadow: '0 8px 48px rgba(124,58,237,0.07), 0 2px 8px rgba(0,0,0,0.04)',
+                }}
+            >
 
-                {/* Top bar */}
-                <div className="shrink-0 flex items-center justify-between px-6 py-3 border-b border-gray-100/80 bg-white/70 backdrop-blur-md">
+                {/* ────────── Header ────────── */}
+                <div className="shrink-0 flex items-center justify-between px-5 py-3 border-b border-violet-100/80 bg-white/70 backdrop-blur-xl">
                     <div className="flex items-center gap-3">
+                        {/* Avatar */}
                         <div className="relative">
-                            <div className="w-9 h-9 rounded-2xl flex items-center justify-center shadow-lg shadow-violet-200" style={{ background: 'linear-gradient(135deg, #7c3aed, #4f46e5)' }}>
-                                <Bot size={17} color="white" />
+                            <div className="w-10 h-10 rounded-2xl flex items-center justify-center shadow-lg"
+                                style={{ background: 'linear-gradient(135deg, #7c3aed, #4f46e5)', boxShadow: '0 4px 16px rgba(124,58,237,0.35)' }}>
+                                <Wand2 size={18} color="white" />
                             </div>
-                            <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-400 border-2 border-white" />
+                            <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-emerald-400 border-2 border-white" />
                         </div>
+
                         <div>
                             <div className="flex items-center gap-2">
-                                <h2 className="text-sm font-bold text-gray-900">AI Database Assistant</h2>
-                                <span className="flex items-center gap-1 text-[9px] px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wide" style={{ background: '#f3e8ff', color: '#7c3aed' }}>
-                                    <Sparkles size={8} /> Pro
+                                <h1 className="text-[15px] font-black text-slate-900 tracking-tight">Lumina</h1>
+                                <span className="text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest"
+                                    style={{ background: 'linear-gradient(135deg,#ede9fe,#ddd6fe)', color: '#6d28d9' }}>
+                                    AI Guide
                                 </span>
                             </div>
-                            <p className="text-[10px] text-gray-400 leading-none mt-0.5">Qwen2.5-Coder · Ollama · Self-healing SQL</p>
+                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Your friendly database companion</p>
                         </div>
-                        <div className="hidden md:flex items-center gap-1.5 ml-3 pl-3 border-l border-gray-100">
-                            <span className="flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full font-medium" style={{ background: '#f3e8ff', color: '#7c3aed' }}><Shield size={9} /> Guardrails ON</span>
-                            <span className="flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full font-medium" style={{ background: '#dcfce7', color: '#15803d' }}><Shield size={9} /> Firewall Active</span>
-                            <span className="flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full font-medium" style={{ background: '#dbeafe', color: '#1d4ed8' }}><RefreshCw size={9} /> Self-healing SQL</span>
+
+                        <div className="hidden lg:flex items-center gap-1.5 ml-4 pl-4 border-l border-slate-100">
+                            {[
+                                { icon: Shield, label: 'Safe Mode', bg: '#f3e8ff', fg: '#7c3aed' },
+                                { icon: CheckCircle2, label: 'Firewall On', bg: '#dcfce7', fg: '#15803d' },
+                                { icon: RefreshCw, label: 'Self-Healing', bg: '#dbeafe', fg: '#1d4ed8' },
+                            ].map(({ icon: Icon, label, bg, fg }) => (
+                                <span key={label} className="flex items-center gap-1 text-[10px] px-2.5 py-1 rounded-full font-bold" style={{ background: bg, color: fg }}>
+                                    <Icon size={9}/> {label}
+                                </span>
+                            ))}
                         </div>
                     </div>
+
                     <div className="flex items-center gap-2">
+                        {/* TTS toggle */}
+                        <button onClick={() => { setTtsEnabled(t => !t); if (ttsEnabled) window.speechSynthesis?.cancel(); }}
+                            title={ttsEnabled ? 'Disable voice' : 'Enable AI voice'}
+                            className={`p-2.5 rounded-xl transition-all ${ttsEnabled ? 'bg-violet-100 text-violet-700 shadow-sm' : 'text-slate-400 hover:bg-slate-100'}`}>
+                            {ttsEnabled ? <Volume2 size={15}/> : <VolumeX size={15}/>}
+                        </button>
+
+                        {/* Language */}
                         <div className="relative">
                             <button onClick={() => setShowLangPicker(p => !p)}
-                                className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border border-gray-200 bg-white hover:bg-gray-50 font-medium text-gray-600 transition-colors shadow-sm">
-                                <Globe size={11} className="text-violet-500" />
+                                className="flex items-center gap-1.5 text-[12px] px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 font-bold text-slate-600 shadow-sm transition-all">
+                                <Globe size={11} className="text-violet-500"/>
                                 {selectedLang.label}
-                                <ChevronDown size={10} className="text-gray-400" />
+                                <ChevronDown size={10} className="text-slate-400"/>
                             </button>
-                            {showLangPicker && (
-                                <div className="absolute top-10 right-0 z-30 p-1.5 rounded-2xl shadow-2xl border border-gray-100 bg-white min-w-[170px]">
-                                    {LANGUAGES.map(lang => (
-                                        <button key={lang.code} onClick={() => { setLanguage(lang.code); setShowLangPicker(false); }}
-                                            className={`flex items-center w-full text-left text-xs px-3 py-2 rounded-xl transition-colors font-medium ${language === lang.code ? 'bg-violet-50 text-violet-700' : 'text-gray-600 hover:bg-gray-50'}`}>
-                                            {lang.label}
-                                            {language === lang.code && <span className="ml-auto text-violet-500">✓</span>}
-                                        </button>
-                                    ))}
-                                </div>
-                            )}
+                            <AnimatePresence>
+                                {showLangPicker && (
+                                    <motion.div initial={{ opacity: 0, scale: 0.93, y: -6 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.93, y: -6 }}
+                                        className="absolute top-11 right-0 z-50 p-1.5 rounded-2xl shadow-2xl border border-slate-100 bg-white min-w-[180px]">
+                                        {LANGUAGES.map(lang => (
+                                            <button key={lang.code} onClick={() => { setLanguage(lang.code); setShowLangPicker(false); }}
+                                                className={`flex items-center w-full text-left text-[12px] px-3 py-2.5 rounded-xl transition-colors font-bold ${language === lang.code ? 'bg-violet-50 text-violet-700' : 'text-slate-600 hover:bg-slate-50'}`}>
+                                                {lang.label}
+                                                {language === lang.code && <CheckCircle2 size={13} className="ml-auto text-violet-500"/>}
+                                            </button>
+                                        ))}
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
                         </div>
-                        <button onClick={() => setMessages(connectionString ? [{ role: 'ai', content: 'Chat cleared. Ask me anything!' }] : [])}
-                            title="Clear chat" className="p-1.5 rounded-full text-gray-400 hover:text-red-500 hover:bg-red-50 transition-all">
-                            <Trash2 size={14} />
+
+                        {/* Clear */}
+                        <button onClick={clearChat} title="Clear chat"
+                            className="p-2.5 rounded-xl text-slate-400 hover:text-rose-500 hover:bg-rose-50 transition-all">
+                            <Trash2 size={15}/>
                         </button>
                     </div>
                 </div>
 
-                {/* Messages */}
-                <div ref={messagesContainerRef} className="flex-1 overflow-y-auto py-6 px-4 sm:px-10 space-y-6">
-                    {!connectionString ? (
-                        <div className="flex flex-col items-center justify-center h-full gap-5 text-center">
-                            <div className="w-20 h-20 rounded-3xl flex items-center justify-center shadow-xl shadow-violet-200" style={{ background: 'linear-gradient(135deg, #7c3aed, #4f46e5)' }}>
-                                <Database size={34} color="white" />
-                            </div>
-                            <div>
-                                <h3 className="text-xl font-bold text-gray-900 mb-1">No database connected</h3>
-                                <p className="text-gray-500 text-sm max-w-sm">Connect a database from the sidebar to start asking questions about your data.</p>
-                            </div>
-                        </div>
-                    ) : messages.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center h-full gap-8">
-                            <div>
-                                <div className="w-20 h-20 rounded-3xl flex items-center justify-center shadow-xl shadow-violet-200 mx-auto mb-4" style={{ background: 'linear-gradient(135deg, #7c3aed, #4f46e5)' }}>
-                                    <Bot size={34} color="white" />
+                {/* ────────── Messages ────────── */}
+                <div ref={messagesContainerRef} className="flex-1 overflow-y-auto">
+                    <div className="py-6 px-4 sm:px-8 space-y-6 min-h-full">
+
+                        {/* No DB connected */}
+                        {!connectionString && (
+                            <div className="flex flex-col items-center justify-center h-full py-24 gap-6 text-center">
+                                <div className="w-24 h-24 rounded-3xl flex items-center justify-center"
+                                    style={{ background: 'linear-gradient(135deg,#7c3aed,#4f46e5)', boxShadow: '0 8px 32px rgba(124,58,237,0.3)' }}>
+                                    <Database size={38} color="white"/>
                                 </div>
-                                <h3 className="text-2xl font-bold text-gray-900 mb-1 text-center">What do you want to know?</h3>
-                                <p className="text-gray-500 text-sm text-center">Query data · Explore schema · Detect issues · Make safe changes</p>
-                            </div>
-                            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 w-full max-w-2xl">
-                                {SUGGESTIONS.map(s => (
-                                    <button key={s.text} onClick={() => handleSend(s.text)}
-                                        className="group text-left px-4 py-3.5 rounded-2xl border border-gray-200 bg-white hover:border-violet-300 hover:bg-violet-50/60 hover:shadow-md text-sm text-gray-700 transition-all duration-200 flex items-start gap-2.5 cursor-pointer">
-                                        <s.icon size={15} className="mt-0.5 shrink-0 text-violet-500 group-hover:text-violet-700 transition-colors" />
-                                        <span className="font-medium group-hover:text-violet-800 transition-colors">{s.text}</span>
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-                    ) : (
-                        messages.map((msg, i) => (
-                            <div key={i} className={`flex gap-3.5 max-w-3xl ${msg.role === 'user' ? 'flex-row-reverse ml-auto' : 'mr-auto'}`}>
-                                {/* Avatar */}
-                                <div className="shrink-0 w-8 h-8 rounded-2xl flex items-center justify-center shadow-md mt-1"
-                                    style={{ background: msg.role === 'ai' ? 'linear-gradient(135deg,#8b5cf6,#6366f1)' : 'linear-gradient(135deg,#1e293b,#334155)' }}>
-                                    {msg.role === 'ai' ? <Bot size={14} color="white" /> : <User size={14} color="white" />}
+                                <div>
+                                    <h2 className="text-xl font-black text-slate-900 mb-2">No Database Connected</h2>
+                                    <p className="text-slate-500 text-sm font-bold max-w-xs">Connect a database from the sidebar to start chatting with Lumina!</p>
                                 </div>
-                                <div className="flex flex-col gap-2 min-w-0 flex-1">
-                                    {/* Label */}
-                                    <span className={`text-[10px] font-semibold uppercase tracking-wider ${msg.role === 'user' ? 'text-right text-gray-400' : 'text-violet-500'}`}>
-                                        {msg.role === 'ai' ? 'AI Assistant' : 'You'}
-                                    </span>
-                                    {/* Bubble */}
-                                    <div className={`rounded-2xl px-4 py-3.5 text-sm leading-relaxed whitespace-pre-wrap shadow-sm ${
-                                        msg.role === 'user'
-                                            ? 'text-white rounded-tr-sm'
-                                            : 'text-gray-800 bg-white border border-gray-100 rounded-tl-sm'
-                                    }`}
-                                    style={msg.role === 'user' ? { background: 'linear-gradient(135deg, #1e293b, #334155)' } : {}}>
-                                        {msg.content}
+                            </div>
+                        )}
+
+                        {/* Empty state with starters */}
+                        {connectionString && messages.length === 0 && (
+                            <div className="flex flex-col items-center justify-center py-16 gap-8">
+                                <div className="text-center">
+                                    <div className="w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-5"
+                                        style={{ background: 'linear-gradient(135deg,#7c3aed,#4f46e5)', boxShadow: '0 8px 32px rgba(124,58,237,0.3)' }}>
+                                        <MessageCircle size={34} color="white"/>
+                                    </div>
+                                    <h2 className="text-2xl font-black text-slate-900">Hey, I'm Lumina! 👋</h2>
+                                    <p className="text-slate-500 font-bold text-sm mt-2">Ask me anything — in plain English!</p>
+                                </div>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 w-full max-w-2xl">
+                                    {STARTERS.map(s => (
+                                        <motion.button key={s.text} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+                                            onClick={() => handleSend(s.text)}
+                                            className="text-left px-4 py-4 rounded-2xl border border-slate-200 bg-white hover:border-violet-300 hover:shadow-md transition-all cursor-pointer group">
+                                            <span className="text-2xl mb-3 block">{s.emoji}</span>
+                                            <span className="text-[13px] font-bold text-slate-700 group-hover:text-violet-700 transition-colors leading-snug">{s.text}</span>
+                                        </motion.button>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Conversation */}
+                        <AnimatePresence initial={false}>
+                            {messages.map((msg, i) => (
+                                <motion.div key={msg.id}
+                                    initial={{ opacity: 0, y: 20, scale: 0.96 }}
+                                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                                    transition={{ duration: 0.28, ease: [0.25, 0.1, 0.25, 1] }}
+                                    className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse ml-auto max-w-[78%]' : 'mr-auto max-w-[88%]'} w-full`}
+                                >
+                                    {/* Avatar */}
+                                    <div className="shrink-0 w-9 h-9 rounded-2xl flex items-center justify-center shadow mt-1"
+                                        style={{ background: msg.role === 'ai' ? 'linear-gradient(135deg,#8b5cf6,#6366f1)' : 'linear-gradient(135deg,#1e293b,#334155)' }}>
+                                        {msg.role === 'ai' ? <Wand2 size={14} color="white"/> : <User size={14} color="white"/>}
                                     </div>
 
-                                    {/* Run Query */}
-                                    {msg.role === 'ai' && i > 0 && (
-                                        <button onClick={() => handleRunQuery(i, messages[i - 1]?.content || msg.content)}
-                                            disabled={!!msg.loading_query}
-                                            className="self-start flex items-center gap-1.5 text-xs px-3.5 py-1.5 rounded-full border border-violet-200 bg-white text-violet-700 font-semibold hover:bg-violet-50 hover:border-violet-300 transition-all shadow-sm disabled:opacity-60">
-                                            {msg.loading_query ? <><Loader2 size={11} className="animate-spin" /> Running…</> : <><Play size={11} fill="currentColor" /> Run as Query</>}
-                                        </button>
-                                    )}
+                                    <div className="flex flex-col gap-2 min-w-0 flex-1">
+                                        <span className={`text-[10px] font-black uppercase tracking-widest ${msg.role === 'user' ? 'text-right text-slate-400' : 'text-violet-500'}`}>
+                                            {msg.role === 'ai' ? '✦ Lumina' : 'You'}
+                                        </span>
 
-                                    {/* Query result */}
-                                    {msg.query_result && (
-                                        <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
-                                            {msg.query_result.error ? (
-                                                <div className="flex items-center gap-2 text-xs text-red-600 bg-red-50 border border-red-100 rounded-xl px-3 py-2.5">❌ {msg.query_result.error}</div>
-                                            ) : (
-                                                <>
-                                                    <div className="mb-2.5 p-3 rounded-xl text-xs font-mono leading-relaxed" style={{ background: '#0f172a', color: '#4ade80' }}>{msg.query_result.sql}</div>
+                                        {/* Bubble */}
+                                        <div className={`rounded-2xl px-5 py-4 text-[14px] shadow-sm font-medium ${
+                                            msg.role === 'user'
+                                                ? 'text-white rounded-tr-sm'
+                                                : 'text-slate-800 bg-white border border-slate-100/80 rounded-tl-sm shadow-[0_2px_12px_rgba(0,0,0,0.04)]'
+                                        }`}
+                                            style={msg.role === 'user' ? { background: 'linear-gradient(135deg,#1e293b,#334155)', boxShadow: '0 4px 16px rgba(30,41,59,0.25)' } : {}}>
+                                            <FormattedText text={msg.content} />
+                                        </div>
+
+                                        {/* Show Data button */}
+                                        {msg.role === 'ai' && i > 0 && (
+                                            <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
+                                                onClick={() => handleRunQuery(msg.id, messages[i - 1]?.content || msg.content)}
+                                                disabled={!!msg.loading_query}
+                                                className="self-start flex items-center gap-2 text-[11px] font-black uppercase tracking-widest px-4 py-2 rounded-full border border-violet-200 bg-white text-violet-600 hover:bg-violet-50 hover:border-violet-300 transition-all shadow-sm disabled:opacity-60 cursor-pointer">
+                                                {msg.loading_query
+                                                    ? <><Loader2 size={11} className="animate-spin"/> Fetching your data…</>
+                                                    : <><Play size={11} fill="currentColor"/> Show me the data</>}
+                                            </motion.button>
+                                        )}
+
+                                        {/* Query result */}
+                                        {msg.query_result && (
+                                            <div className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm">
+                                                {msg.query_result.firewall_blocked ? (
+                                                    <div className="flex items-center gap-2.5 text-[13px] text-rose-700 bg-rose-50 border border-rose-200 rounded-xl px-4 py-3 font-bold">
+                                                        <Shield size={16}/> 🛡️ Blocked by Safety Firewall — this action looked risky!
+                                                    </div>
+                                                ) : msg.query_result.error ? (
+                                                    <div className="flex items-start gap-2.5 text-[13px] text-rose-700 bg-rose-50 border border-rose-200 rounded-xl px-4 py-3">
+                                                        <AlertCircle size={16} className="shrink-0 mt-0.5"/>
+                                                        <div>
+                                                            <p className="font-black text-[10px] uppercase tracking-widest mb-1">Something went wrong</p>
+                                                            <p className="font-bold">{msg.query_result.error}</p>
+                                                        </div>
+                                                    </div>
+                                                ) : (<>
+                                                    <div className="p-3.5 rounded-xl text-[12px] font-mono leading-relaxed overflow-x-auto mb-3"
+                                                        style={{ background: '#0f172a', color: '#4ade80' }}>
+                                                        {msg.query_result.sql}
+                                                    </div>
                                                     {msg.query_result.explanation && (
-                                                        <div className="mb-2 flex items-start gap-1.5 text-xs text-gray-500 bg-amber-50 rounded-lg px-2.5 py-2 border border-amber-100">
-                                                            <Lightbulb size={11} className="mt-0.5 text-amber-500 shrink-0" />{msg.query_result.explanation}
+                                                        <div className="flex items-start gap-2 text-[13px] text-amber-800 bg-amber-50 border border-amber-100 rounded-xl px-4 py-3 mb-3 font-bold">
+                                                            <Lightbulb size={14} className="text-amber-500 shrink-0 mt-0.5"/>
+                                                            {msg.query_result.explanation}
                                                         </div>
                                                     )}
                                                     {msg.query_result.attempts > 1 && (
-                                                        <div className="text-[10px] font-bold text-blue-500 mb-1.5 flex items-center gap-1">🔄 Self-healed in {msg.query_result.attempts} attempts</div>
+                                                        <p className="text-[10px] font-black text-blue-500 mb-3 flex items-center gap-1 uppercase tracking-widest">
+                                                            <RefreshCw size={10}/> Auto-fixed in {msg.query_result.attempts} tries 🔧
+                                                        </p>
                                                     )}
-                                                    {msg.query_result.chart_type && <MiniBarChart columns={msg.query_result.columns} rows={msg.query_result.rows} />}
-                                                    {msg.query_result.rows.length > 0 && <ResultTable columns={msg.query_result.columns} rows={msg.query_result.rows} />}
-                                                    <div className="text-xs text-gray-400 mt-2 flex items-center gap-1 font-medium">{msg.query_result.rows.length} row{msg.query_result.rows.length !== 1 ? 's' : ''} · LIMIT 100 applied</div>
+                                                    {msg.query_result.chart_type && <MiniBarChart columns={msg.query_result.columns} rows={msg.query_result.rows}/>}
+                                                    {msg.query_result.rows.length > 0 && <DataTable columns={msg.query_result.columns} rows={msg.query_result.rows}/>}
+                                                    <p className="text-[10px] text-slate-400 mt-3 flex items-center gap-1.5 font-black uppercase tracking-widest">
+                                                        <CheckCircle2 size={10} className="text-emerald-500"/>
+                                                        {msg.query_result.rows.length} result{msg.query_result.rows.length !== 1 ? 's' : ''} · max 100 rows applied
+                                                    </p>
                                                     {msg.query_result.query_cost && (
-                                                        <div className="mt-2.5 flex items-center gap-3 px-3 py-2 rounded-xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-100">
-                                                            <span className="flex items-center gap-1 text-xs font-bold text-amber-600"><DollarSign size={12} />{msg.query_result.query_cost.cost_estimate.dollar_cost_display}</span>
-                                                            <span className="flex items-center gap-1 text-xs font-bold text-emerald-600"><Leaf size={12} />{msg.query_result.query_cost.cost_estimate.co2_display}</span>
-                                                            <span className="ml-auto text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-lg bg-white border shadow-sm"
-                                                                style={{ color: msg.query_result.query_cost.rating === 'cheap' ? '#16a34a' : msg.query_result.query_cost.rating === 'moderate' ? '#ea580c' : '#dc2626', borderColor: msg.query_result.query_cost.rating === 'cheap' ? '#bbf7d0' : msg.query_result.query_cost.rating === 'moderate' ? '#fed7aa' : '#fecaca' }}>
+                                                        <div className="mt-3 flex items-center gap-3 px-3 py-2.5 rounded-xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-100">
+                                                            <span className="flex items-center gap-1 text-[11px] font-black text-amber-600"><DollarSign size={11}/>{msg.query_result.query_cost.cost_estimate.dollar_cost_display}</span>
+                                                            <span className="flex items-center gap-1 text-[11px] font-black text-emerald-600"><Leaf size={11}/>{msg.query_result.query_cost.cost_estimate.co2_display}</span>
+                                                            <span className="ml-auto text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-lg bg-white border shadow-sm"
+                                                                style={{ color: msg.query_result.query_cost.rating === 'cheap' ? '#16a34a' : '#ea580c' }}>
                                                                 {msg.query_result.query_cost.rating}
                                                             </span>
                                                         </div>
                                                     )}
-                                                </>
-                                            )}
-                                        </div>
-                                    )}
-
-                                    {/* Suggested action */}
-                                    {msg.suggested_action && (
-                                        <div className="bg-white border border-violet-100 rounded-2xl p-4 shadow-sm">
-                                            <div className="text-xs font-bold text-violet-700 uppercase tracking-wide mb-2.5 flex items-center gap-1.5">
-                                                <Lightbulb size={11} className="text-amber-500" /> Suggested Command
+                                                </>)}
                                             </div>
-                                            <code className="text-xs font-mono block p-3 rounded-xl mb-3" style={{ background: '#0f172a', color: '#4ade80' }}>{msg.suggested_action}</code>
-                                            <button onClick={() => handleExecuteAction(i, msg.suggested_action!)} disabled={executing !== null}
-                                                className="w-full py-2.5 rounded-xl text-xs font-bold text-white flex items-center justify-center gap-2 transition-all hover:opacity-90 active:scale-[0.98] disabled:opacity-50"
-                                                style={{ background: 'linear-gradient(135deg, #7c3aed, #4f46e5)', boxShadow: '0 2px 10px rgba(124,58,237,0.3)' }}>
-                                                {executing === i ? <Loader2 size={12} className="animate-spin" /> : <Send size={12} />}
-                                                Approve & Execute
-                                            </button>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        ))
-                    )}
+                                        )}
 
-                    {/* Thinking */}
-                    {loading && (
-                        <div className="flex gap-3.5 max-w-3xl mr-auto">
-                            <div className="shrink-0 w-8 h-8 rounded-2xl flex items-center justify-center shadow-md" style={{ background: 'linear-gradient(135deg,#8b5cf6,#6366f1)' }}>
-                                <Bot size={14} color="white" />
-                            </div>
-                            <div>
-                                <span className="text-[10px] font-semibold uppercase tracking-wider text-violet-500">AI Assistant</span>
-                                <div className="mt-1 flex items-center gap-3 px-4 py-3 bg-white border border-gray-100 rounded-2xl rounded-tl-sm shadow-sm text-sm text-gray-500">
-                                    <div className="flex gap-1">
-                                        <div className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce" style={{ animationDelay: '0ms' }} />
-                                        <div className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce" style={{ animationDelay: '150ms' }} />
-                                        <div className="w-1.5 h-1.5 rounded-full bg-violet-400 animate-bounce" style={{ animationDelay: '300ms' }} />
+                                        {/* Suggested action */}
+                                        {msg.suggested_action && (
+                                            <div className="bg-gradient-to-br from-violet-50 to-indigo-50 border border-violet-200 rounded-2xl p-5 shadow-sm">
+                                                <p className="text-[10px] font-black text-violet-600 uppercase tracking-widest mb-3 flex items-center gap-1.5">
+                                                    <Lightbulb size={11} className="text-amber-500"/> Suggested Change
+                                                </p>
+                                                <code className="text-[12px] font-mono block p-4 rounded-xl mb-4"
+                                                    style={{ background: '#0f172a', color: '#4ade80' }}>
+                                                    {msg.suggested_action}
+                                                </code>
+                                                <p className="text-[12px] text-slate-600 font-bold mb-4 bg-white/70 p-3 rounded-xl border border-violet-100">
+                                                    ⚠️ Review the command above — once approved, it will modify your database!
+                                                </p>
+                                                <motion.button whileTap={{ scale: 0.97 }}
+                                                    onClick={() => handleExecute(msg.id, msg.suggested_action!)}
+                                                    disabled={executing !== null}
+                                                    className="w-full py-3.5 rounded-2xl text-[12px] font-black text-white uppercase tracking-wider flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
+                                                    style={{ background: 'linear-gradient(135deg,#7c3aed,#4f46e5)', boxShadow: '0 4px 20px rgba(124,58,237,0.35)' }}>
+                                                    {executing === msg.id ? <Loader2 size={14} className="animate-spin"/> : <CheckCircle2 size={14}/>}
+                                                    Yes, Apply This Change
+                                                </motion.button>
+                                            </div>
+                                        )}
                                     </div>
-                                    Thinking…
+                                </motion.div>
+                            ))}
+                        </AnimatePresence>
+
+                        {/* Thinking */}
+                        {loading && (
+                            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+                                className="flex gap-3 max-w-[80%] mr-auto">
+                                <div className="shrink-0 w-9 h-9 rounded-2xl flex items-center justify-center shadow"
+                                    style={{ background: 'linear-gradient(135deg,#8b5cf6,#6366f1)' }}>
+                                    <Wand2 size={14} color="white"/>
                                 </div>
-                            </div>
-                        </div>
-                    )}
-                    <div ref={messagesEndRef} className="h-4 shrink-0" />
+                                <div>
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-violet-500">✦ Lumina</span>
+                                    <div className="mt-1 flex items-center gap-3 px-5 py-3.5 bg-white border border-slate-100 rounded-2xl rounded-tl-sm shadow-sm">
+                                        <TypingWave/>
+                                        <span className="text-[13px] font-bold text-slate-400">Thinking…</span>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        )}
+
+                        <div ref={messagesEndRef} className="h-2"/>
+                    </div>
                 </div>
 
-                {/* Input */}
-                <div className="shrink-0 px-4 sm:px-10 pb-5 pt-3 bg-white/80 backdrop-blur-md border-t border-gray-100">
-                    <div className="max-w-3xl mx-auto">
-                        <div className="flex gap-3 items-center p-1.5 bg-white border border-gray-200 rounded-2xl shadow-lg shadow-gray-100/80 focus-within:border-violet-300 focus-within:shadow-violet-100/60 transition-all">
-                            <input
-                                ref={inputRef}
-                                value={input}
+                {/* ────────── Input Bar ────────── */}
+                <div className="shrink-0 px-4 sm:px-8 pb-5 pt-3 border-t border-violet-100/60 bg-white/75 backdrop-blur-xl">
+                    <div className="max-w-3xl mx-auto space-y-2">
+
+                        {/* Voice error/tip */}
+                        <AnimatePresence>
+                            {voiceError && (
+                                <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                                    className="flex items-center gap-2 px-4 py-2.5 bg-rose-50 border border-rose-200 rounded-2xl">
+                                    <Info size={13} className="text-rose-500 shrink-0"/>
+                                    <span className="text-[12px] font-bold text-rose-700">{voiceError}</span>
+                                    <button onClick={() => setVoiceError(null)} className="ml-auto text-rose-400 hover:text-rose-600 font-black text-xs">✕</button>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+
+                        {/* Listening / Transcribing pill */}
+                        <AnimatePresence>
+                            {isTranscribing && (
+                                <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                                    className="flex items-center gap-2.5 px-4 py-2.5 bg-violet-50 border border-violet-200 rounded-2xl">
+                                    <Loader2 size={14} className="text-violet-500 animate-spin shrink-0"/>
+                                    <span className="text-[12px] font-black text-violet-700 uppercase tracking-widest">⚙️ Transcribing your voice…</span>
+                                </motion.div>
+                            )}
+                            {isListening && !isTranscribing && (
+                                <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                                    className="flex items-center gap-2.5 px-4 py-2.5 bg-rose-50 border border-rose-200 rounded-2xl">
+                                    <motion.div className="w-2.5 h-2.5 rounded-full bg-rose-500"
+                                        animate={{ scale: [1, 1.4, 1], opacity: [1, 0.6, 1] }}
+                                        transition={{ duration: 1, repeat: Infinity }}/>
+                                    <span className="text-[12px] font-black text-rose-700 uppercase tracking-widest">
+                                        🎤 {useWhisperFallback ? 'Recording locally… tap Stop when done' : 'Listening… speak now!'}
+                                    </span>
+                                    <button onClick={stopListening} className="ml-auto text-[11px] font-black text-rose-500 hover:text-rose-700 uppercase tracking-widest px-2 py-1 rounded-lg hover:bg-rose-100 transition-all">Stop</button>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+
+
+                        {/* Input row */}
+                        <div className={`flex gap-2 items-center px-2 py-2 rounded-2xl border bg-white transition-all ${isListening ? 'border-rose-300 shadow-[0_0_0_4px_rgba(244,63,94,0.08)]' : 'border-slate-200 focus-within:border-violet-400 focus-within:shadow-[0_0_0_4px_rgba(124,58,237,0.08)]'}`}
+                            style={{ boxShadow: '0 4px 24px rgba(124,58,237,0.06)' }}>
+
+                            <input ref={inputRef} value={input}
                                 onChange={e => setInput(e.target.value)}
                                 onKeyDown={e => e.key === 'Enter' && !e.shiftKey && handleSend()}
-                                placeholder={connectionString ? "Ask anything about your database…" : "Connect a database first"}
+                                placeholder={!connectionString ? 'Connect a database first' : isListening ? 'Listening…' : 'Ask Lumina anything about your database…'}
                                 disabled={!connectionString}
-                                style={{ color: '#111827' }}
-                                className="flex-1 px-4 py-2.5 text-sm bg-transparent border-none outline-none placeholder-gray-400 disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                                className="flex-1 px-4 py-2.5 text-[14px] bg-transparent border-none outline-none placeholder-slate-400 disabled:opacity-50 font-bold text-slate-800"
                             />
-                            {loading ? (
-                                <button onClick={() => { abortController?.abort(); setLoading(false); }}
-                                    className="flex items-center justify-center w-10 h-10 rounded-xl shrink-0 transition-all hover:bg-red-100"
-                                    style={{ background: '#ffe4e6', color: '#e11d48' }}>
-                                    <StopCircle size={18} />
-                                </button>
-                            ) : (
-                                <button onClick={() => handleSend()} disabled={!input.trim() || !connectionString}
-                                    className="flex items-center justify-center w-10 h-10 rounded-xl text-white shrink-0 transition-all hover:scale-105 active:scale-95 disabled:opacity-30 disabled:cursor-not-allowed"
-                                    style={{ background: input.trim() ? 'linear-gradient(135deg, #7c3aed, #4f46e5)' : '#e2e8f0', color: input.trim() ? 'white' : '#94a3b8' }}>
-                                    <Send size={16} />
-                                </button>
-                            )}
+
+                            {/* Mic button */}
+                            <motion.button whileTap={{ scale: 0.92 }}
+                                onClick={toggleListening}
+                                disabled={!connectionString || isTranscribing}
+                                title={isListening ? 'Stop listening' : useWhisperFallback ? 'Record voice (local mode)' : 'Speak to me'}
+                                className={`flex items-center justify-center w-10 h-10 rounded-xl shrink-0 transition-all disabled:opacity-40 cursor-pointer ${
+                                    isListening
+                                        ? 'bg-rose-500 text-white shadow-[0_0_24px_rgba(239,68,68,0.5)]'
+                                        : isTranscribing
+                                        ? 'bg-violet-100 text-violet-400'
+                                        : useWhisperFallback
+                                        ? 'bg-amber-100 text-amber-600 hover:bg-amber-200'
+                                        : 'bg-slate-100 text-slate-500 hover:bg-violet-100 hover:text-violet-600 hover:shadow-md'
+                                }`}>
+                                {isListening ? <MicOff size={16}/> : isTranscribing ? <Loader2 size={16} className="animate-spin"/> : <Mic size={16}/>}
+                            </motion.button>
+
+                            {/* Send / Stop */}
+                            <AnimatePresence mode="wait">
+                                {loading ? (
+                                    <motion.button key="stop" initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.8, opacity: 0 }}
+                                        onClick={() => { abortController?.abort(); setLoading(false); }}
+                                        className="flex items-center justify-center w-10 h-10 rounded-xl shrink-0 cursor-pointer"
+                                        style={{ background: '#ffe4e6', color: '#e11d48' }}>
+                                        <StopCircle size={18}/>
+                                    </motion.button>
+                                ) : (
+                                    <motion.button key="send" initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.8, opacity: 0 }}
+                                        whileTap={{ scale: 0.92 }}
+                                        onClick={() => handleSend()}
+                                        disabled={!input.trim() || !connectionString}
+                                        className="flex items-center justify-center w-10 h-10 rounded-xl text-white shrink-0 transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                                        style={{
+                                            background: input.trim() ? 'linear-gradient(135deg,#7c3aed,#4f46e5)' : '#e2e8f0',
+                                            color: input.trim() ? 'white' : '#94a3b8',
+                                            boxShadow: input.trim() ? '0 4px 16px rgba(124,58,237,0.45)' : 'none',
+                                        }}>
+                                        <Send size={15}/>
+                                    </motion.button>
+                                )}
+                            </AnimatePresence>
                         </div>
-                        <p className="text-center text-[10px] text-gray-400 mt-2">AI can make mistakes. Always review SQL before approving execution.</p>
+
+                        <p className="text-center text-[10px] text-slate-400 font-bold">
+                            {speechSupported
+                                ? '🎤 Voice-to-text ready  ·  Always review changes before approving  ·  Powered by Ollama'
+                                : 'Always review database changes before approving  ·  Powered by Ollama'}
+                        </p>
                     </div>
                 </div>
 

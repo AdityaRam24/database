@@ -148,7 +148,7 @@ export default function DashboardShell({ children }: { children: React.ReactNode
       {/* Layer 1: The Lock — full viewport, no scroll */}
       <div className="flex h-screen overflow-hidden">
         {/* Layer 2: The Anchor — sidebar pinned, own scroll */}
-        <div className="hidden md:flex shrink-0" style={{ position: 'sticky', top: 0, height: '100vh', overflowY: 'auto' }}>
+        <div className="hidden md:flex shrink-0" style={{ position: 'sticky', top: 0, height: '100vh', overflowY: 'hidden' }}>
           <DualSidebar onProjectLoad={handleProjectLoad} />
         </div>
 

@@ -12,6 +12,13 @@ origins = [
     "http://127.0.0.1:3000",
     "http://127.0.0.1:3001",
     "http://127.0.0.1:3002",
+    # HTTPS origins for --experimental-https dev server
+    "https://localhost:3000",
+    "https://localhost:3001",
+    "https://localhost:3002",
+    "https://127.0.0.1:3000",
+    "https://127.0.0.1:3001",
+    "https://127.0.0.1:3002",
 ]
 
 app.add_middleware(

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Plus, Trash2, BookOpen, Lightbulb, Save, CheckCircle, Loader2, Copy, Globe, RefreshCw } from 'lucide-react';
+import { ArrowRight, Plus, Trash2, BrainCircuit, Lightbulb, Save, CheckCircle, Loader2, Link2, Globe, Cpu, Database, Blocks, Binary, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import DashboardShell from '@/components/DashboardShell';
 
@@ -28,7 +28,6 @@ export default function SemanticLayerPage() {
     const [mounted, setMounted] = useState(false);
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
-    const [mcpCopied, setMcpCopied] = useState(false);
     const [connectionString, setConnectionString] = useState<string | null>(null);
 
     const API = process.env.NEXT_PUBLIC_API_URL;
@@ -60,7 +59,6 @@ export default function SemanticLayerPage() {
                         });
                     }
                     localStorage.removeItem('business_rules');
-                    // Reload from server
                     const res2 = await fetch(`${API}/semantic/rules`);
                     const data2 = await res2.json();
                     setRules(data2.rules || []);
@@ -124,126 +122,203 @@ export default function SemanticLayerPage() {
         }
     };
 
-    const copyMCPEndpoint = () => {
-        const url = `${API}/mcp/manifest`;
-        navigator.clipboard.writeText(url);
-        setMcpCopied(true);
-        setTimeout(() => setMcpCopied(false), 2000);
-    };
-
     if (!mounted) return null;
 
     return (
         <DashboardShell>
-            {/* Page header */}
-            <div className="px-6 py-5 flex items-center justify-between border-b border-gray-100">
-                <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center">
-                        <BookOpen size={18} className="text-amber-500" />
-                    </div>
-                    <div>
-                        <h1 className="text-lg font-bold text-gray-900 leading-tight">Company Knowledge</h1>
-                        <p className="text-xs text-gray-500 font-medium">Teach the AI your business rules and definitions</p>
-                    </div>
-                </div>
-                {saved && (
-                    <span className="flex items-center gap-1.5 text-xs text-emerald-700 bg-emerald-100 px-3 py-1.5 rounded-full border border-emerald-200 font-bold">
-                        <CheckCircle size={13} /> Saved
-                    </span>
-                )}
-            </div>
-
-            <div className="w-full max-w-5xl mx-auto pb-12 px-4 md:px-8">
-                {/* MCP Badge Removed - Too technical */}
-
-                {/* Explanation */}
-                <div className="p-6 bg-amber-50 border border-amber-200 rounded-2xl flex items-start gap-4 shadow-sm mb-10 relative overflow-hidden">
-                    <div className="absolute top-0 right-0 w-64 h-64 bg-amber-100 blur-[80px] rounded-full pointer-events-none fade-in"></div>
-                    <Lightbulb size={28} className="text-amber-500 shrink-0 mt-0.5" />
-                    <div className="relative z-10">
-                        <p className="m-0 mb-2 text-base font-bold text-amber-900">Teach AI Your Business</p>
-                        <p className="m-0 text-sm text-amber-800 leading-relaxed max-w-3xl font-medium">
-                            Define terms so the AI understands your company perfectly. When you ask <em className="text-amber-900 bg-amber-200/50 px-2 py-0.5 rounded-md not-italic font-bold border border-amber-300 mx-1">"show me active users"</em>, the AI will use your exact definition of "Active User" to fetch the correct data automatically without any coding.
-                        </p>
-                    </div>
-                </div>
-
-                {/* Add new rule */}
-                <div className="p-6 bg-white border border-gray-200 rounded-2xl mb-12 shadow-sm transition-all">
-                    <h2 className="m-0 mb-5 text-base font-bold text-violet-600 flex items-center">
-                        <Plus size={18} className="mr-2" /> Add Business Rule
-                    </h2>
-                    <div className="grid grid-cols-1 md:grid-cols-[1fr_2fr_auto] gap-4">
-                        <input
-                            value={newName}
-                            onChange={e => setNewName(e.target.value)}
-                            placeholder="Term name"
-                            className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-gray-900 text-sm outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-all font-medium placeholder-gray-400"
-                        />
-                        <input
-                            value={newDef}
-                            onChange={e => setNewDef(e.target.value)}
-                            onKeyDown={e => e.key === 'Enter' && handleAdd()}
-                            placeholder='Definition (e.g. "A user who logged in within 7 days")'
-                            className="bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-gray-900 text-sm outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-all font-medium placeholder-gray-400"
-                        />
-                        <Button
-                            onClick={handleAdd}
-                            disabled={!newName.trim() || !newDef.trim() || saving}
-                            className="bg-violet-600 hover:bg-violet-700 text-white font-semibold py-3 h-full transition-colors w-full md:w-auto shadow-sm"
-                        >
-                            {saving ? <Loader2 size={16} className="animate-spin mr-2" /> : <Save size={16} className="mr-2" />}
-                            Save
-                        </Button>
-                    </div>
-                </div>
-
-                {/* Current rules */}
-                {loading ? (
-                    <div className="text-center py-10">
-                        <Loader2 size={32} className="text-violet-600 animate-spin mx-auto" />
-                    </div>
-                ) : rules.length > 0 ? (
-                    <div className="mb-12">
-                        <h2 className="m-0 mb-5 text-sm font-bold text-gray-500 uppercase tracking-widest">Your Rules ({rules.length})</h2>
-                        <div className="flex flex-col gap-3">
-                            {rules.map(rule => (
-                                <div key={rule.id} className="flex items-center gap-4 bg-white border border-gray-200 rounded-xl p-5 transition-shadow shadow-sm hover:shadow-md">
-                                    <div className="flex-1 flex flex-col md:flex-row md:items-center gap-1 md:gap-4">
-                                        <span className="font-extrabold text-violet-700 text-[15px] whitespace-nowrap bg-violet-50 px-3 py-1 rounded-md border border-violet-100">{rule.name}</span>
-                                        <span className="text-gray-300 text-sm hidden md:inline font-bold">=</span>
-                                        <span className="text-gray-600 text-sm leading-relaxed font-medium">{rule.definition}</span>
-                                    </div>
-                                    <button onClick={() => handleDelete(rule.id)} className="text-gray-400 hover:text-red-600 p-2 rounded-lg hover:bg-red-50 transition-colors shrink-0 border border-transparent hover:border-red-200">
-                                        <Trash2 size={18} />
-                                    </button>
-                                </div>
-                            ))}
+            <div className="flex flex-col h-full w-full max-w-[1200px] mx-auto pb-16">
+                
+                {/* ── Page Header ── */}
+                <div className="px-6 py-5 flex items-center justify-between flex-wrap gap-3 border-b border-gray-100 bg-white shadow-sm z-10 relative">
+                    <div className="flex items-center gap-4">
+                        <div className="w-10 h-10 rounded-xl bg-violet-100 flex items-center justify-center relative shadow-inner ring-1 ring-violet-200">
+                            <BrainCircuit size={22} className="text-violet-600" />
+                            <div className="absolute top-0 right-0 -mr-1 -mt-1 w-3 h-3 bg-violet-500 rounded-full animate-pulse border-2 border-white shadow-[0_0_8px_rgba(139,92,246,0.8)]"></div>
+                        </div>
+                        <div>
+                            <h1 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+                                Cognitive Lexicon Core
+                            </h1>
+                            <p className="text-[13px] text-slate-500 font-bold mt-0.5 uppercase tracking-widest flex items-center gap-1.5">
+                                <Binary size={12}/> Inject Custom Operating Definitions
+                            </p>
                         </div>
                     </div>
-                ) : null}
+                </div>
 
-                {/* Example rules */}
-                <div>
-                    <h2 className="m-0 mb-5 text-sm font-bold text-gray-500 uppercase tracking-widest">Example Rules</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        {EXAMPLE_RULES.map(rule => {
-                            const isAdded = rules.some(r => r.name === rule.name);
-                            return (
-                                <button
-                                    key={rule.id}
-                                    onClick={() => handleAddExample(rule)}
-                                    disabled={isAdded}
-                                    className={`text-left bg-white border rounded-xl p-5 transition-all shadow-sm ${isAdded ? 'opacity-50 cursor-not-allowed border-gray-200 bg-gray-50' : 'cursor-pointer hover:border-violet-300 hover:shadow-md border-gray-200'}`}
-                                >
-                                    <p className="m-0 mb-2 font-bold text-violet-700 text-[15px] flex items-center justify-between">
-                                        {rule.name}
-                                        {isAdded && <CheckCircle size={16} className="text-emerald-600" />}
-                                    </p>
-                                    <p className="m-0 text-gray-500 text-[13px] leading-relaxed font-medium">{rule.definition}</p>
-                                </button>
-                            );
-                        })}
+                <div className="flex-1 p-4 md:p-8 space-y-10 relative z-0">
+                    
+                    {/* ── Ingestion Protocol Banner ── */}
+                    <div className="relative overflow-hidden bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200/60 rounded-3xl p-8 shadow-sm">
+                        <div className="absolute top-0 right-0 -mt-10 -mr-20 w-80 h-80 bg-amber-200/40 rounded-full blur-[80px] pointer-events-none"></div>
+                        
+                        <div className="flex items-start gap-5 relative z-10">
+                            <div className="w-12 h-12 rounded-2xl bg-white shadow-sm flex items-center justify-center shrink-0 border border-amber-100">
+                                <Sparkles size={24} className="text-amber-500" />
+                            </div>
+                            <div>
+                                <h2 className="text-base font-black text-amber-900 uppercase tracking-widest mb-1.5 flex items-center gap-2">
+                                    Semantic Ingestion Protocol Active
+                                </h2>
+                                <p className="text-[13px] text-amber-800/80 leading-relaxed max-w-4xl font-bold">
+                                    Lexicon mapping natively alters the core agent's understanding algorithms. Program specific ground-truths for internal company jargon. 
+                                    <br/><br/>
+                                    If you encode <span className="inline-block px-2 py-0.5 bg-amber-100 text-amber-900 border border-amber-300/50 rounded text-xs mx-1 font-mono uppercase shadow-sm">"Top Customer"</span> to mean <span className="inline-block px-2 py-0.5 bg-white text-slate-600 border border-amber-200 rounded text-xs mx-1 font-mono italic shadow-sm">"spent $1000 in 30 days"</span>, the agent will strictly append those mathematical constraints when reasoning safely over your environment.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* ── Lexicon Vector Mapping Form ── */}
+                    <div className="bg-white border border-slate-200 rounded-3xl p-6 shadow-sm relative overflow-hidden transition-all hover:shadow-md hover:border-violet-200">
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-violet-400 opacity-[0.02] rounded-full blur-3xl pointer-events-none"></div>
+
+                        <div className="flex items-center justify-between mb-5">
+                            <h2 className="text-[11px] font-black text-slate-500 uppercase tracking-widest flex items-center gap-2">
+                                <Plus size={14} className="text-violet-600" /> Construct Vector Mapping
+                            </h2>
+                            {saved && (
+                                <span className="animate-in fade-in flex items-center gap-1.5 text-[10px] text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200 font-black uppercase tracking-widest">
+                                    <CheckCircle size={12} /> Node Ingested
+                                </span>
+                            )}
+                        </div>
+                        
+                        <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto_2fr_auto] gap-4 items-center">
+                            
+                            <div className="relative">
+                                <div className="absolute -top-2.5 left-4 px-1.5 bg-white text-[9px] font-black uppercase tracking-widest text-violet-500 z-10">Lexicon Key Target</div>
+                                <input
+                                    value={newName}
+                                    onChange={e => setNewName(e.target.value)}
+                                    placeholder='e.g. "Stale Record"'
+                                    className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-4 py-4 text-slate-800 text-[13px] font-bold outline-none focus:border-violet-400 focus:bg-white focus:ring-4 focus:ring-violet-500/10 transition-all placeholder-slate-300"
+                                />
+                            </div>
+
+                            <div className="hidden lg:flex items-center justify-center">
+                                <ArrowRight size={20} className="text-slate-300" />
+                            </div>
+
+                            <div className="relative">
+                                <div className="absolute -top-2.5 left-4 px-1.5 bg-white text-[9px] font-black uppercase tracking-widest text-emerald-500 z-10">Engine Ground Truth</div>
+                                <input
+                                    value={newDef}
+                                    onChange={e => setNewDef(e.target.value)}
+                                    onKeyDown={e => e.key === 'Enter' && handleAdd()}
+                                    placeholder='e.g. "has not been updated in 3 months"'
+                                    className="w-full bg-slate-50 border-2 border-slate-100 rounded-xl px-4 py-4 text-slate-800 text-[13px] font-bold outline-none focus:border-emerald-400 focus:bg-white focus:ring-4 focus:ring-emerald-500/10 transition-all placeholder-slate-300"
+                                />
+                            </div>
+
+                            <Button
+                                onClick={handleAdd}
+                                disabled={!newName.trim() || !newDef.trim() || saving}
+                                className="bg-violet-600 hover:bg-violet-700 text-white font-black uppercase tracking-wider text-[11px] h-full min-h-[52px] rounded-xl cursor-pointer shadow-[0_4px_14px_0_rgba(139,92,246,0.39)] transition-transform active:scale-95 disabled:shadow-none"
+                            >
+                                {saving ? <><Loader2 size={16} className="animate-spin mr-2" /> Encoding</> : <><Save size={16} className="mr-2" /> Ingest</>}
+                            </Button>
+
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 xl:grid-cols-3 gap-10">
+                        {/* ── Encoded Semantic Nodes (List) ── */}
+                        <div className="xl:col-span-2">
+                            <h2 className="text-[11px] font-black text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+                                <Database size={14} className="text-slate-400"/> Encoded Semantic Nodes {rules.length > 0 && `(${rules.length})`}
+                            </h2>
+                            
+                            {loading ? (
+                                <div className="py-20 flex flex-col items-center justify-center border-2 border-dashed border-slate-200 rounded-3xl bg-slate-50/50">
+                                    <Loader2 size={32} className="text-violet-400 animate-spin mb-4" />
+                                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Scanning Core Storage...</span>
+                                </div>
+                            ) : rules.length > 0 ? (
+                                <div className="space-y-3">
+                                    {rules.map(rule => (
+                                        <div key={rule.id} className="group relative pr-12 xl:pr-16 bg-white border border-slate-200 rounded-[20px] p-5 shadow-sm hover:shadow-md hover:border-violet-200 transition-all">
+                                            
+                                            <div className="flex flex-col md:flex-row md:items-center gap-3 md:gap-5 relative z-10">
+                                                {/* Lexicon Key */}
+                                                <div className="flex-shrink-0 flex items-center gap-2">
+                                                    <span className="w-2 h-2 rounded-full bg-violet-400"></span>
+                                                    <span className="font-mono text-violet-700 text-[12px] font-black bg-violet-50/80 px-3 py-1.5 rounded-lg border border-violet-100 shadow-inner">
+                                                        "{rule.name}"
+                                                    </span>
+                                                </div>
+                                                
+                                                {/* Linking visual */}
+                                                <div className="hidden md:flex flex-1 items-center px-2">
+                                                    <div className="h-px w-full bg-slate-200 border-dashed border-t-2"></div>
+                                                    <ArrowRight size={14} className="text-slate-300 ml-1 shrink-0" />
+                                                </div>
+
+                                                <div className="md:hidden flex h-4 w-px bg-slate-200 ml-6 -mt-1 mb-1"></div>
+
+                                                {/* Ground Truth */}
+                                                <div className="flex-grow max-w-full">
+                                                    <p className="text-slate-600 text-[13px] leading-relaxed font-bold bg-slate-50/80 px-4 py-2 border border-slate-100 rounded-xl shadow-inner min-h-[40px] flex items-center">
+                                                        {rule.definition}
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            {/* Action Button */}
+                                            <button 
+                                                onClick={() => handleDelete(rule.id)} 
+                                                className="absolute right-5 top-1/2 -translate-y-1/2 text-slate-300 hover:text-rose-500 p-2 rounded-xl transition-all cursor-pointer opacity-0 group-hover:opacity-100 hover:bg-rose-50"
+                                                title="Delete Node"
+                                            >
+                                                <Trash2 size={16} />
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <div className="py-20 flex flex-col items-center justify-center border-2 border-dashed border-slate-200 rounded-3xl bg-slate-50/50">
+                                    <Blocks size={32} className="text-slate-300 mb-4" />
+                                    <span className="text-[11px] font-black uppercase tracking-widest text-slate-500 mb-1">Lexicon Core Empty</span>
+                                    <span className="text-xs font-bold text-slate-400">Mapping tables unavailable. Agent reasoning unaffected.</span>
+                                </div>
+                            )}
+                        </div>
+
+                        {/* ── Pre-Trained Classifications ── */}
+                        <div>
+                            <h2 className="text-[11px] font-black text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+                                <Cpu size={14} className="text-slate-400" /> Inject Pre-Trained Nodes
+                            </h2>
+                            <div className="flex flex-col gap-3">
+                                {EXAMPLE_RULES.map(rule => {
+                                    const isAdded = rules.some(r => r.name === rule.name);
+                                    return (
+                                        <button
+                                            key={rule.id}
+                                            onClick={() => handleAddExample(rule)}
+                                            disabled={isAdded}
+                                            className={`text-left border rounded-2xl p-4 transition-all relative overflow-hidden group 
+                                                ${isAdded 
+                                                    ? 'opacity-60 cursor-not-allowed border-slate-200 bg-slate-50/50' 
+                                                    : 'cursor-pointer border-slate-200 bg-white hover:border-emerald-300 hover:shadow-[0_4px_20px_rgba(16,185,129,0.1)] hover:-translate-y-0.5'}`}
+                                        >
+                                            {/* Hover decoration */}
+                                            {!isAdded && <div className="absolute right-0 top-0 bottom-0 w-1 bg-emerald-400 opacity-0 group-hover:opacity-100 transition-opacity"></div>}
+                                            
+                                            <div className="flex items-start justify-between gap-2 mb-2">
+                                                <span className="font-mono text-emerald-800 text-[11px] font-black bg-emerald-50 px-2 py-1 rounded inline-block border border-emerald-100/50">
+                                                    {rule.name}
+                                                </span>
+                                                {isAdded && <CheckCircle size={14} className="text-emerald-500 shrink-0" />}
+                                                {!isAdded && <Plus size={14} className="text-slate-300 group-hover:text-emerald-500 transition-colors shrink-0" />}
+                                            </div>
+                                            <p className="m-0 text-slate-500 text-[11px] leading-relaxed font-bold block">{rule.definition}</p>
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </div>

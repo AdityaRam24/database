@@ -1,11 +1,5 @@
 'use client';
 
-// ─────────────────────────────────────────────────────────────
-//  FILE: frontend/src/app/dashboard/page.tsx
-//  REDESIGNED: Full UI/UX overhaul — seamless metrics bar,
-//  elevated hero CTA, decluttered cards, rich micro-interactions
-// ─────────────────────────────────────────────────────────────
-
 import { useEffect, useState } from "react";
 import SchemaGraph from "@/components/SchemaGraph";
 import OptimizationReport from "@/components/OptimizationReport";
@@ -13,539 +7,606 @@ import { useRouter } from "next/navigation";
 import {
   Database, Folder, Key, Zap, GitMerge, Activity,
   ShieldAlert, Shield, BookOpen, Plus, ArrowUpRight,
-  RefreshCw, AlertCircle, PlugZap, Maximize2, X
+  RefreshCw, AlertCircle, PlugZap, Maximize2, X,
+  Table2, TrendingUp, CheckCircle2, Sparkles,
+  Heart, Lock, MessageSquare, ChevronRight, Bot
 } from "lucide-react";
 import DashboardShell from "@/components/DashboardShell";
+import { motion, AnimatePresence } from "framer-motion";
 
-// ── Quick action tiles ─────────────────────────────────────
+/* ─── Quick Actions ────────────────────────────────────────── */
 const QUICK_ACTIONS = [
-  { label: "Speed Optimization", desc: "Make queries faster", icon: Zap, color: "#f59e0b", path: "/dashboard/performance" },
-  { label: "Safe Changes", desc: "Modify schema safely", icon: GitMerge, color: "#3b82f6", path: "/dashboard/governance" },
-  { label: "Vital Signs", desc: "Monitor traffic & health", icon: Activity, color: "#ef4444", path: "/dashboard/anomaly" },
-  { label: "Alerts", desc: "View incident logs", icon: ShieldAlert, color: "#f97316", path: "/dashboard/incidents" },
-  { label: "Privacy & Security", desc: "Manage PII & access", icon: Shield, color: "#818cf8", path: "/dashboard/security" },
-  { label: "Company Knowledge", desc: "Teach the AI rules", icon: BookOpen, color: "#a78bfa", path: "/dashboard/semantic" },
+  {
+    label: "Speed Optimizer",
+    desc: "Find slow queries and make them lightning fast",
+    whatItDoes: "Makes your database faster",
+    icon: Zap,
+    emoji: "⚡",
+    color: "#f59e0b",
+    bg: "#fffbeb",
+    border: "#fde68a",
+    path: "/dashboard/performance",
+  },
+  {
+    label: "Safe Schema Editor",
+    desc: "Add or change tables without breaking anything",
+    whatItDoes: "Modify structure safely",
+    icon: GitMerge,
+    emoji: "🔧",
+    color: "#3b82f6",
+    bg: "#eff6ff",
+    border: "#bfdbfe",
+    path: "/dashboard/governance",
+  },
+  {
+    label: "Health Monitor",
+    desc: "See if your database is running smoothly",
+    whatItDoes: "Track live health stats",
+    icon: Activity,
+    emoji: "❤️",
+    color: "#ef4444",
+    bg: "#fef2f2",
+    border: "#fecaca",
+    path: "/dashboard/anomaly",
+  },
+  {
+    label: "Alerts Center",
+    desc: "View and fix any active issues or warnings",
+    whatItDoes: "Stay on top of problems",
+    icon: ShieldAlert,
+    emoji: "🚨",
+    color: "#f97316",
+    bg: "#fff7ed",
+    border: "#fed7aa",
+    path: "/dashboard/incidents",
+  },
+  {
+    label: "Security Guard",
+    desc: "Protect sensitive data and manage who has access",
+    whatItDoes: "Keep your data private",
+    icon: Shield,
+    emoji: "🛡️",
+    color: "#818cf8",
+    bg: "#f5f3ff",
+    border: "#ddd6fe",
+    path: "/dashboard/security",
+  },
+  {
+    label: "AI Knowledge Base",
+    desc: "Teach the AI your business rules for smarter answers",
+    whatItDoes: "Train the AI on your data",
+    icon: BookOpen,
+    emoji: "🧠",
+    color: "#a78bfa",
+    bg: "#faf5ff",
+    border: "#e9d5ff",
+    path: "/dashboard/semantic",
+  },
 ];
 
-// ── Skeleton card ──────────────────────────────────────────
+/* ─── Helpers ──────────────────────────────────────────────── */
 function SkeletonPulse({ className = "" }: { className?: string }) {
-  return (
-    <div
-      className={`animate-pulse rounded-lg bg-slate-200 dark:bg-slate-800 ${className}`}
-    />
-  );
+  return <div className={`animate-pulse rounded-xl bg-slate-100 ${className}`} />;
 }
 
-// ── Stat metric tile ───────────────────────────────────────
-interface StatTileProps {
-  label: string;
-  value: string | number;
-  unit?: string;
-  icon: any;
-  color: string;
-  gradient: string;
-  sub: string;
-  delay?: number;
-}
-function StatTile({ label, value, unit, icon: Icon, color, gradient, sub, delay = 0 }: StatTileProps) {
-  return (
-    <div
-      className="group relative flex flex-col gap-2 rounded-2xl p-5 transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5 overflow-hidden"
-      style={{ background: gradient, animationDelay: `${delay}ms` }}
-    >
-      {/* Decorative circle */}
-      <div className="pointer-events-none absolute -right-4 -top-4 w-20 h-20 rounded-full border border-white/10 transition-opacity duration-300 group-hover:opacity-60" />
-
-      <div className="flex items-center justify-between relative z-10">
-        <span className="text-[11px] font-semibold uppercase tracking-widest text-white/70">
-          {label}
-        </span>
-        <div className="w-7 h-7 rounded-lg flex items-center justify-center bg-white/15 backdrop-blur-sm">
-          <Icon size={13} className="text-white/80" />
-        </div>
-      </div>
-
-      <div className="flex items-end gap-1.5 relative z-10">
-        <span className="text-[2.25rem] font-extrabold tracking-tight leading-none text-white">
-          {value}
-        </span>
-        {unit && (
-          <span className="text-base font-semibold text-white/50 mb-0.5">
-            {unit}
-          </span>
-        )}
-      </div>
-
-      {/* Color bar */}
-      <div className="relative z-10 w-full h-1 rounded-full bg-white/15 overflow-hidden">
-        <div className="h-full w-3/4 rounded-full bg-white/40" />
-      </div>
-
-      <p className="text-[12px] text-white/65 font-medium relative z-10">{sub}</p>
-    </div>
-  );
+function getHealthLabel(score: number) {
+  if (score >= 95) return { text: "Excellent", emoji: "🚀", color: "#10b981", bg: "#d1fae5", border: "#6ee7b7" };
+  if (score >= 80) return { text: "Good", emoji: "✅", color: "#3b82f6", bg: "#dbeafe", border: "#93c5fd" };
+  if (score >= 60) return { text: "Fair", emoji: "⚠️", color: "#f59e0b", bg: "#fef3c7", border: "#fcd34d" };
+  return { text: "Needs Attention", emoji: "🔴", color: "#ef4444", bg: "#fee2e2", border: "#fca5a5" };
 }
 
-// ── Health score card (featured) ───────────────────────────
-function HealthScoreCard({ score }: { score: number }) {
-  const isGreat = score === 100;
-  const isGood = score > 80;
-  const label = isGreat
-    ? "Perfect health — your DB is flying."
-    : isGood
-      ? "Good health — minor improvements available."
-      : "Attention needed — let AI assist.";
-  const ring = isGreat ? "#10b981" : isGood ? "#6366f1" : "#f59e0b";
-
-  return (
-    <div className="group relative col-span-full sm:col-span-1 flex flex-col gap-3 rounded-2xl overflow-hidden p-5 transition-all duration-300 hover:shadow-2xl hover:-translate-y-0.5"
-      style={{ background: "linear-gradient(135deg,#4f46e5 0%,#7c3aed 60%,#9333ea 100%)" }}
-    >
-      {/* Orbit decoration */}
-      <div className="pointer-events-none absolute -right-10 -top-10 w-48 h-48 rounded-full border border-white/10" />
-      <div className="pointer-events-none absolute -right-4 -top-4 w-28 h-28 rounded-full border border-white/10" />
-
-      <div className="flex items-center justify-between relative z-10">
-        <span className="text-[11px] font-semibold uppercase tracking-widest text-white/60">
-          Overall Health
-        </span>
-        <Activity size={13} className="text-white/40" />
-      </div>
-
-      <div className="relative z-10 flex items-end gap-2">
-        <span className="text-[3.5rem] font-black tracking-tight leading-none text-white">
-          {score}
-        </span>
-        <span className="text-xl font-bold text-white/40 mb-1">/ 100</span>
-      </div>
-
-      {/* Mini progress bar */}
-      <div className="relative z-10 w-full h-1.5 rounded-full bg-white/15 overflow-hidden">
-        <div
-          className="h-full rounded-full transition-all duration-1000"
-          style={{ width: `${score}%`, background: ring }}
-        />
-      </div>
-
-      <p className="relative z-10 text-[12px] text-white/75 font-medium leading-relaxed">
-        {label}
-      </p>
-    </div>
-  );
-}
-
-// ── Empty / no-connection state ────────────────────────────
-function EmptyState({ onConnect }: { onConnect: () => void }) {
-  return (
-    <div className="flex flex-col items-center justify-center gap-6 rounded-3xl border border-dashed border-slate-200 dark:border-slate-700/50 bg-white/50 dark:bg-white/[0.02] backdrop-blur p-16 mt-8 text-center">
-      <div className="relative">
-        <div className="w-20 h-20 rounded-2xl bg-violet-50 dark:bg-violet-500/10 flex items-center justify-center shadow-inner">
-          <PlugZap size={32} className="text-violet-400" />
-        </div>
-        <div className="absolute -right-1 -bottom-1 w-6 h-6 rounded-full bg-amber-400 flex items-center justify-center shadow-sm">
-          <span className="text-white font-black text-[10px]">!</span>
-        </div>
-      </div>
-
-      <div className="max-w-xs">
-        <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100 mb-2">
-          No database connected
-        </h3>
-        <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed">
-          Connect a database to unlock schema visualization, AI-powered optimizations, and real-time insights.
-        </p>
-      </div>
-
-      <button
-        onClick={onConnect}
-        className="flex items-center gap-2 px-6 py-3 rounded-xl text-sm font-semibold bg-violet-600 hover:bg-violet-500 text-white transition-all shadow-lg shadow-violet-500/25 hover:shadow-violet-500/40 hover:-translate-y-0.5 active:translate-y-0"
-      >
-        <Plus size={14} />
-        Connect a Database
-      </button>
-    </div>
-  );
-}
-
-// ── Error state ────────────────────────────────────────────
-function ErrorState({
-  message,
-  onRetry,
-  onConnect,
+/* ─── Stat Card ────────────────────────────────────────────── */
+function StatCard({
+  label, friendlyLabel, value, unit, icon: Icon,
+  color, gradient, tip, index
 }: {
-  message: string;
-  onRetry: () => void;
-  onConnect: () => void;
+  label: string; friendlyLabel: string; value: string | number;
+  unit?: string; icon: any; color: string; gradient: string;
+  tip: string; index: number;
 }) {
   return (
-    <div className="flex flex-col items-center justify-center gap-5 rounded-3xl border border-red-200/60 dark:border-red-500/20 bg-red-50/50 dark:bg-red-500/5 backdrop-blur p-12 mt-8 text-center animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="w-16 h-16 rounded-2xl bg-red-100 dark:bg-red-500/10 flex items-center justify-center ring-4 ring-red-100 dark:ring-red-500/10">
-        <AlertCircle size={28} className="text-red-400" />
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, delay: index * 0.07 }}
+      className="relative rounded-2xl p-5 overflow-hidden group cursor-default"
+      style={{ background: gradient, boxShadow: `0 4px 24px ${color}22` }}
+    >
+      {/* Decorative rings */}
+      <div className="absolute -right-6 -top-6 w-28 h-28 rounded-full border border-white/10 pointer-events-none" />
+      <div className="absolute -right-2 -top-2 w-14 h-14 rounded-full border border-white/10 pointer-events-none" />
+
+      <div className="relative z-10 flex items-center justify-between mb-3">
+        <span className="text-[10px] font-black text-white/60 uppercase tracking-widest">{label}</span>
+        <div className="w-8 h-8 rounded-xl flex items-center justify-center bg-white/15">
+          <Icon size={14} className="text-white" />
+        </div>
+      </div>
+
+      <div className="relative z-10 flex items-end gap-1.5 mb-2">
+        <span className="text-[2.6rem] font-black tracking-tight leading-none text-white">{value}</span>
+        {unit && <span className="text-base font-bold text-white/50 mb-1">{unit}</span>}
+      </div>
+
+      {/* Friendly label */}
+      <p className="relative z-10 text-[12px] font-bold text-white/75">{friendlyLabel}</p>
+
+      {/* Tooltip on hover */}
+      <div className="absolute inset-x-0 bottom-0 h-0 group-hover:h-auto overflow-hidden transition-all duration-300">
+        <div className="px-4 py-2 bg-black/30 backdrop-blur-sm">
+          <p className="text-[11px] text-white/80 font-medium">{tip}</p>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+/* ─── Health Score Hero ─────────────────────────────────────── */
+function HealthHero({ score }: { score: number }) {
+  const health = getHealthLabel(score);
+  const circumference = 2 * Math.PI * 36;
+  const offset = circumference - (score / 100) * circumference;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.5 }}
+      className="relative rounded-2xl overflow-hidden p-6 row-span-1"
+      style={{
+        background: "linear-gradient(135deg, #4f46e5 0%, #7c3aed 60%, #9333ea 100%)",
+        boxShadow: "0 8px 32px rgba(124,58,237,0.35)",
+      }}
+    >
+      {/* Decoration */}
+      <div className="absolute -right-12 -top-12 w-48 h-48 rounded-full border border-white/10 pointer-events-none" />
+      <div className="absolute -right-4 -top-4 w-24 h-24 rounded-full border border-white/10 pointer-events-none" />
+
+      <div className="relative z-10 flex items-center justify-between mb-4">
+        <div>
+          <p className="text-[10px] font-black text-white/60 uppercase tracking-widest mb-1">Overall Health</p>
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-black px-2.5 py-0.5 rounded-full" style={{ background: health.bg, color: health.color }}>
+              {health.emoji} {health.text}
+            </span>
+          </div>
+        </div>
+        <svg width="80" height="80" viewBox="0 0 80 80">
+          <circle cx="40" cy="40" r="36" fill="none" stroke="rgba(255,255,255,0.12)" strokeWidth="6" />
+          <circle
+            cx="40" cy="40" r="36" fill="none"
+            stroke="white" strokeWidth="6"
+            strokeLinecap="round"
+            strokeDasharray={circumference}
+            strokeDashoffset={offset}
+            transform="rotate(-90 40 40)"
+            style={{ transition: "stroke-dashoffset 1.2s ease" }}
+          />
+          <text x="40" y="40" dominantBaseline="middle" textAnchor="middle" fill="white" fontSize="18" fontWeight="900">{score}</text>
+          <text x="40" y="54" dominantBaseline="middle" textAnchor="middle" fill="rgba(255,255,255,0.5)" fontSize="8" fontWeight="700">/100</text>
+        </svg>
+      </div>
+
+      <p className="relative z-10 text-[13px] text-white/70 font-bold leading-snug">
+        {score >= 95 ? "🚀 Your database is running perfectly! Everything looks great." :
+         score >= 80 ? "✅ Good health. A few small improvements could make it even better." :
+         score >= 60 ? "⚠️ Some issues detected. Check the AI recommendations below." :
+         "🔴 Attention needed — AI has found things that need fixing soon."}
+      </p>
+    </motion.div>
+  );
+}
+
+/* ─── Quick Action Card ─────────────────────────────────────── */
+function ActionCard({ action, onClick, index }: { action: typeof QUICK_ACTIONS[0]; onClick: () => void; index: number }) {
+  const Icon = action.icon;
+  return (
+    <motion.button
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.35, delay: 0.15 + index * 0.05 }}
+      whileHover={{ y: -3, boxShadow: `0 8px 24px ${action.color}22` }}
+      whileTap={{ scale: 0.97 }}
+      onClick={onClick}
+      className="group text-left rounded-2xl p-4 border transition-all duration-200 cursor-pointer"
+      style={{ background: action.bg, borderColor: action.border }}
+    >
+      <div className="flex items-start justify-between mb-3">
+        <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl" style={{ background: `${action.color}18` }}>
+          {action.emoji}
+        </div>
+        <ChevronRight size={14} className="mt-1 transition-all group-hover:translate-x-1" style={{ color: action.color }} />
+      </div>
+      <p className="text-[13px] font-black text-slate-900 leading-tight mb-1">{action.label}</p>
+      <p className="text-[11px] font-bold leading-snug" style={{ color: `${action.color}cc` }}>{action.whatItDoes}</p>
+      <p className="text-[10px] text-slate-500 font-medium mt-1.5 leading-snug hidden group-hover:block">{action.desc}</p>
+    </motion.button>
+  );
+}
+
+/* ─── Empty State ───────────────────────────────────────────── */
+function EmptyState({ onConnect }: { onConnect: () => void }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="flex flex-col items-center justify-center gap-8 rounded-3xl border-2 border-dashed border-violet-200 bg-gradient-to-br from-violet-50 via-white to-indigo-50 p-16 mt-4 text-center"
+      style={{ boxShadow: "0 4px 32px rgba(124,58,237,0.06)" }}
+    >
+      {/* Animated icon */}
+      <div className="relative">
+        <div className="w-24 h-24 rounded-3xl flex items-center justify-center"
+          style={{ background: "linear-gradient(135deg,#7c3aed,#4f46e5)", boxShadow: "0 8px 32px rgba(124,58,237,0.35)" }}>
+          <Database size={40} color="white" />
+        </div>
+        <motion.div animate={{ scale: [1, 1.2, 1] }} transition={{ repeat: Infinity, duration: 2 }}
+          className="absolute -right-1 -bottom-1 w-7 h-7 rounded-full bg-amber-400 flex items-center justify-center shadow-lg">
+          <span className="text-white font-black text-sm">!</span>
+        </motion.div>
       </div>
 
       <div className="max-w-md">
-        <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 mb-1">
-          Connection failed
-        </h3>
-        <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed mb-1">
-          {message}
+        <h2 className="text-2xl font-black text-slate-900 mb-3">No Database Connected Yet</h2>
+        <p className="text-slate-500 font-bold text-sm leading-relaxed mb-2">
+          Think of this dashboard as your database's control room.
         </p>
-        <p className="text-xs text-slate-400 dark:text-slate-500 leading-relaxed">
-          The database may have been removed or the connection string is invalid. Try reconnecting or select another project from the sidebar.
+        <p className="text-slate-400 text-sm leading-relaxed">
+          Once you connect a database, you'll see its health score, how much storage it uses, all your tables, AI-powered suggestions to make it faster, and a visual map of how everything is connected.
         </p>
       </div>
 
-      <div className="flex flex-wrap items-center justify-center gap-3">
-        <button
-          onClick={onConnect}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold bg-violet-600 hover:bg-violet-500 text-white transition-all shadow-md shadow-violet-500/20"
-        >
-          <Plus size={14} /> Connect New Database
-        </button>
-        <button
-          onClick={onRetry}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold bg-white dark:bg-white/5 hover:bg-slate-50 dark:hover:bg-white/10 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 transition-all"
-        >
-          <RefreshCw size={14} /> Retry Connection
-        </button>
-      </div>
-    </div>
-  );
-}
-
-// ── Loading skeleton grid ──────────────────────────────────
-function LoadingSkeleton() {
-  return (
-    <div className="flex flex-col gap-6 mt-2">
-      {/* Metric bar skeletons */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="rounded-2xl border border-black/[0.06] dark:border-white/[0.06] bg-white/80 dark:bg-white/[0.03] p-5 flex flex-col gap-3">
-            <div className="flex items-center justify-between">
-              <SkeletonPulse className="h-3 w-24" />
-              <SkeletonPulse className="h-7 w-7 rounded-lg" />
-            </div>
-            <SkeletonPulse className="h-10 w-20" />
-            <SkeletonPulse className="h-3 w-32" />
+      {/* Feature previews */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 w-full max-w-lg">
+        {[
+          { emoji: "📊", label: "Health Score", desc: "Know if your DB is healthy" },
+          { emoji: "🗺️", label: "Schema Map", desc: "See all tables visually" },
+          { emoji: "🤖", label: "AI Suggestions", desc: "Auto-fix performance issues" },
+          { emoji: "⚡", label: "Speed Analysis", desc: "Find slow queries instantly" },
+          { emoji: "🛡️", label: "Security Check", desc: "Protect sensitive data" },
+          { emoji: "🎤", label: "Ask AI Anything", desc: "Chat about your data" },
+        ].map(f => (
+          <div key={f.label} className="bg-white rounded-2xl p-3 border border-slate-100 text-left shadow-sm">
+            <div className="text-xl mb-1">{f.emoji}</div>
+            <p className="text-[12px] font-black text-slate-800">{f.label}</p>
+            <p className="text-[10px] text-slate-400 font-medium">{f.desc}</p>
           </div>
         ))}
       </div>
-      {/* Optimization report skeleton */}
-      <div className="rounded-2xl border border-black/[0.06] dark:border-white/[0.06] bg-white/80 dark:bg-white/[0.03] p-6 flex flex-col gap-4">
-        <SkeletonPulse className="h-4 w-40" />
-        {Array.from({ length: 2 }).map((_, i) => (
-          <SkeletonPulse key={i} className="h-20 w-full rounded-xl" />
-        ))}
+
+      <motion.button
+        whileHover={{ scale: 1.03, boxShadow: "0 8px 32px rgba(124,58,237,0.45)" }}
+        whileTap={{ scale: 0.97 }}
+        onClick={onConnect}
+        className="flex items-center gap-2.5 px-8 py-4 rounded-2xl text-white font-black text-[15px] cursor-pointer"
+        style={{ background: "linear-gradient(135deg,#7c3aed,#4f46e5)", boxShadow: "0 4px 20px rgba(124,58,237,0.35)" }}
+      >
+        <Plus size={18} /> Connect My Database
+      </motion.button>
+      <p className="text-[11px] text-slate-400 font-bold -mt-4">Supports PostgreSQL, MySQL, SQLite, MongoDB &amp; more</p>
+    </motion.div>
+  );
+}
+
+/* ─── Error State ──────────────────────────────────────────── */
+function ErrorState({ message, onRetry, onConnect }: { message: string; onRetry: () => void; onConnect: () => void }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="flex flex-col items-center justify-center gap-5 rounded-3xl border border-rose-200 bg-gradient-to-br from-rose-50 to-white p-12 mt-4 text-center">
+      <div className="w-16 h-16 rounded-2xl bg-rose-100 flex items-center justify-center" style={{ boxShadow: "0 4px 16px rgba(239,68,68,0.2)" }}>
+        <AlertCircle size={28} className="text-rose-500" />
       </div>
-      {/* Schema skeleton */}
-      <div className="rounded-2xl border border-black/[0.06] dark:border-white/[0.06] bg-white/80 dark:bg-white/[0.03] p-6 h-80">
-        <SkeletonPulse className="h-4 w-48 mb-4" />
-        <SkeletonPulse className="h-full w-full rounded-xl" />
+      <div className="max-w-md">
+        <h3 className="text-lg font-black text-slate-900 mb-2">Connection Failed</h3>
+        <p className="text-sm font-bold text-slate-600 bg-rose-50 border border-rose-100 rounded-xl px-4 py-2.5 mb-2">{message}</p>
+        <p className="text-[12px] text-slate-400 font-medium">The database may be unavailable or the connection details may need updating.</p>
       </div>
+      <div className="flex gap-3">
+        <motion.button whileTap={{ scale: 0.97 }} onClick={onConnect}
+          className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-black text-white cursor-pointer"
+          style={{ background: "linear-gradient(135deg,#7c3aed,#4f46e5)" }}>
+          <Plus size={14} /> New Connection
+        </motion.button>
+        <motion.button whileTap={{ scale: 0.97 }} onClick={onRetry}
+          className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-black border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-all cursor-pointer">
+          <RefreshCw size={14} /> Try Again
+        </motion.button>
+      </div>
+    </motion.div>
+  );
+}
+
+/* ─── Loading Skeleton ─────────────────────────────────────── */
+function LoadingSkeleton() {
+  return (
+    <div className="flex flex-col gap-6 mt-2 animate-in fade-in duration-300">
+      <div className="p-4 rounded-2xl bg-violet-50 border border-violet-100 flex items-center gap-3">
+        <div className="w-5 h-5 rounded-full bg-violet-200 animate-pulse" />
+        <SkeletonPulse className="h-4 w-48" />
+      </div>
+      <div className="grid gap-4 grid-cols-2 lg:grid-cols-5">
+        <SkeletonPulse className="h-36 rounded-2xl" />
+        {[...Array(4)].map((_, i) => <SkeletonPulse key={i} className="h-36 rounded-2xl" />)}
+      </div>
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        {[...Array(6)].map((_, i) => <SkeletonPulse key={i} className="h-28 rounded-2xl" />)}
+      </div>
+      <SkeletonPulse className="h-44 w-full rounded-2xl" />
+      <SkeletonPulse className="h-96 w-full rounded-2xl" />
     </div>
   );
 }
 
-// ── Quick-action tile ──────────────────────────────────────
-function QuickActionTile({
-  action,
-  onClick,
-  index,
-}: {
-  action: (typeof QUICK_ACTIONS)[0];
-  onClick: () => void;
-  index: number;
-}) {
-  const Icon = action.icon;
-  return (
-    <button
-      onClick={onClick}
-      className="group relative flex items-center gap-3 rounded-xl border border-black/[0.06] dark:border-white/[0.06] bg-white/80 dark:bg-white/[0.03] p-3.5 text-left transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 hover:border-transparent focus:outline-none focus-visible:ring-2 focus-visible:ring-violet-500"
-      style={{ animationDelay: `${index * 40}ms` }}
-    >
-      {/* Icon */}
-      <div
-        className="shrink-0 w-9 h-9 rounded-lg flex items-center justify-center transition-transform duration-200 group-hover:scale-110"
-        style={{ background: `${action.color}16` }}
-      >
-        <Icon size={16} style={{ color: action.color }} />
-      </div>
-
-      {/* Text */}
-      <div className="min-w-0 flex-1">
-        <p className="text-[13px] font-semibold text-slate-800 dark:text-slate-100 leading-tight">
-          {action.label}
-        </p>
-        <p className="text-[11px] text-slate-400 dark:text-slate-500 mt-0.5 truncate">
-          {action.desc}
-        </p>
-      </div>
-
-      {/* Arrow */}
-      <ArrowUpRight
-        size={14}
-        className="shrink-0 text-slate-300 dark:text-slate-600 transition-all duration-200 group-hover:text-slate-600 dark:group-hover:text-slate-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
-      />
-    </button>
-  );
-}
-
-// ── Main page ──────────────────────────────────────────────
+/* ─── Main Page ─────────────────────────────────────────────── */
 export default function DashboardPage() {
   const router = useRouter();
   const [stats, setStats] = useState<any>(null);
   const [statsLoading, setStatsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [connectionString, setConnectionString] = useState<string | null>(null);
-  const [dbType, setDbType] = useState<string>('sql');
+  const [dbType, setDbType] = useState<string>("sql");
   const [graphKey, setGraphKey] = useState(0);
-  const [mounted, setMounted] = useState(false);
   const [isSchemaFullscreen, setIsSchemaFullscreen] = useState(false);
+  const [dbName, setDbName] = useState<string>("");
 
-  useEffect(() => setMounted(true), []);
-
-  const handleFixApplied = () => {
-    setGraphKey((k) => k + 1);
-    if (connectionString) fetchStats(connectionString);
-  };
+  const handleFixApplied = () => { setGraphKey(k => k + 1); if (connectionString) fetchStats(connectionString); };
 
   const fetchStats = async (connStr: string) => {
-    setStatsLoading(true);
-    setStats(null);
-    setError(null);
+    setStatsLoading(true); setStats(null); setError(null);
     try {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/analysis/dashboard`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ connection_string: connStr }),
-        }
-      );
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/analysis/dashboard`, {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ connection_string: connStr }),
+      });
       if (!res.ok) {
         const errData = await res.json().catch(() => ({}));
-        throw new Error(
-          errData.detail || `Failed to connect (Status: ${res.status}).`
-        );
+        throw new Error(errData.detail || `Failed to connect (Status: ${res.status}).`);
       }
       setStats(await res.json());
     } catch (e: any) {
       setError(e.message || "An error occurred while connecting.");
-    } finally {
-      setStatsLoading(false);
-    }
+    } finally { setStatsLoading(false); }
   };
 
   useEffect(() => {
     const handler = (e: any) => {
-      const { connStr, connectionType } = e.detail;
+      const { connStr, connectionType, projectName } = e.detail;
       setConnectionString(connStr);
       if (connectionType) setDbType(connectionType);
+      if (projectName) setDbName(projectName);
       fetchStats(connStr);
     };
     window.addEventListener("project-changed", handler);
-
     const saved = localStorage.getItem("db_connection_string");
     const savedType = localStorage.getItem("db_type");
+    const savedName = localStorage.getItem("db_project_name") || localStorage.getItem("project_name") || "";
     if (saved) {
       setConnectionString(saved);
       if (savedType) setDbType(savedType);
+      if (savedName) setDbName(savedName);
       fetchStats(saved);
-    } else {
-      setStatsLoading(false);
-    }
-
+    } else { setStatsLoading(false); }
     return () => window.removeEventListener("project-changed", handler);
   }, []);
 
-  const statTiles: StatTileProps[] = stats
-    ? [
-      {
-        label: "Storage Used",
-        value: stats.total_size_mb || 0,
-        unit: "MB",
-        icon: Database,
-        color: "#6366f1",
-        gradient: "linear-gradient(135deg, #6366f1 0%, #818cf8 100%)",
-        sub: dbType === 'mongodb' ? "Total collection size" : "Total disk space consumed",
-        delay: 0,
-      },
-      {
-        label: dbType === 'mongodb' ? "Collections" : "Data Collections",
-        value: stats.total_tables,
-        icon: Folder,
-        color: "#3b82f6",
-        gradient: "linear-gradient(135deg, #3b82f6 0%, #60a5fa 100%)",
-        sub: dbType === 'mongodb' ? "Active MongoDB collections" : "Active database tables",
-        delay: 60,
-      },
-      {
-        label: dbType === 'mongodb' ? "Indexes" : "Safe Connections",
-        value: dbType === 'mongodb' ? (stats.total_indexes ?? "—") : (stats.total_fk_count ?? stats.total_foreign_keys ?? "—"),
-        icon: GitMerge,
-        color: "#10b981",
-        gradient: "linear-gradient(135deg, #059669 0%, #34d399 100%)",
-        sub: dbType === 'mongodb' ? "Optimized query paths" : "Data relationships verified",
-        delay: 120,
-      },
-      {
-        label: dbType === 'mongodb' ? "Documents" : "Primary Keys",
-        value: dbType === 'mongodb' ? (stats.total_documents ?? "—") : (stats.total_pk_count ?? "—"),
-        icon: Key,
-        color: "#f59e0b",
-        gradient: "linear-gradient(135deg, #d97706 0%, #fbbf24 100%)",
-        sub: dbType === 'mongodb' ? "Total document count" : "Unique row identifiers",
-        delay: 180,
-      },
-    ]
-    : [];
+  const statTiles = stats ? [
+    {
+      label: "Storage Used", friendlyLabel: "How much disk space your DB uses",
+      value: stats.total_size_mb || 0, unit: "MB",
+      icon: Database, color: "#6366f1",
+      gradient: "linear-gradient(135deg,#6366f1,#818cf8)",
+      tip: "This is the total disk space consumed by all your data. Normal for most databases.",
+    },
+    {
+      label: dbType === "mongodb" ? "Collections" : "Tables",
+      friendlyLabel: dbType === "mongodb" ? "Places where your data lives" : "Individual data categories",
+      value: stats.total_tables,
+      icon: Folder, color: "#3b82f6",
+      gradient: "linear-gradient(135deg,#3b82f6,#60a5fa)",
+      tip: "Think of tables (or collections) like spreadsheet sheets — each one holds a different type of data.",
+    },
+    {
+      label: dbType === "mongodb" ? "Indexes" : "Connections",
+      friendlyLabel: dbType === "mongodb" ? "Fast lookup paths" : "How tables link together",
+      value: dbType === "mongodb" ? (stats.total_indexes ?? "—") : (stats.total_fk_count ?? stats.total_foreign_keys ?? "—"),
+      icon: GitMerge, color: "#10b981",
+      gradient: "linear-gradient(135deg,#059669,#34d399)",
+      tip: dbType === "mongodb"
+        ? "Indexes are like a book's index — they help your database find data much faster."
+        : "Foreign keys are like bridges between tables, linking related data safely.",
+    },
+    {
+      label: dbType === "mongodb" ? "Documents" : "Primary Keys",
+      friendlyLabel: dbType === "mongodb" ? "Individual data records" : "Unique IDs in your tables",
+      value: dbType === "mongodb" ? (stats.total_documents ?? "—") : (stats.total_pk_count ?? "—"),
+      icon: Key, color: "#f59e0b",
+      gradient: "linear-gradient(135deg,#d97706,#fbbf24)",
+      tip: dbType === "mongodb"
+        ? "Each document is one record — like one row in a spreadsheet."
+        : "Primary keys are unique IDs that identify each row, like a student ID number.",
+    },
+  ] : [];
 
   return (
     <DashboardShell>
       <div className="px-4 md:px-6 pb-8 w-full flex flex-col flex-1 min-h-0">
 
         {/* ── Page header ── */}
-        <div className="flex items-center justify-between py-4 md:py-6">
+        <div className="flex items-center justify-between py-4 md:py-5">
           <div>
-            <h2 className="text-2xl font-bold tracking-tight" style={{ color: 'hsl(255 40% 15%)' }}>
-              Overview
-            </h2>
-            <p className="text-sm mt-0.5" style={{ color: 'hsl(255 20% 38%)' }}>
-              High-level metrics for your selected database
+            <h1 className="text-2xl font-black tracking-tight text-slate-900">
+              {dbName ? `${dbName}` : "Your Database Dashboard"}
+            </h1>
+            <p className="text-sm mt-0.5 font-bold text-slate-500">
+              {stats
+                ? "Everything your database is doing, at a glance"
+                : connectionString
+                ? "Loading your database health…"
+                : "Connect a database to see its full picture"}
             </p>
           </div>
-
-          <button
-            onClick={() => router.push("/connect")}
-            className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold border border-slate-200 dark:border-slate-700 bg-white dark:bg-white/5 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/10 hover:text-slate-900 dark:hover:text-white transition-all"
-          >
-            <Plus size={13} /> Connect Another
-          </button>
+          <div className="flex items-center gap-2">
+            <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }}
+              onClick={() => router.push("/dashboard/ai")}
+              className="hidden sm:flex items-center gap-2 px-4 py-2.5 rounded-xl text-[12px] font-black text-white cursor-pointer"
+              style={{ background: "linear-gradient(135deg,#7c3aed,#4f46e5)", boxShadow: "0 4px 16px rgba(124,58,237,0.35)" }}
+            >
+              <Bot size={14} /> Ask AI
+            </motion.button>
+            <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
+              onClick={() => router.push("/connect")}
+              className="hidden sm:flex items-center gap-2 px-4 py-2.5 rounded-xl text-[12px] font-black text-slate-600 border border-slate-200 bg-white hover:bg-slate-50 transition-all cursor-pointer"
+            >
+              <Plus size={13} /> Connect Another
+            </motion.button>
+          </div>
         </div>
 
         {/* ── States ── */}
         {statsLoading ? (
           <LoadingSkeleton />
         ) : error ? (
-          <ErrorState
-            message={error}
-            onRetry={() => connectionString && fetchStats(connectionString)}
-            onConnect={() => router.push("/connect")}
-          />
+          <ErrorState message={error} onRetry={() => connectionString && fetchStats(connectionString)} onConnect={() => router.push("/connect")} />
         ) : !connectionString && !stats ? (
           <EmptyState onConnect={() => router.push("/connect")} />
         ) : (
-          <div className="flex flex-col flex-1 gap-6 animate-in fade-in slide-in-from-bottom-3 duration-500">
+          <div className="flex flex-col flex-1 gap-6">
 
-            {/* ── Metrics bar ── */}
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
-              {/* Health score — spans 1 col on mobile, 1 on lg */}
-              {stats && (
-                <HealthScoreCard score={stats.optimization_score} />
-              )}
+            {/* ── Status Banner ── */}
+            {stats && (
+              <motion.div
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4 }}
+                className="flex items-center gap-3 px-5 py-3 rounded-2xl border"
+                style={{
+                  background: stats.optimization_score >= 95 ? "#f0fdf4" : stats.optimization_score >= 80 ? "#eff6ff" : "#fefce8",
+                  borderColor: stats.optimization_score >= 95 ? "#bbf7d0" : stats.optimization_score >= 80 ? "#bfdbfe" : "#fde68a",
+                }}
+              >
+                <span className="text-lg">{stats.optimization_score >= 95 ? "🚀" : stats.optimization_score >= 80 ? "✅" : "⚠️"}</span>
+                <div>
+                  <p className="text-[13px] font-black text-slate-800">
+                    {stats.optimization_score >= 95
+                      ? "All systems running perfectly!"
+                      : stats.optimization_score >= 80
+                      ? "Database is healthy — minor improvements available below"
+                      : "Some improvements recommended — check AI suggestions below"}
+                  </p>
+                  <p className="text-[11px] font-bold text-slate-500">
+                    Database: <span className="font-black text-slate-700">{dbName || connectionString?.split("@")[1]?.split("/")[0] || "Connected"}</span>
+                    {dbType && <span> · Type: <span className="font-black text-slate-700">{dbType.toUpperCase()}</span></span>}
+                  </p>
+                </div>
+                <motion.button
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => connectionString && fetchStats(connectionString)}
+                  className="ml-auto p-2 rounded-xl hover:bg-white/60 transition-all cursor-pointer text-slate-400 hover:text-slate-700"
+                  title="Refresh stats"
+                >
+                  <RefreshCw size={14} />
+                </motion.button>
+              </motion.div>
+            )}
 
-              {/* Stat tiles */}
-              {statTiles.map((tile) => (
-                <StatTile key={tile.label} {...tile} />
+            {/* ── Metrics Row ── */}
+            <div className="grid gap-3 grid-cols-2 lg:grid-cols-5">
+              {stats && <HealthHero score={stats.optimization_score} />}
+              {statTiles.map((tile, i) => (
+                <StatCard key={tile.label} {...tile} index={i} />
               ))}
             </div>
 
-            {/* ── Quick actions ── */}
+            {/* ── Quick Actions ── */}
             <section>
-              <h3 className="text-[11px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-3 px-0.5">
-                Quick actions
-              </h3>
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5">
+              <div className="flex items-center gap-2 mb-3">
+                <Sparkles size={13} className="text-violet-500" />
+                <h2 className="text-[11px] font-black text-slate-400 uppercase tracking-widest">What would you like to do?</h2>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
                 {QUICK_ACTIONS.map((action, i) => (
-                  <QuickActionTile
-                    key={action.label}
-                    action={action}
-                    onClick={() => router.push(action.path)}
-                    index={i}
-                  />
+                  <ActionCard key={action.label} action={action} onClick={() => router.push(action.path)} index={i} />
                 ))}
               </div>
             </section>
 
-            {/* ── Optimization report ── */}
+            {/* ── AI Recommendations ── */}
             {connectionString && (
               <section>
-                <h3 className="text-[11px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-3 px-0.5">
-                  AI recommendations
-                </h3>
-                <OptimizationReport
-                  connectionString={connectionString}
-                  onApplied={handleFixApplied}
-                />
+                <div className="flex items-center gap-2 mb-3">
+                  <Bot size={13} className="text-violet-500" />
+                  <h2 className="text-[11px] font-black text-slate-400 uppercase tracking-widest">AI Recommendations</h2>
+                  <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-violet-100 text-violet-600 uppercase tracking-widest">Auto-detected</span>
+                </div>
+                <OptimizationReport connectionString={connectionString} onApplied={handleFixApplied} />
               </section>
             )}
 
-            {/* ── Schema visualization ── */}
+            {/* ── Schema Map ── */}
             <section className="flex flex-col flex-1 min-h-[440px]">
-              <div className="flex items-center justify-between mb-3 px-0.5">
-                <h3 className="text-[11px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">
-                  Schema visualization
-                </h3>
-                <div className="flex gap-4 items-center text-[11px] text-slate-400 dark:text-slate-500 font-medium">
-                  <div className="flex items-center gap-1.5">
-                    <Key size={11} className="text-amber-400" /> Primary key
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <Table2 size={13} className="text-violet-500" />
+                  <h2 className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Schema Map</h2>
+                  <span className="text-[10px] font-bold text-slate-400">— a visual map of all your tables and how they connect</span>
+                </div>
+                <div className="flex gap-3 items-center text-[10px] text-slate-400 font-bold">
+                  <div className="hidden sm:flex items-center gap-1.5">
+                    <Key size={10} className="text-amber-400" /> Primary Key
                   </div>
-                  <div className="flex items-center gap-1.5">
-                    <div className="w-3 h-0.5 rounded-full bg-violet-400" /> Foreign key
+                  <div className="hidden sm:flex items-center gap-1.5">
+                    <div className="w-3 h-0.5 rounded-full bg-violet-400" /> Foreign Key
                   </div>
-                  <span className="hidden sm:inline text-slate-300 dark:text-slate-600">
-                    Scroll to zoom · Drag to pan
-                  </span>
-                  <button 
-                    onClick={() => setIsSchemaFullscreen(true)} 
-                    className="ml-2 flex items-center gap-1.5 px-2.5 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors shadow-sm"
-                  >
-                    <Maximize2 size={13} />
-                    <span className="font-semibold">Expand</span>
-                  </button>
+                  <span className="hidden sm:inline text-slate-300">· Scroll to zoom · Drag to pan</span>
+                  <motion.button whileTap={{ scale: 0.96 }}
+                    onClick={() => setIsSchemaFullscreen(true)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-slate-600 font-black shadow-sm hover:bg-slate-50 transition-all cursor-pointer text-[11px]">
+                    <Maximize2 size={12} /> Expand
+                  </motion.button>
                 </div>
               </div>
 
-              {isSchemaFullscreen && (
-                <div className="flex-1 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700/50 min-h-[420px] bg-slate-50/50 dark:bg-slate-800/10 flex items-center justify-center">
-                   <div className="flex flex-col items-center gap-2">
-                       <Maximize2 size={24} className="text-slate-300" />
-                       <div className="text-slate-400 font-medium text-sm">Schema map is active in full screen mode</div>
-                   </div>
-                </div>
-              )}
-
-              <div className={isSchemaFullscreen 
-                ? "fixed inset-0 z-[100] bg-slate-50 dark:bg-slate-950 flex flex-col p-4 sm:p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200" 
-                : `flex-1 rounded-2xl border border-black/[0.06] dark:border-white/[0.06] bg-white/80 dark:bg-white/[0.03] overflow-hidden min-h-[420px] relative ${isSchemaFullscreen ? "hidden" : "block"}`
-              }>
+              {/* Fullscreen overlay */}
+              <AnimatePresence>
                 {isSchemaFullscreen && (
-                  <div className="flex items-center justify-between mb-4 px-2">
-                    <h2 className="text-xl font-bold tracking-tight text-slate-800 dark:text-slate-100 flex items-center gap-2">
-                       <Database className="text-violet-500" size={20} />
-                       Database Schema Overview
-                    </h2>
-                    <button 
-                      onClick={() => setIsSchemaFullscreen(false)} 
-                      className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl font-semibold shadow-sm transition-all focus:ring-2 focus:ring-violet-500"
-                    >
-                      <X size={16} />
-                      <span className="hidden sm:inline text-sm">Close Fullscreen</span>
-                    </button>
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="fixed inset-0 z-[100] bg-slate-50 flex flex-col p-5"
+                  >
+                    <div className="flex items-center justify-between mb-4">
+                      <h2 className="text-xl font-black text-slate-900 flex items-center gap-2">
+                        <Database size={20} className="text-violet-500" /> Full Schema Map
+                      </h2>
+                      <motion.button whileTap={{ scale: 0.96 }}
+                        onClick={() => setIsSchemaFullscreen(false)}
+                        className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-slate-200 text-slate-700 font-black shadow-sm hover:bg-slate-50 transition-all cursor-pointer text-sm">
+                        <X size={15} /> Close
+                      </motion.button>
+                    </div>
+                    <div className="flex-1 relative rounded-2xl overflow-hidden border border-slate-200 shadow-inner bg-white">
+                      {connectionString && <SchemaGraph key={graphKey} connectionString={connectionString} />}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* Inline map */}
+              <div className="flex-1 rounded-2xl border border-slate-200 bg-white overflow-hidden min-h-[420px] relative shadow-sm">
+                {connectionString ? (
+                  <SchemaGraph key={graphKey} connectionString={connectionString} />
+                ) : (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 text-center">
+                    <Table2 size={32} className="text-slate-200" />
+                    <p className="text-sm font-bold text-slate-400">Connect a database to see its schema map</p>
                   </div>
                 )}
-                
-                <div className={isSchemaFullscreen ? "flex-1 relative rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700 shadow-inner bg-white dark:bg-slate-900" : "absolute inset-0"}>
-                  {connectionString ? (
-                    <SchemaGraph key={graphKey} connectionString={connectionString} />
-                  ) : (
-                    <div className="absolute inset-0 flex items-center justify-center text-sm text-slate-400">
-                      Connect a database to visualize the schema
-                    </div>
-                  )}
-                </div>
               </div>
             </section>
+
           </div>
         )}
       </div>

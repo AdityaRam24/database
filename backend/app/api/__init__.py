@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from app.api.endpoints import db_connection, analysis, optimization, performance, governance
-from app.api.endpoints import anomaly, security, mcp, semantic_rules, incidents, projects
+from app.api.endpoints import anomaly, security, mcp, semantic_rules, incidents, projects, voice
 
 api_router = APIRouter()
 
@@ -15,6 +15,7 @@ api_router.include_router(mcp.router, prefix="/mcp", tags=["mcp"])
 api_router.include_router(semantic_rules.router, prefix="/semantic", tags=["semantic"])
 api_router.include_router(incidents.router, prefix="/incidents", tags=["incidents"])
 api_router.include_router(projects.router, prefix="/projects", tags=["projects"])
+api_router.include_router(voice.router, prefix="/voice", tags=["voice"])
 
 
 
