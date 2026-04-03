@@ -6,7 +6,8 @@
       "Bash(npm install:*)",
       "Bash(xargs ls:*)",
       "Bash(git -C \"C:/Users/Tikole/OneDrive/Documents/Database-lighthouse/database/frontend\" show HEAD:src/lib/projectStorage.ts)",
-      "Bash(git -C \"C:/Users/Tikole/OneDrive/Documents/Database-lighthouse/database/frontend\" log --oneline -5)"
+      "Bash(git -C \"C:/Users/Tikole/OneDrive/Documents/Database-lighthouse/database/frontend\" log --oneline -5)",
+      "Bash(grep:*)"
     ]
   }
 }

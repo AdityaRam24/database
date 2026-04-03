@@ -10,6 +10,10 @@ from typing import Optional
 router = APIRouter()
 
 
+def _is_firebase(conn: str) -> bool:
+    return '"private_key"' in conn and '"project_id"' in conn
+
+
 class SyntheticRequest(BaseModel):
     source_connection_string: str
     target_connection_string: Optional[str] = None
@@ -22,6 +26,16 @@ class PromptScanRequest(BaseModel):
 @router.post("/generate-synthetic")
 def generate_synthetic(req: SyntheticRequest):
     """Generate a synthetic mirror of the database with PII replaced."""
+    if _is_firebase(req.source_connection_string):
+        return {
+            "supported": False,
+            "db_type": "firestore",
+            "message": (
+                "Synthetic data generation copies schema + data into a PostgreSQL shadow DB and is not available "
+                "for Firestore. To work with anonymised Firestore data, export a collection, anonymise it with "
+                "a script, and re-import to a test project."
+            ),
+        }
     try:
         from app.services.synthetic_data import SyntheticDataService
         from app.core.config import settings
@@ -35,7 +49,23 @@ def generate_synthetic(req: SyntheticRequest):
 
 @router.post("/detect-pii")
 def detect_pii(req: SyntheticRequest):
-    """Scan the database and identify columns likely containing PII."""
+    """Scan the database and identify columns/fields likely containing PII."""
+    if _is_firebase(req.source_connection_string):
+        try:
+            from app.services.firebase_service import FirebaseService
+            service = FirebaseService(req.source_connection_string)
+            pii_map = service.detect_pii_fields()
+            total_fields = sum(len(v) for v in pii_map.values())
+            return {
+                "pii_columns": pii_map,
+                "tables_with_pii": len(pii_map),
+                "total_pii_columns": total_fields,
+                "db_type": "firestore",
+                "note": "PII detected by scanning Firestore field names against common PII patterns.",
+            }
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=str(e))
+
     try:
         from app.services.synthetic_data import SyntheticDataService
         from app.core.config import settings

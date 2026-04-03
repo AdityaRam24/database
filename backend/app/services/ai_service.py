@@ -321,6 +321,98 @@ Generate ONLY the PostgreSQL SELECT query (no markdown, no explanations):"""
 
         return {"sql": sql, "rows": [], "columns": [], "error": f"Could not generate valid SQL after {attempts} attempts. Last error: {last_error}", "attempts": attempts, "chart_type": None, "explanation": None}
 
+    async def answer_firestore_question(
+        self,
+        question: str,
+        schema_context: str,
+        conversation_history: list = None,
+        language: str = "english",
+        business_rules: str = ""
+    ) -> str:
+        """Conversational Q&A for Firestore databases, generates Firestore SDK queries instead of SQL."""
+        from app.services.prompt_firewall import scan_prompt
+        firewall_result = scan_prompt(question)
+        if not firewall_result["is_safe"]:
+            return f"🛡️ Your prompt was blocked by the security firewall. Reason: {firewall_result['threat_detail']}."
+        try:
+            system_msg = f"""You are a helpful Firebase Firestore database assistant.
+The user may write in any language (detected: {language}). Always respond in English.
+{f"Business Rules: {business_rules}" if business_rules else ""}
+
+When the user wants to query data, generate Firestore SDK code (Python or JavaScript).
+Format queries as: [QUERY: <code>]
+
+Rules:
+- Never suggest deleting collections or documents unless explicitly asked
+- Always add .limit(100) to queries
+- Use collection paths from the schema provided"""
+
+            msgs = [{"role": "system", "content": system_msg}]
+            if conversation_history:
+                msgs.extend(conversation_history[-8:])
+            msgs.append({"role": "user", "content": f"Firestore Schema:\n{schema_context}\n\nUser: {question}"})
+            return await self._call_ai(msgs, max_tokens=800)
+        except Exception as e:
+            logger.warning(f"AI error: {e}")
+            return f"The AI system is currently unavailable: {str(e)[:100]}."
+
+    async def generate_firestore_query(
+        self,
+        question: str,
+        schema_context: str,
+        conversation_history: list = None,
+        language: str = "english",
+        business_rules: str = "",
+    ) -> dict:
+        """Generate a Firestore SDK query (Python) from a natural language question."""
+        from app.services.prompt_firewall import scan_prompt
+        firewall_result = scan_prompt(question)
+        if not firewall_result["is_safe"]:
+            return {
+                "query_code": None, "rows": [], "columns": [],
+                "error": f"🛡️ Prompt blocked: {firewall_result['threat_detail']}",
+                "firewall_blocked": True,
+            }
+
+        system_msg = f"""You are a Firestore query expert.
+Generate ONLY a Python Firestore SDK query. No explanations. No markdown.
+{f"Business Rules: {business_rules}" if business_rules else ""}
+Rules:
+- Use `db.collection(...)` as root
+- Always add `.limit(100)`
+- Never generate delete/update operations
+- Use only collection names from the schema"""
+
+        msgs = [{"role": "system", "content": system_msg}]
+        if conversation_history:
+            msgs.extend(conversation_history[-6:])
+        msgs.append({
+            "role": "user",
+            "content": f"Firestore Schema:\n{schema_context}\n\nGenerate query for: {question}",
+        })
+
+        try:
+            response = await self._call_ai(msgs, max_tokens=400, temperature=0.1)
+            # Strip markdown fences if present
+            code = response.strip()
+            for fence in ["```python", "```"]:
+                if code.startswith(fence):
+                    code = code[len(fence):]
+            if code.endswith("```"):
+                code = code[:-3]
+            code = code.strip()
+
+            explanation = await self.explain_sql(f"Firestore query: {code}")
+            return {
+                "query_code": code,
+                "language": "python_firestore_sdk",
+                "explanation": explanation,
+                "note": "Firestore queries cannot be auto-executed. Copy this code into your application.",
+                "error": None,
+            }
+        except Exception as e:
+            return {"query_code": None, "error": str(e), "explanation": None}
+
     async def answer_database_question(
         self,
         question: str,

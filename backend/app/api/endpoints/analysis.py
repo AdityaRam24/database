@@ -70,18 +70,43 @@ def get_schema_graph(request: AnalysisRequest):
 @router.post("/ask")
 async def ask_ai(request: AskRequest):
     try:
-        service = SchemaAnalysisService(request.connection_string)
-        graph_data = service.get_schema_graph_data()
+        # Build schema context from whichever backend
+        if _is_mongodb(request.connection_string):
+            from app.services.mongodb_service import MongoDBService
+            graph_data = MongoDBService(request.connection_string).get_schema_graph_data()
+        elif _is_firebase(request.connection_string):
+            from app.services.firebase_service import FirebaseService
+            graph_data = FirebaseService(request.connection_string).get_schema_graph_data()
+        else:
+            graph_data = SchemaAnalysisService(request.connection_string).get_schema_graph_data()
+
         schema_lines = []
         for node in graph_data.get("nodes", []):
             table_name = node["data"]["label"]
             columns = node["data"].get("columns", [])
             col_strs = [f"  - {c['name']} ({c['type']}{'  PK' if c['is_pk'] else ''})" for c in columns]
-            schema_lines.append(f"Table: {table_name}")
+            schema_lines.append(f"Collection: {table_name}" if _is_firebase(request.connection_string) else f"Table: {table_name}")
             schema_lines.extend(col_strs)
         schema_context = "\n".join(schema_lines) if schema_lines else "No schema data available."
 
         ai_service = AIService()
+
+        if _is_firebase(request.connection_string):
+            answer = await ai_service.answer_firestore_question(
+                question=request.question,
+                schema_context=schema_context,
+                conversation_history=request.conversation_history,
+                language=request.language or "english",
+                business_rules=request.business_rules or "",
+            )
+            import re
+            suggested_action = None
+            match = re.search(r'\[QUERY:\s*(.*?)\]', answer, re.DOTALL)
+            if match:
+                suggested_action = match.group(1).strip()
+                answer = re.sub(r'\[QUERY:.*?\]', '', answer).strip()
+            return {"answer": answer, "suggested_action": suggested_action, "query_type": "firestore"}
+
         answer = await ai_service.answer_database_question(
             question=request.question,
             schema_context=schema_context,
@@ -90,7 +115,6 @@ async def ask_ai(request: AskRequest):
             business_rules=request.business_rules or ""
         )
 
-        # Parse for [EXECUTE: SQL] action
         suggested_action = None
         import re
         match = re.search(r'\[EXECUTE:\s*(.*?)\]', answer, re.DOTALL)
@@ -98,10 +122,7 @@ async def ask_ai(request: AskRequest):
             suggested_action = match.group(1).strip()
             answer = re.sub(r'\[EXECUTE:.*?\]', '', answer).strip()
 
-        return {
-            "answer": answer,
-            "suggested_action": suggested_action
-        }
+        return {"answer": answer, "suggested_action": suggested_action}
 
     except Exception as e:
         logger.error(f"Ask AI failed: {e}")
@@ -110,8 +131,28 @@ async def ask_ai(request: AskRequest):
 
 @router.post("/query")
 async def run_query(request: QueryRequest):
-    """Self-healing NLP-to-SQL endpoint. Generates, validates, fixes and executes SQL."""
+    """Self-healing NLP-to-SQL (PostgreSQL/MongoDB) or NLP-to-Firestore-query endpoint."""
     try:
+        if _is_firebase(request.connection_string):
+            from app.services.firebase_service import FirebaseService
+            graph_data = FirebaseService(request.connection_string).get_schema_graph_data()
+            schema_lines = []
+            for node in graph_data.get("nodes", []):
+                col_name = node["data"]["label"]
+                columns = node["data"].get("columns", [])
+                col_strs = [f"  - {c['name']} ({c['type']})" for c in columns]
+                schema_lines.append(f"Collection: {col_name}")
+                schema_lines.extend(col_strs)
+            schema_context = "\n".join(schema_lines) if schema_lines else ""
+            ai_service = AIService()
+            return await ai_service.generate_firestore_query(
+                question=request.question,
+                schema_context=schema_context,
+                conversation_history=request.conversation_history,
+                language=request.language or "english",
+                business_rules=request.business_rules or "",
+            )
+
         service = SchemaAnalysisService(request.connection_string)
         graph_data = service.get_schema_graph_data()
         schema_lines = []
@@ -178,6 +219,12 @@ class QueryCostRequest(BaseModel):
 @router.post("/drift-scan")
 def run_drift_scan(request: DriftScanRequest):
     """Run semantic drift detection across all tables."""
+    if _is_firebase(request.connection_string):
+        return {
+            "supported": False,
+            "message": "Drift scan uses PostgreSQL system statistics and is not available for Firestore databases.",
+            "drift_issues": [],
+        }
     try:
         from app.services.drift_detector import DriftDetector
         detector = DriftDetector(request.connection_string)
@@ -190,6 +237,11 @@ def run_drift_scan(request: DriftScanRequest):
 @router.post("/query-cost")
 def estimate_query_cost(request: QueryCostRequest):
     """Estimate query cost (rows scanned, I/O, estimated dollar cost, CO2)."""
+    if _is_firebase(request.connection_string):
+        return {
+            "supported": False,
+            "message": "Query cost estimation uses EXPLAIN plans and is not available for Firestore. Use the Firebase console's query profiler instead.",
+        }
     try:
         from sqlalchemy import create_engine, text as sa_text
         from sqlalchemy.pool import NullPool

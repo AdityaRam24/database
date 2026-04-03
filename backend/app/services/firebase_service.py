@@ -200,6 +200,122 @@ class FirebaseService:
         return {"columns": columns, "rows": serialized_rows}
 
     # ------------------------------------------------------------------
+    # Anomaly / Incident metrics
+    # ------------------------------------------------------------------
+
+    def collect_anomaly_metrics(self) -> Dict[str, Any]:
+        """Snapshot Firestore collection document counts for anomaly tracking."""
+        collections = list(self.db.collections())
+        doc_counts: Dict[str, int] = {}
+        for col_ref in collections:
+            try:
+                count_agg = col_ref.count().get()
+                doc_counts[col_ref.id] = count_agg[0][0].value
+            except Exception:
+                doc_counts[col_ref.id] = 0
+        return {
+            "doc_counts": doc_counts,
+            "total_collections": len(collections),
+            "total_documents": sum(doc_counts.values()),
+        }
+
+    # ------------------------------------------------------------------
+    # Optimization recommendations
+    # ------------------------------------------------------------------
+
+    def generate_optimization_recommendations(self) -> List[Dict[str, Any]]:
+        """
+        Analyse Firestore collections for common optimization patterns:
+        - Reference fields without declared indexes
+        - Oversized documents (too many top-level fields)
+        - Collections with no documents (empty dead collections)
+        """
+        recs: List[Dict[str, Any]] = []
+        collections = list(self.db.collections())
+
+        for col_ref in collections:
+            col_id = col_ref.id
+            docs = list(col_ref.limit(10).stream())
+            if not docs:
+                recs.append({
+                    "table": col_id,
+                    "column": None,
+                    "type": "empty_collection",
+                    "description": f"Collection '{col_id}' appears to be empty. Consider removing it to keep the schema clean.",
+                    "impact": "Low",
+                    "explanation": None,
+                    "sql_command": None,
+                })
+                continue
+
+            # Union of all field names across sampled docs
+            all_fields: Dict[str, set] = {}
+            for doc in docs:
+                for field, value in (doc.to_dict() or {}).items():
+                    all_fields.setdefault(field, set()).add(type(value).__name__)
+
+            # Rec: Reference / FK-like fields may need composite indexes
+            for field, types in all_fields.items():
+                if (
+                    "DocumentReference" in types
+                    or field.endswith("_id")
+                    or (field.endswith("Id") and not field[0].isupper())
+                ):
+                    recs.append({
+                        "table": col_id,
+                        "column": field,
+                        "type": "missing_index",
+                        "description": (
+                            f"Field '{field}' in '{col_id}' looks like a reference/FK. "
+                            "Add a composite index in the Firebase Console for queries that filter or sort by this field."
+                        ),
+                        "impact": "High",
+                        "explanation": None,
+                        "sql_command": f"# Firebase Console → Firestore → Indexes → Add composite index on {col_id} ({field} ASC)",
+                    })
+
+            # Rec: Documents with too many top-level fields
+            if len(all_fields) > 25:
+                recs.append({
+                    "table": col_id,
+                    "column": None,
+                    "type": "oversized_document",
+                    "description": (
+                        f"Documents in '{col_id}' have ~{len(all_fields)} top-level fields. "
+                        "Consider moving infrequently accessed fields into a sub-collection to reduce read cost."
+                    ),
+                    "impact": "Medium",
+                    "explanation": None,
+                    "sql_command": None,
+                })
+
+        return recs
+
+    # ------------------------------------------------------------------
+    # PII detection
+    # ------------------------------------------------------------------
+
+    def detect_pii_fields(self) -> Dict[str, List[str]]:
+        """Scan collection field names for PII patterns."""
+        import re
+        PII_PATTERN = re.compile(
+            r"(email|phone|mobile|ssn|passport|address|zip|postal|dob|birth|"
+            r"first.?name|last.?name|full.?name|credit.?card|card.?number|cvv|"
+            r"ip.?address|latitude|longitude|gender|ethnicity|salary|income|"
+            r"national.?id|driver.?licen)",
+            re.IGNORECASE,
+        )
+        pii_map: Dict[str, List[str]] = {}
+        for col_ref in self.db.collections():
+            docs = list(col_ref.limit(1).stream())
+            if not docs:
+                continue
+            pii_fields = [f for f in (docs[0].to_dict() or {}).keys() if PII_PATTERN.search(f)]
+            if pii_fields:
+                pii_map[col_ref.id] = pii_fields
+        return pii_map
+
+    # ------------------------------------------------------------------
     # Dashboard stats
     # ------------------------------------------------------------------
 
