@@ -117,7 +117,17 @@ class SchemaAnalysisService:
                         tc.table_name AS source_table,
                         kcu.column_name AS source_column,
                         ccu.table_name AS target_table,
-                        ccu.column_name AS target_column
+                        ccu.column_name AS target_column,
+                        c.is_nullable AS source_nullable,
+                        (
+                            SELECT COUNT(*) > 0
+                            FROM information_schema.table_constraints u_tc
+                            JOIN information_schema.key_column_usage u_kcu
+                              ON u_tc.constraint_name = u_kcu.constraint_name
+                            WHERE u_tc.table_name = tc.table_name 
+                              AND u_kcu.column_name = kcu.column_name
+                              AND u_tc.constraint_type IN ('UNIQUE', 'PRIMARY KEY')
+                        ) AS source_is_unique
                     FROM
                         information_schema.table_constraints AS tc
                         JOIN information_schema.key_column_usage AS kcu
@@ -126,18 +136,41 @@ class SchemaAnalysisService:
                         JOIN information_schema.constraint_column_usage AS ccu
                           ON ccu.constraint_name = tc.constraint_name
                           AND ccu.table_schema = tc.table_schema
+                        JOIN information_schema.columns c
+                          ON c.table_schema = tc.table_schema AND c.table_name = tc.table_name AND c.column_name = kcu.column_name
                     WHERE tc.constraint_type = 'FOREIGN KEY' AND tc.table_schema = 'public';
                 """)
                 edges_result = conn.execute(edges_query).fetchall()
 
                 edges = []
+                fk_columns = set()
+                
                 for idx, row in enumerate(edges_result):
+                    s_table, s_col, t_table, t_col, s_null, s_uniq = row
+                    
+                    fk_columns.add((s_table, s_col))
+                    
+                    participation = "partial" if s_null == 'YES' else "total"
+                    cardinality = "1:1" if s_uniq else "1:n"
+
                     edges.append({
-                        "id": f"e{idx}-{row[0]}-{row[2]}",
-                        "source": row[0],
-                        "target": row[2],
-                        "label": f"{row[1]} -> {row[3]}"
+                        "id": f"e{idx}-{s_table}-{t_table}",
+                        "source": s_table,
+                        "target": t_table,
+                        "label": f"{s_col} -> {t_col}",
+                        "data": {
+                            "source_col": s_col,
+                            "target_col": t_col,
+                            "participation": participation,
+                            "cardinality": cardinality
+                        }
                     })
+
+                # Inject is_fk into nodes
+                for node in nodes:
+                    table_name = node["id"]
+                    for col in node["data"]["columns"]:
+                        col["is_fk"] = (table_name, col["name"]) in fk_columns
 
                 return {
                     "nodes": nodes,

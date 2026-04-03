@@ -227,6 +227,7 @@ def simulate_migration_impact(conn_str: str, sql_patch: str) -> dict:
     # ── Step 1: Block-list check ──
     for pattern in BLOCKED_PATTERNS:
         if re.search(pattern, sql_patch, re.IGNORECASE | re.DOTALL):
+            clean_pattern = pattern.replace(r'\b', '')
             return {
                 "is_safe": False,
                 "blocked_reason": f"Command matches unsafe pattern: `{pattern}`. Blocked.",
@@ -234,7 +235,7 @@ def simulate_migration_impact(conn_str: str, sql_patch: str) -> dict:
                 "dependent_indexes": 0,
                 "dependent_views": 0,
                 "dependent_functions": 0,
-                "warning_message": f"🚫 This SQL is blocked for safety. Pattern matched: {pattern.replace(r'\\b', '')}",
+                "warning_message": f"🚫 This SQL is blocked for safety. Pattern matched: {clean_pattern}",
                 "warnings": [f"Blocked SQL pattern: {pattern}"],
                 "dependency_breakdown": {},
                 "parsed": parse_sql_patch(sql_patch),

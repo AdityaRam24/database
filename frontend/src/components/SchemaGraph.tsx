@@ -15,11 +15,12 @@ import ReactFlow, {
     BaseEdge,
     ReactFlowProvider,
     useReactFlow,
-    Panel
+    Panel,
+    EdgeLabelRenderer
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { Database, ChevronRight, Search, Layers, Zap, HelpCircle, RefreshCcw } from 'lucide-react';
-import * as d3 from 'd3-force';
+import dagre from 'dagre';
 
 // ─── Interfaces ─────────────────────────────────────────────────────────────
 
@@ -38,6 +39,7 @@ interface TableNodeData {
     index?: number;
     isFocused: boolean;
     isDimmed: boolean;
+    isHovered: boolean;
     isSearchHighlighted: boolean;
     overlayMode: boolean;
     connectionDegree: number;
@@ -86,7 +88,7 @@ const TableNode = memo(({ id, data }: NodeProps<TableNodeData>) => {
     let containerClasses = `relative rounded-[10px] bg-white border-t border-r border-b border-gray-200 px-3 py-2.5 min-w-[130px] cursor-pointer transition-all duration-150`;
 
     if (data.isDimmed) containerClasses += ` opacity-20`;
-    else containerClasses += ` shadow-sm hover:-translate-y-[1px] hover:shadow-md`;
+    else containerClasses += ` shadow-sm hover:shadow-md`;
 
     if (data.isFocused || data.isSearchHighlighted) {
         containerClasses += ` ring-2 ring-violet-500 z-10`;
@@ -140,6 +142,23 @@ const TableNode = memo(({ id, data }: NodeProps<TableNodeData>) => {
             {isBottleneck && !data.overlayMode && (
                 <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-amber-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(245,158,11,0.6)]" title="High Degree Node" />
             )}
+
+            {/* Hover state columns list */}
+            {data.isHovered && data.columns?.length > 0 && (
+                <div className="mt-3 border-t border-gray-100 pt-2 flex flex-col gap-1.5 max-h-56 overflow-y-auto">
+                    <div className="text-[9px] uppercase tracking-wider text-gray-400 font-bold mb-0.5">Attributes</div>
+                    {data.columns.map((c: any) => (
+                        <div key={c.name} className="flex justify-between items-center gap-4 bg-gray-50/80 px-2 py-1 rounded">
+                            <span className="text-[11px] font-medium text-gray-700">{c.name}</span>
+                            <div className="flex items-center gap-1.5 shrink-0">
+                                {c.is_pk && <span className="text-[9px] bg-amber-100 text-amber-700 px-1 rounded-sm uppercase font-bold">PK</span>}
+                                {c.is_fk && <span className="text-[9px] bg-violet-100 text-violet-700 px-1 rounded-sm uppercase font-bold">FK</span>}
+                                <span className="text-[10px] text-gray-400 font-mono tracking-tighter">{c.type}</span>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
         </div>
     );
 });
@@ -152,20 +171,26 @@ const CustomEdge = ({ id, source, target, sourceX, sourceY, targetX, targetY, so
     const isDimmed = data?.isDimmed;
     const isFocused = data?.isFocused;
     const sourceCategory = data?.sourceCategory || 'entity';
+    const participation = data?.participation || 'partial';
+    const cardinality = data?.cardinality || '1:n';
+    const sourceCol = data?.source_col || '';
+    const targetCol = data?.target_col || '';
 
     const catEdgeColor = CATEGORY_STYLES[sourceCategory as keyof typeof CATEGORY_STYLES].borderLeft;
+    const isTotal = participation === 'total';
 
-    const [edgePath] = getSmoothStepPath({
+    const [edgePath, labelX, labelY] = getSmoothStepPath({
         sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition, borderRadius: 16,
     });
 
     const edgeStyle = useMemo(() => ({
         ...style,
-        strokeWidth: isHovered || isFocused ? 2 : 1,
-        stroke: isHovered || isFocused ? catEdgeColor : `${catEdgeColor}A0`, // ~60% opacity
-        opacity: isDimmed ? 0.2 : 1,
+        strokeWidth: isTotal ? (isHovered || isFocused ? 4 : 2) : (isHovered || isFocused ? 2 : 1),
+        strokeDasharray: isTotal ? 'none' : '5,5',
+        stroke: isHovered || isFocused ? catEdgeColor : `${catEdgeColor}C0`,
+        opacity: isDimmed ? 0.1 : 1,
         transition: 'all 0.2s ease',
-    }), [style, isHovered, isFocused, isDimmed, catEdgeColor]);
+    }), [style, isHovered, isFocused, isDimmed, catEdgeColor, isTotal]);
 
     return (
         <g
@@ -173,8 +198,41 @@ const CustomEdge = ({ id, source, target, sourceX, sourceY, targetX, targetY, so
             onMouseLeave={() => data?.onHoverToggle?.(id, false, source, target)}
             className="react-flow__edge-custom"
         >
-            <path d={edgePath} fill="none" strokeOpacity={0} strokeWidth={20} className="react-flow__edge-interaction cursor-pointer" />
+            <path d={edgePath} fill="none" strokeOpacity={0} strokeWidth={20} className="react-flow__edge-interaction cursor-pointer z-50" />
             <BaseEdge path={edgePath} markerEnd={markerEnd} style={edgeStyle} />
+            
+            <EdgeLabelRenderer>
+                <div
+                    className="absolute pointer-events-none transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-1 z-40 transition-opacity duration-200"
+                    style={{
+                        left: labelX,
+                        top: labelY,
+                        opacity: isDimmed ? 0 : (isHovered || isFocused ? 1 : 0.85),
+                    }}
+                >
+                    <div className="p-2.5 rounded-2xl bg-white/95 backdrop-blur-md border shadow-lg flex flex-col items-center gap-1.5 text-center min-w-[160px]" style={{ borderColor: catEdgeColor }}>
+                        <div className="text-[11px] text-slate-700 leading-tight w-full">
+                            <div className="font-bold mb-1 text-[12px] truncate" style={{ color: catEdgeColor }}>{source}</div>
+                            <div className="flex flex-col items-center justify-center gap-0.5 text-slate-500 text-[10px]">
+                                <span>uses</span>
+                                <code className="bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded font-mono border border-slate-200">{sourceCol || target}</code> 
+                                <span>to find its</span>
+                            </div>
+                            <div className="font-bold mt-1 text-[12px] truncate text-slate-800">{target}</div>
+                        </div>
+                        
+                        {(isHovered || isFocused) && (
+                            <div className="bg-slate-50 px-2 py-1 rounded-lg text-[9px] flex items-center justify-center gap-1.5 font-bold uppercase tracking-widest text-slate-500 border border-slate-100 mt-0.5 w-full">
+                                <span className={`px-1 rounded ${sourceCategory === 'junction' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-600'}`}>
+                                    {sourceCategory === 'junction' ? 'M:M' : (cardinality === '1:n' ? '1:M' : '1:1')}
+                                </span>
+                                <span>•</span>
+                                <span>{isTotal ? 'Required' : 'Optional'}</span>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </EdgeLabelRenderer>
         </g>
     );
 };
@@ -306,54 +364,50 @@ const SchemaGraphContent = ({ connectionString }: { connectionString: string }) 
 
                 setGraphData({ nodes: categorizedNodes, edges: validEdges });
 
-                const layoutNodes = categorizedNodes.map((node: any, index: number) => ({
-                    id: node.id,
-                    x: Math.random() * 800,
-                    y: Math.random() * 600,
-                    width: 150, height: 80,
-                    data: { ...node.data, index, connectionDegree: degrees[node.id] || 0 }
+                const dagreGraph = new dagre.graphlib.Graph();
+                dagreGraph.setDefaultEdgeLabel(() => ({}));
+                dagreGraph.setGraph({ rankdir: 'LR', nodesep: 150, ranksep: 400 });
+
+                categorizedNodes.forEach((node: any) => {
+                    const nodeWidth = 240;
+                    const nodeHeight = 160; 
+                    dagreGraph.setNode(node.id, { width: nodeWidth, height: nodeHeight });
+                });
+
+                validEdges.forEach((edge: any) => {
+                    dagreGraph.setEdge(edge.source, edge.target);
+                });
+
+                dagre.layout(dagreGraph);
+
+                const flowNodes = categorizedNodes.map((node: any, index: number) => {
+                    const nodeWithPosition = dagreGraph.node(node.id);
+                    return {
+                        id: node.id,
+                        type: 'tableNode',
+                        position: { x: nodeWithPosition.x - 120, y: nodeWithPosition.y - 80 },
+                        data: { ...node.data, index, connectionDegree: degrees[node.id] || 0 }
+                    };
+                });
+
+                const flowEdges = validEdges.map((e: any, idx: number) => ({
+                    ...e,
+                    id: e.id || `edge-${idx}-${e.source}-${e.target}`,
+                    type: 'custom',
+                    animated: false,
+                    data: {
+                        ...e.data,
+                        onHoverToggle: handleEdgeHoverToggle,
+                        sourceCategory: flowNodes.find((n: any) => n.id === e.source)?.data.category
+                    },
+                    markerEnd: { type: MarkerType.ArrowClosed, width: 15, height: 15, color: CATEGORY_STYLES[flowNodes.find((n: any) => n.id === e.source)?.data.category as keyof typeof CATEGORY_STYLES]?.borderLeft || '#8b5cf6' },
                 }));
 
-                const layoutEdges = validEdges.map((e: any) => ({ source: e.source, target: e.target }));
+                setNodes(flowNodes);
+                setEdges(flowEdges);
+                setLoading(false);
 
-                const simulation = d3.forceSimulation(layoutNodes)
-                    .force('link', d3.forceLink(layoutEdges).id((d: any) => d.id).distance(200).strength(0.5))
-                    .force('charge', d3.forceManyBody().strength(-1000))
-                    .force('collide', d3.forceCollide().radius(70))
-                    .force('center', d3.forceCenter(400, 300))
-                    .stop();
-
-                let ticks = 0;
-                const runChunk = () => {
-                    for (let i = 0; i < 50; ++i) simulation.tick();
-                    ticks += 50;
-                    if (ticks < 300) {
-                        requestAnimationFrame(runChunk);
-                    } else {
-                        const flowNodes = layoutNodes.map((node: any) => ({
-                            id: node.id, type: 'tableNode', position: { x: node.x, y: node.y }, data: node.data
-                        }));
-
-                        const flowEdges = validEdges.map((e: any, idx: number) => ({
-                            ...e,
-                            id: e.id || `edge-${idx}-${e.source}-${e.target}`,
-                            type: 'custom',
-                            animated: false,
-                            data: {
-                                onHoverToggle: handleEdgeHoverToggle,
-                                sourceCategory: flowNodes.find((n: any) => n.id === e.source)?.data.category
-                            },
-                            markerEnd: { type: MarkerType.ArrowClosed, width: 15, height: 15, color: CATEGORY_STYLES[flowNodes.find((n: any) => n.id === e.source)?.data.category as keyof typeof CATEGORY_STYLES]?.borderLeft || '#8b5cf6' },
-                        }));
-
-                        setNodes(flowNodes);
-                        setEdges(flowEdges);
-                        setLoading(false);
-
-                        setTimeout(() => fitView({ padding: 0.2, duration: 800 }), 100);
-                    }
-                };
-                requestAnimationFrame(runChunk);
+                setTimeout(() => fitView({ padding: 0.2, duration: 800 }), 100);
 
             } catch (error) {
                 console.error('Failed to fetch graph data:', error);
@@ -365,7 +419,7 @@ const SchemaGraphContent = ({ connectionString }: { connectionString: string }) 
             setLoading(true);
             fetchData();
         } else setLoading(false);
-    }, [connectionString, setNodes, setEdges, handleEdgeHoverToggle, fitView]);
+    }, [connectionString]);
 
     // Update Nodes State
     useEffect(() => {
@@ -414,17 +468,20 @@ const SchemaGraphContent = ({ connectionString }: { connectionString: string }) 
                 node.data.columns?.some((c: any) => c.name.toLowerCase().includes(searchQuery.toLowerCase()))
             );
 
+            const isHovered = node.id === hoveredNodeId;
+
             const newData = {
                 ...node.data,
                 onFocusNode: handleFocusNode,
                 onHoverNode: handleNodeHover,
                 isFocused,
+                isHovered,
                 isDimmed,
                 isSearchHighlighted,
                 overlayMode,
             };
 
-            const isChanged = node.data.isFocused !== newData.isFocused || node.data.isDimmed !== newData.isDimmed ||
+            const isChanged = node.data.isFocused !== newData.isFocused || node.data.isHovered !== newData.isHovered || node.data.isDimmed !== newData.isDimmed ||
                 node.data.isSearchHighlighted !== newData.isSearchHighlighted || node.data.overlayMode !== newData.overlayMode;
 
             if (!isChanged) return node;

@@ -13,7 +13,7 @@ import { useRouter } from "next/navigation";
 import {
   Database, Folder, Key, Zap, GitMerge, Activity,
   ShieldAlert, Shield, BookOpen, Plus, ArrowUpRight,
-  RefreshCw, AlertCircle, PlugZap,
+  RefreshCw, AlertCircle, PlugZap, Maximize2, X
 } from "lucide-react";
 import DashboardShell from "@/components/DashboardShell";
 
@@ -300,6 +300,7 @@ export default function DashboardPage() {
   const [dbType, setDbType] = useState<string>('sql');
   const [graphKey, setGraphKey] = useState(0);
   const [mounted, setMounted] = useState(false);
+  const [isSchemaFullscreen, setIsSchemaFullscreen] = useState(false);
 
   useEffect(() => setMounted(true), []);
 
@@ -485,7 +486,7 @@ export default function DashboardPage() {
                 <h3 className="text-[11px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500">
                   Schema visualization
                 </h3>
-                <div className="flex gap-4 text-[11px] text-slate-400 dark:text-slate-500 font-medium">
+                <div className="flex gap-4 items-center text-[11px] text-slate-400 dark:text-slate-500 font-medium">
                   <div className="flex items-center gap-1.5">
                     <Key size={11} className="text-amber-400" /> Primary key
                   </div>
@@ -495,17 +496,54 @@ export default function DashboardPage() {
                   <span className="hidden sm:inline text-slate-300 dark:text-slate-600">
                     Scroll to zoom · Drag to pan
                   </span>
+                  <button 
+                    onClick={() => setIsSchemaFullscreen(true)} 
+                    className="ml-2 flex items-center gap-1.5 px-2.5 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 transition-colors shadow-sm"
+                  >
+                    <Maximize2 size={13} />
+                    <span className="font-semibold">Expand</span>
+                  </button>
                 </div>
               </div>
 
-              <div className="flex-1 rounded-2xl border border-black/[0.06] dark:border-white/[0.06] bg-white/80 dark:bg-white/[0.03] overflow-hidden min-h-[420px] relative">
-                {connectionString ? (
-                  <SchemaGraph key={graphKey} connectionString={connectionString} />
-                ) : (
-                  <div className="absolute inset-0 flex items-center justify-center text-sm text-slate-400">
-                    Connect a database to visualize the schema
+              {isSchemaFullscreen && (
+                <div className="flex-1 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700/50 min-h-[420px] bg-slate-50/50 dark:bg-slate-800/10 flex items-center justify-center">
+                   <div className="flex flex-col items-center gap-2">
+                       <Maximize2 size={24} className="text-slate-300" />
+                       <div className="text-slate-400 font-medium text-sm">Schema map is active in full screen mode</div>
+                   </div>
+                </div>
+              )}
+
+              <div className={isSchemaFullscreen 
+                ? "fixed inset-0 z-[100] bg-slate-50 dark:bg-slate-950 flex flex-col p-4 sm:p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200" 
+                : `flex-1 rounded-2xl border border-black/[0.06] dark:border-white/[0.06] bg-white/80 dark:bg-white/[0.03] overflow-hidden min-h-[420px] relative ${isSchemaFullscreen ? "hidden" : "block"}`
+              }>
+                {isSchemaFullscreen && (
+                  <div className="flex items-center justify-between mb-4 px-2">
+                    <h2 className="text-xl font-bold tracking-tight text-slate-800 dark:text-slate-100 flex items-center gap-2">
+                       <Database className="text-violet-500" size={20} />
+                       Database Schema Overview
+                    </h2>
+                    <button 
+                      onClick={() => setIsSchemaFullscreen(false)} 
+                      className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl font-semibold shadow-sm transition-all focus:ring-2 focus:ring-violet-500"
+                    >
+                      <X size={16} />
+                      <span className="hidden sm:inline text-sm">Close Fullscreen</span>
+                    </button>
                   </div>
                 )}
+                
+                <div className={isSchemaFullscreen ? "flex-1 relative rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-700 shadow-inner bg-white dark:bg-slate-900" : "absolute inset-0"}>
+                  {connectionString ? (
+                    <SchemaGraph key={graphKey} connectionString={connectionString} />
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center text-sm text-slate-400">
+                      Connect a database to visualize the schema
+                    </div>
+                  )}
+                </div>
               </div>
             </section>
           </div>

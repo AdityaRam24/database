@@ -473,19 +473,22 @@ def simulate_index_impact(conn_str: str, index_sql: str, sample_query: str | Non
                 if before:
                     plan = before[0]
                     result["before_ms"] = round(plan[0]["Execution Time"], 2) if isinstance(plan, list) else 0
+                conn.commit()
             except Exception as ex:
                 logger.warning(f"simulate BEFORE: {ex}")
+                conn.rollback()
 
-            with conn.begin():
-                conn.execute(text(index_sql))
-
+            trans = conn.begin()
             try:
+                conn.execute(text(index_sql))
                 after = conn.execute(text(f"EXPLAIN (ANALYZE, FORMAT JSON) {sample_query}")).fetchone()
                 if after:
                     plan = after[0]
                     result["after_ms"] = round(plan[0]["Execution Time"], 2) if isinstance(plan, list) else 0
             except Exception as ex:
                 logger.warning(f"simulate AFTER: {ex}")
+            finally:
+                trans.rollback()
 
             if result["before_ms"] and result["after_ms"]:
                 diff = result["before_ms"] - result["after_ms"]
