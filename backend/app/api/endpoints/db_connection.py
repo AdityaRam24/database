@@ -192,6 +192,38 @@ async def connect_mongodb(request: MongoDBConnectionRequest):
         raise HTTPException(status_code=500, detail=f"MongoDB connection error: {str(e)}")
 
 
+class FirebaseConnectionRequest(BaseModel):
+    service_account_json: str
+    project_name: str = "My Firestore"
+
+@router.post("/firebase", response_model=DBConnectionResponse)
+async def connect_firebase(request: FirebaseConnectionRequest):
+    """
+    Connects to a user's Firestore database using a service account JSON string.
+    """
+    from app.services.firebase_service import FirebaseService
+    logger.info(f"Firebase connection request for project: {request.project_name}")
+
+    if not FirebaseService.verify_connection(request.service_account_json):
+        raise HTTPException(status_code=400, detail="Could not connect to Firestore. Check your service account JSON and project permissions.")
+
+    try:
+        service = FirebaseService(request.service_account_json)
+        collection_count = service.get_collection_count()
+        project_id = str(uuid.uuid4())
+
+        return DBConnectionResponse(
+            success=True,
+            project_id=project_id,
+            message=f"Connected to Firestore project '{service.project_id}'. Found {collection_count} collections.",
+            table_count=collection_count,
+            connection_string=request.service_account_json,
+        )
+    except Exception as e:
+        logger.error(f"Firebase connection failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Firebase connection error: {str(e)}")
+
+
 class GitHubImportRequest(BaseModel):
     github_url: str
     project_name: str = "GitHub Import"

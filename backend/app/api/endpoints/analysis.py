@@ -36,12 +36,18 @@ class TableDataRequest(BaseModel):
 def _is_mongodb(conn: str) -> bool:
     return conn.startswith("mongodb://") or conn.startswith("mongodb+srv://")
 
+def _is_firebase(conn: str) -> bool:
+    return '"private_key"' in conn and '"project_id"' in conn
+
 @router.post("/dashboard")
 async def get_dashboard_summary(request: AnalysisRequest):
     try:
         if _is_mongodb(request.connection_string):
             from app.services.mongodb_service import MongoDBService
             return MongoDBService(request.connection_string).get_dashboard_stats()
+        if _is_firebase(request.connection_string):
+            from app.services.firebase_service import FirebaseService
+            return FirebaseService(request.connection_string).get_dashboard_stats()
         service = SchemaAnalysisService(request.connection_string)
         return await service.get_dashboard_stats(request.connection_string)
     except Exception as e:
@@ -53,6 +59,9 @@ def get_schema_graph(request: AnalysisRequest):
         if _is_mongodb(request.connection_string):
             from app.services.mongodb_service import MongoDBService
             return MongoDBService(request.connection_string).get_schema_graph_data()
+        if _is_firebase(request.connection_string):
+            from app.services.firebase_service import FirebaseService
+            return FirebaseService(request.connection_string).get_schema_graph_data()
         service = SchemaAnalysisService(request.connection_string)
         return service.get_schema_graph_data()
     except Exception as e:
@@ -148,6 +157,9 @@ def get_table_data(request: TableDataRequest):
         if _is_mongodb(request.connection_string):
             from app.services.mongodb_service import MongoDBService
             return MongoDBService(request.connection_string).get_collection_data(request.table_name)
+        if _is_firebase(request.connection_string):
+            from app.services.firebase_service import FirebaseService
+            return FirebaseService(request.connection_string).get_collection_data(request.table_name)
         service = SchemaAnalysisService(request.connection_string)
         return service.get_table_data(request.table_name)
     except Exception as e:

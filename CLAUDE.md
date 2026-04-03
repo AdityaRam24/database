@@ -57,6 +57,7 @@ Each domain has a paired service + endpoint file:
 | Schema introspection | `services/schema_analysis.py` | `endpoints/analysis.py` |
 | Index analysis | `services/index_analyzer.py` | `endpoints/optimization.py` |
 | Optimization | `services/optimization_service.py` | `endpoints/optimization.py` |
+| Performance metrics | *(inline in endpoint)* | `endpoints/performance.py` |
 | Anomaly detection | `services/anomaly_detector.py` | `endpoints/anomaly.py` |
 | Incident engine | `services/incident_engine.py` | `endpoints/incidents.py` |
 | Migration validation | `services/migration_analyzer.py` | `endpoints/governance.py` |
@@ -64,14 +65,20 @@ Each domain has a paired service + endpoint file:
 | Security/PII | *(inline in endpoint)* | `endpoints/security.py` |
 | Semantic rules | *(inline in endpoint)* | `endpoints/semantic_rules.py` |
 | MCP server | `services/mcp_server.py` | `endpoints/mcp.py` |
+| Projects | *(inline in endpoint)* | `endpoints/projects.py` |
+| MongoDB support | `services/mongodb_service.py` | — |
+| SQL dialect conversion | `services/dialect_converter.py` | — |
+| Synthetic data gen | `services/synthetic_data.py` | — |
 
-All API routes are prefixed with `/api`. The router aggregator is `backend/app/api/__init__.py`.
+All API routes are prefixed with `/api`. The router aggregator is `backend/app/api/__init__.py`. Settings (env vars + defaults) live in `backend/app/core/config.py` (uses `pydantic-settings`, reads `backend/.env`).
 
 ### Frontend Module Layout
 - `frontend/src/app/dashboard/` — sub-routes per domain: `performance/`, `anomaly/`, `incidents/`, `security/`, `governance/`, `data/`, `semantic/`, `ai/`
-- `frontend/src/components/` — shared components: `SchemaGraph.tsx` (React Flow visualization), `AskAIPanel.tsx` (AI Q&A panel), `DashboardShell.tsx` (layout wrapper), `OptimizationReport.tsx`
+- `frontend/src/app/features/` — standalone feature pages (e.g. `projects/`)
+- `frontend/src/app/connect/` — DB connection flow; `frontend/src/app/login/` — login page
+- `frontend/src/components/` — shared components: `SchemaGraph.tsx` (React Flow visualization), `AskAIPanel.tsx` (AI Q&A panel), `DashboardShell.tsx` (layout wrapper), `OptimizationReport.tsx`, `ProjectsSidebar.tsx`
 - `frontend/src/context/AuthContext.tsx` — Firebase auth context (mock user enabled in dev at line 23)
-- `frontend/src/lib/projectStorage.ts` — project persistence via localStorage
+- `frontend/src/lib/projectStorage.ts` — project persistence via localStorage; `firebase.ts` — Firebase client init
 - **Path alias:** `@/*` → `frontend/src/*`
 
 ### AI Safety

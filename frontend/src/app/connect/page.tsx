@@ -3,14 +3,15 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
-import { Database, FileCode2, Sparkles, Github, ArrowLeft, CheckCircle2, Loader2, Zap, Leaf } from "lucide-react";
+import { Database, FileCode2, Sparkles, Github, ArrowLeft, CheckCircle2, Loader2, Zap, Leaf, Flame } from "lucide-react";
 import { saveProject } from "@/lib/projectStorage";
 
-type Tab = "connection" | "file" | "ai" | "github" | "mongodb";
+type Tab = "connection" | "file" | "ai" | "github" | "mongodb" | "firebase";
 
 const TABS: { id: Tab; icon: React.ReactNode; label: string; desc: string }[] = [
     { id: "connection", icon: <Database size={18} />,  label: "PostgreSQL",  desc: "Live connection string" },
     { id: "mongodb",    icon: <Leaf size={18} />,      label: "MongoDB",     desc: "MongoDB URI" },
+    { id: "firebase",   icon: <Flame size={18} />,     label: "Firebase",    desc: "Firestore service account" },
     { id: "file",       icon: <FileCode2 size={18} />, label: "SQL File",    desc: "Upload a .sql schema" },
     { id: "ai",         icon: <Sparkles size={18} />,  label: "Generate AI", desc: "Describe your database" },
     { id: "github",     icon: <Github size={18} />,    label: "GitHub",      desc: "Import from a repo" },
@@ -39,10 +40,12 @@ export default function ConnectPage() {
     ];
 
     const [mongoUri, setMongoUri] = useState("");
+    const [firebaseJson, setFirebaseJson] = useState("");
 
     const defaultNames: Record<Tab, string> = {
         connection: "My PostgreSQL DB",
         mongodb:    "My MongoDB",
+        firebase:   "My Firestore",
         file:       "SQL Schema",
         ai:         "AI Generated DB",
         github:     "GitHub Import",
@@ -55,7 +58,20 @@ export default function ConnectPage() {
 
         let res;
         try {
-            if (activeTab === "mongodb") {
+            if (activeTab === "firebase") {
+                if (!firebaseJson) throw new Error("Please paste your Firebase service account JSON.");
+                let parsed: any;
+                try { parsed = JSON.parse(firebaseJson); } catch { throw new Error("Invalid JSON — paste the full contents of your service account key file."); }
+                if (!parsed.private_key || !parsed.project_id) throw new Error("JSON is missing required fields (private_key, project_id).");
+                res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/connect-db/firebase`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        service_account_json: firebaseJson,
+                        project_name: projectName || defaultNames.firebase,
+                    }),
+                });
+            } else if (activeTab === "mongodb") {
                 if (!mongoUri) throw new Error("Please enter your MongoDB URI.");
                 res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/connect-db/mongodb`, {
                     method: "POST",
@@ -110,7 +126,7 @@ export default function ConnectPage() {
             }
 
             const data = await res.json();
-            const finalConnStr = data.connection_string || (activeTab === "mongodb" ? mongoUri : connectionString);
+            const finalConnStr = data.connection_string || (activeTab === "mongodb" ? mongoUri : activeTab === "firebase" ? firebaseJson : connectionString);
             const finalName = projectName || defaultNames[activeTab];
 
             localStorage.setItem("db_connection_string", finalConnStr);
@@ -181,7 +197,7 @@ export default function ConnectPage() {
                 </div>
 
                 {/* Tab pills */}
-                <div className="grid grid-cols-5 gap-2 mb-6">
+                <div className="grid grid-cols-6 gap-2 mb-6">
                     {TABS.map((t) => (
                         <button
                             key={t.id}
@@ -233,6 +249,27 @@ export default function ConnectPage() {
                                 />
                                 <p className="text-xs text-gray-500 mt-2 font-medium">
                                     Supports <code className="bg-gray-100 px-1 rounded">mongodb://</code> and <code className="bg-gray-100 px-1 rounded">mongodb+srv://</code> URIs.
+                                </p>
+                            </div>
+                        )}
+
+                        {activeTab === "firebase" && (
+                            <div>
+                                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                                    Service Account JSON
+                                </label>
+                                <textarea
+                                    rows={7}
+                                    placeholder={'{\n  "type": "service_account",\n  "project_id": "my-project",\n  "private_key": "-----BEGIN RSA PRIVATE KEY-----\\n...",\n  ...\n}'}
+                                    value={firebaseJson}
+                                    onChange={(e) => setFirebaseJson(e.target.value)}
+                                    required
+                                    className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-xs text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-colors font-mono resize-none shadow-sm"
+                                />
+                                <p className="text-xs text-gray-500 mt-2 font-medium">
+                                    Paste the full contents of your Firebase{" "}
+                                    <span className="text-gray-700 font-semibold">serviceAccountKey.json</span> file.
+                                    Generate it in Firebase Console → Project Settings → Service Accounts.
                                 </p>
                             </div>
                         )}
@@ -363,10 +400,10 @@ export default function ConnectPage() {
                             {loading ? (
                                 <>
                                     <div className="w-4 h-4 border-2 border-violet-200 border-t-violet-500 rounded-full animate-spin" />
-                                    {activeTab === "connection" || activeTab === "mongodb" ? "Connecting..." : "Creating Database..."}
+                                    {["connection", "mongodb", "firebase"].includes(activeTab) ? "Connecting..." : "Creating Database..."}
                                 </>
                             ) : (
-                                activeTab === "connection" || activeTab === "mongodb" ? "Connect Database" : "Create Database"
+                                ["connection", "mongodb", "firebase"].includes(activeTab) ? "Connect Database" : "Create Database"
                             )}
                         </button>
                     </form>
