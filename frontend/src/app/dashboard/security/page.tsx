@@ -341,10 +341,10 @@ export default function SecurityPage() {
                                     <div className={`mt-4 p-5 rounded-2xl border shadow-sm ${syntheticResult.success ? 'bg-emerald-50 border-emerald-300' : 'bg-rose-50 border-rose-300'}`}>
                                         {syntheticResult.success ? (
                                             <>
-                                                <p className="font-black text-[13px] text-emerald-800 flex items-center gap-2 mb-1 uppercase tracking-widest">
+                                                <div className="font-black text-[13px] text-emerald-800 flex items-center gap-2 mb-1 uppercase tracking-widest">
                                                     <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(16,185,129,1)]"></div>
                                                     Mirror Simulation Active
-                                                </p>
+                                                </div>
                                                 <p className="text-[12px] text-emerald-700 font-bold">
                                                     {syntheticResult.stats?.tables_processed} structural tables processed &bull; {syntheticResult.stats?.rows_processed} records securely anonymized.
                                                 </p>

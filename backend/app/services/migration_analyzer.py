@@ -52,13 +52,14 @@ def _engine(conn_str: str):
 def parse_sql_patch(sql: str) -> dict:
     """
     Extract (table_name, column_name, operation) from a SQL patch string.
-    Handles the most common DDL patterns.
-    Returns dict with keys: table, column, operation, raw_sql.
+    Handles the most common DDL patterns accurately, including quoted identifiers.
     """
     sql_clean = sql.strip().rstrip(";")
 
-    # ALTER TABLE <table> DROP COLUMN <col>
-    m = re.search(r'ALTER\s+TABLE\s+(\w+)\s+(DROP\s+COLUMN|ADD\s+COLUMN|ALTER\s+COLUMN|RENAME\s+COLUMN\s+\w+\s+TO)\s+(\w+)',
+    def _strip_quotes(s: str):
+        return s.replace('"', '').strip() if s else s
+
+    m = re.search(r'ALTER\s+TABLE\s+([\"\w]+)\s+(DROP\s+COLUMN|ADD\s+COLUMN|ALTER\s+COLUMN|RENAME\s+COLUMN\s+[\"\w]+\s+TO)\s+([\"\w]+)',
                   sql_clean, re.IGNORECASE)
     if m:
         op_part = m.group(2).upper()
@@ -70,27 +71,27 @@ def parse_sql_patch(sql: str) -> dict:
             op = "RENAME_COLUMN"
         else:
             op = "ALTER_COLUMN"
-        return {"table": m.group(1), "column": m.group(3), "operation": op, "raw_sql": sql}
+        return {"table": _strip_quotes(m.group(1)), "column": _strip_quotes(m.group(3)), "operation": op, "raw_sql": sql}
 
-    # ALTER TABLE <table> RENAME TO <new>
-    m = re.search(r'ALTER\s+TABLE\s+(\w+)\s+RENAME\s+TO\s+(\w+)', sql_clean, re.IGNORECASE)
+    m = re.search(r'ALTER\s+TABLE\s+([\"\w]+)\s+RENAME\s+TO\s+([\"\w]+)', sql_clean, re.IGNORECASE)
     if m:
-        return {"table": m.group(1), "column": None, "operation": "RENAME_TABLE", "raw_sql": sql}
+        return {"table": _strip_quotes(m.group(1)), "column": None, "operation": "RENAME_TABLE", "raw_sql": sql}
 
-    # CREATE INDEX ... ON <table> (<cols>)
-    m = re.search(r'CREATE\s+(?:UNIQUE\s+)?INDEX\s+\w+\s+ON\s+(\w+)\s*\(([^)]+)\)', sql_clean, re.IGNORECASE)
+    m = re.search(r'CREATE\s+(?:UNIQUE\s+)?INDEX\s+[\"\w]+\s+ON\s+([\"\w]+)\s*\(([^)]+)\)', sql_clean, re.IGNORECASE)
     if m:
-        return {"table": m.group(1), "column": m.group(2).strip(), "operation": "CREATE_INDEX", "raw_sql": sql}
+        return {"table": _strip_quotes(m.group(1)), "column": _strip_quotes(m.group(2)), "operation": "CREATE_INDEX", "raw_sql": sql}
 
-    # INSERT INTO
-    m = re.search(r'INSERT\s+INTO\s+(\w+)', sql_clean, re.IGNORECASE)
+    m = re.search(r'CREATE\s+TABLE\s+([\"\w]+)', sql_clean, re.IGNORECASE)
     if m:
-        return {"table": m.group(1), "column": None, "operation": "INSERT", "raw_sql": sql}
+        return {"table": _strip_quotes(m.group(1)), "column": None, "operation": "CREATE_TABLE", "raw_sql": sql}
 
-    # UPDATE
-    m = re.search(r'UPDATE\s+(\w+)', sql_clean, re.IGNORECASE)
+    m = re.search(r'INSERT\s+INTO\s+([\"\w]+)', sql_clean, re.IGNORECASE)
     if m:
-        return {"table": m.group(1), "column": None, "operation": "UPDATE", "raw_sql": sql}
+        return {"table": _strip_quotes(m.group(1)), "column": None, "operation": "INSERT", "raw_sql": sql}
+
+    m = re.search(r'UPDATE\s+([\"\w]+)', sql_clean, re.IGNORECASE)
+    if m:
+        return {"table": _strip_quotes(m.group(1)), "column": None, "operation": "UPDATE", "raw_sql": sql}
 
     return {"table": None, "column": None, "operation": "UNKNOWN", "raw_sql": sql}
 

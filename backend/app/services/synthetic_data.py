@@ -108,11 +108,8 @@ class SyntheticDataService:
             return {"success": False, "error": str(e), "pii_detected": {}, "stats": stats}
 
     def _process_table(self, table_name: str, pii_cols: List[Dict], fake, stats: Dict):
-        """Copy and anonymize a single table."""
-        from faker import Faker
-
+        """Copy schema and insert anonymized data for a single table."""
         with self.source_engine.connect() as src_conn:
-            # Get table DDL (columns)
             cols_info = src_conn.execute(text(f"""
                 SELECT column_name, data_type, character_maximum_length, is_nullable,
                        column_default
@@ -121,27 +118,46 @@ class SyntheticDataService:
                 ORDER BY ordinal_position
             """), {"table": table_name}).fetchall()
 
-            # Read data
             rows = src_conn.execute(text(f'SELECT * FROM "{table_name}"')).fetchall()
             columns = [c[0] for c in cols_info]
 
-        if not rows:
-            stats["tables_processed"] += 1
-            return
+        create_col_defs = []
+        for col_name, data_type, char_max, is_nullable, col_default in cols_info:
+            is_pii = any(col_name == p["column"] for p in pii_cols)
+            type_str = "TEXT" if is_pii else data_type
+            if not is_pii and char_max and "char" in data_type.lower():
+                type_str = f"{data_type}({char_max})"
+            null_str = "NOT NULL" if is_nullable == 'NO' and not is_pii else ""
+            create_col_defs.append(f'"{col_name}" {type_str} {null_str}')
 
-        pii_col_names = {c["column"]: c["pii_type"] for c in pii_cols}
+        create_table_sql = f'CREATE TABLE "{table_name}" (\n    ' + ',\n    '.join(create_col_defs) + '\n);'
 
-        # Anonymize rows
-        anonymized_rows = []
-        for row in rows:
-            new_row = list(row)
-            for i, col_name in enumerate(columns):
-                if col_name in pii_col_names:
-                    pii_type = pii_col_names[col_name]
-                    new_row[i] = self._generate_fake_value(pii_type, fake)
-                    stats["columns_anonymized"] += 1
-            anonymized_rows.append(new_row)
-            stats["rows_processed"] += 1
+        with self.target_engine.connect() as tgt_conn:
+            tgt_conn.execute(text(create_table_sql))
+            tgt_conn.commit()
+
+            if not rows:
+                stats["tables_processed"] += 1
+                return
+
+            pii_col_names = {c["column"]: c["pii_type"] for c in pii_cols}
+            anonymized_rows = []
+
+            for row in rows:
+                new_row = dict(zip(columns, row))
+                for col_name in columns:
+                    if col_name in pii_col_names:
+                        pii_type = pii_col_names[col_name]
+                        new_row[col_name] = self._generate_fake_value(pii_type, fake)
+                        stats["columns_anonymized"] += 1
+                anonymized_rows.append(new_row)
+                stats["rows_processed"] += 1
+
+            insert_cols = ", ".join([f'"{col}"' for col in columns])
+            insert_params = ", ".join([f":{col}" for col in columns])
+            insert_sql = f'INSERT INTO "{table_name}" ({insert_cols}) VALUES ({insert_params})'
+            tgt_conn.execute(text(insert_sql), anonymized_rows)
+            tgt_conn.commit()
 
         stats["tables_processed"] += 1
 

@@ -6,7 +6,7 @@ import {
     Loader2, ShieldCheck, ShieldAlert, AlertTriangle,
     GitMerge, CheckCircle, XCircle, Shield,
     Database, Wand2, Clock, ChevronDown, ChevronRight, Trash2,
-    Link2, Zap, Eye, Settings, Terminal, Bot, Cpu, CornerDownRight, PlaySquare
+    Link2, Zap, Eye, Settings, Terminal, Bot, Cpu, CornerDownRight, PlaySquare, Github
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import DashboardShell from '@/components/DashboardShell';
@@ -62,6 +62,8 @@ export default function GovernancePage() {
     const [applying, setApplying] = useState(false);
     const [result, setResult] = useState<SafetyResult | null>(null);
     const [applySuccess, setApplySuccess] = useState(false);
+    const [creatingPr, setCreatingPr] = useState(false);
+    const [prInfo, setPrInfo] = useState<{url: string, branch: string} | null>(null);
     const [history, setHistory] = useState<HistoryItem[]>([]);
     const [showHistory, setShowHistory] = useState(false);
     const [showExamples, setShowExamples] = useState(false);
@@ -88,6 +90,7 @@ export default function GovernancePage() {
         setGeneratingPatch(true);
         setResult(null);
         setApplySuccess(false);
+        setPrInfo(null);
         try {
             const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/governance/ai-generate-patch`, {
                 method: 'POST',
@@ -95,10 +98,15 @@ export default function GovernancePage() {
                 body: JSON.stringify({ connection_string: connectionString, description: nlDescription }),
             });
             const data = await res.json();
-            if (data.sql) {
+            if (!res.ok) {
+                alert(data.detail || "Error communicating with AI service. Please make sure the local LLM is running.");
+            } else if (data.sql) {
                 setSqlPatch(data.sql);
             }
-        } catch (e) { console.error(e); }
+        } catch (e) { 
+            console.error(e);
+            alert("Network error: Could not reach the backend API.");
+        }
         finally { setGeneratingPatch(false); }
     };
 
@@ -107,6 +115,7 @@ export default function GovernancePage() {
         setChecking(true);
         setResult(null);
         setApplySuccess(false);
+        setPrInfo(null);
         try {
             const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/governance/simulate-migration`, {
                 method: 'POST',
@@ -139,6 +148,38 @@ export default function GovernancePage() {
             }
         } catch (e) { console.error(e); }
         finally { setApplying(false); }
+    };
+
+    const handleCreatePR = async () => {
+        if (!sqlPatch.trim()) return;
+        setCreatingPr(true);
+        setPrInfo(null);
+        try {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/github/create-pr`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ sql_patch: sqlPatch, description: nlDescription || "AI-generated schema migration" }),
+            });
+            
+            if (!res.ok) {
+                const errData = await res.json().catch(() => ({}));
+                alert(errData.detail || `Server error: ${res.status}`);
+                return;
+            }
+            
+            const data = await res.json();
+            if (data.success) {
+                setPrInfo({url: data.pr_url, branch: data.branch});
+                setApplySuccess(true);
+                saveHistory({ sql: sqlPatch, timestamp: new Date().toLocaleString(), success: true });
+            } else {
+                alert(data.detail || "Failed to create PR (Server responded but indicated failure).");
+            }
+        } catch (e: any) { 
+            console.error(e); 
+            alert(`Network Exception: ${e.message || 'Could not reach /github/create-pr API'}`);
+        }
+        finally { setCreatingPr(false); }
     };
 
     if (!mounted) return null;
@@ -184,9 +225,18 @@ export default function GovernancePage() {
 
                         {/* Success Banner */}
                         {applySuccess && (
-                            <div className="animate-in fade-in slide-in-from-top-2 flex items-center gap-3 px-5 py-4 bg-emerald-50 border border-emerald-200 rounded-2xl shadow-sm text-emerald-800 font-bold mb-4">
-                                <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-emerald-500 shadow-sm"><CheckCircle size={18} /></div>
-                                <span>Policy safely deployed to environmental target. Structural integrity maintained.</span>
+                            <div className="animate-in fade-in slide-in-from-top-2 flex flex-col gap-3 px-5 py-4 bg-emerald-50 border border-emerald-200 rounded-2xl shadow-sm text-emerald-800 mb-4">
+                                <div className="flex items-center gap-3 font-bold">
+                                    <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-emerald-500 shadow-sm shrink-0"><CheckCircle size={18} /></div>
+                                    <span>{prInfo ? 'Migration pushed successfully to GitHub repository timeline.' : 'Policy safely deployed to environmental target. Structural integrity maintained.'}</span>
+                                </div>
+                                {prInfo && (
+                                    <div className="pl-11 mt-1">
+                                        <a href={prInfo.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-2 bg-white text-[11px] font-black uppercase tracking-widest text-slate-800 px-4 py-2.5 border border-slate-200 rounded-xl shadow-sm hover:border-violet-300 hover:text-violet-600 hover:bg-violet-50 transition-all cursor-pointer">
+                                           <Github size={14}/> View Live PR: {prInfo.branch}
+                                        </a>
+                                    </div>
+                                )}
                             </div>
                         )}
 
@@ -328,13 +378,22 @@ export default function GovernancePage() {
                                             </div>
                                         </div>
                                         {result.is_safe && (
-                                             <Button
-                                                disabled={applying}
-                                                onClick={handleApply}
-                                                className="bg-emerald-600 hover:bg-emerald-700 text-white font-black uppercase tracking-widest text-[11px] rounded-xl cursor-pointer shadow-lg transition-transform active:scale-95 px-6"
-                                            >
-                                                {applying ? <><Loader2 size={14} className="mr-2 animate-spin" /> Deploying Status…</> : <><PlaySquare size={14} className="mr-2" /> Authorized Deployment</>}
-                                            </Button>
+                                            <div className="flex items-center gap-3">
+                                                 <Button
+                                                    disabled={applying || creatingPr}
+                                                    onClick={handleCreatePR}
+                                                    className="bg-slate-800 hover:bg-slate-900 text-white font-black uppercase tracking-widest text-[11px] rounded-xl cursor-pointer shadow-lg transition-transform active:scale-95 px-5 border-none"
+                                                >
+                                                    {creatingPr ? <><Loader2 size={13} className="mr-2 animate-spin" /> Pushing to Remote…</> : <><Github size={13} className="mr-2" /> GitHub PR</>}
+                                                </Button>
+                                                 <Button
+                                                    disabled={applying || creatingPr}
+                                                    onClick={handleApply}
+                                                    className="bg-emerald-600 hover:bg-emerald-700 text-white font-black uppercase tracking-widest text-[11px] rounded-xl cursor-pointer shadow-lg transition-transform active:scale-95 px-5"
+                                                >
+                                                    {applying ? <><Loader2 size={13} className="mr-2 animate-spin" /> Deploying…</> : <><PlaySquare size={13} className="mr-2" /> Direct Deploy</>}
+                                                </Button>
+                                            </div>
                                         )}
                                     </div>
 

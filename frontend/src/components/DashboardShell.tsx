@@ -8,6 +8,7 @@
 
 import React, { useEffect, useState } from 'react';
 import DualSidebar from '@/components/ui/sidebar-component';
+import VoiceOrb from '@/components/VoiceOrb';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter, usePathname } from 'next/navigation';
 import { useTheme } from 'next-themes';
@@ -333,6 +334,9 @@ export default function DashboardShell({ children }: { children: React.ReactNode
             {children}
           </div>
         </div>
+
+        {/* ── Jarvis Voice Orb — global across all pages ── */}
+        <VoiceOrb />
       </div>
     </EtheralShadow>
   );
