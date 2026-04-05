@@ -85,7 +85,7 @@ const TableNode = memo(({ id, data }: NodeProps<TableNodeData>) => {
         ? `rgba(239, 68, 68, ${Math.min(data.size_bytes / (1024 * 1024 * 50) * 0.8, 0.9)})`
         : 'transparent';
 
-    let containerClasses = `relative rounded-[10px] bg-white border-t border-r border-b border-gray-200 px-3 py-2.5 min-w-[130px] cursor-pointer transition-all duration-150`;
+    let containerClasses = `relative rounded-[10px] bg-white dark:bg-white/[0.05] border-t border-r border-b border-gray-200 dark:border-white/[0.08] px-3 py-2.5 min-w-[130px] cursor-pointer transition-all duration-150`;
 
     if (data.isDimmed) containerClasses += ` opacity-20`;
     else containerClasses += ` shadow-sm hover:shadow-md`;
@@ -114,19 +114,19 @@ const TableNode = memo(({ id, data }: NodeProps<TableNodeData>) => {
                 <div className="w-[14px] h-[14px] rounded-[3px] flex items-center justify-center shrink-0" style={{ background: cat.iconBg }}>
                     {cat.icon}
                 </div>
-                <span className="text-[13px] font-medium text-gray-900 leading-none">{data.label}</span>
+                <span className="text-[13px] font-medium text-gray-900 dark:text-slate-100 leading-none">{data.label}</span>
             </div>
 
-            <hr className="border-t border-gray-100 my-1.5" />
+            <hr className="border-t border-gray-100 dark:border-white/[0.07] my-1.5" />
 
             <div className="flex justify-between items-end gap-3">
                 <div>
-                    <div className="text-[11px] text-gray-600 font-medium leading-none mb-0.5">{(data.rows ?? 0).toLocaleString()}</div>
-                    <div className="text-[10px] text-gray-400 leading-none">rows</div>
+                    <div className="text-[11px] text-gray-600 dark:text-slate-300 font-medium leading-none mb-0.5">{(data.rows ?? 0).toLocaleString()}</div>
+                    <div className="text-[10px] text-gray-400 dark:text-slate-500 leading-none">rows</div>
                 </div>
                 <div className="text-right">
-                    <div className="text-[11px] text-gray-600 font-medium leading-none mb-0.5">{formattedSize}</div>
-                    <div className="text-[10px] text-gray-400 leading-none">size</div>
+                    <div className="text-[11px] text-gray-600 dark:text-slate-300 font-medium leading-none mb-0.5">{formattedSize}</div>
+                    <div className="text-[10px] text-gray-400 dark:text-slate-500 leading-none">size</div>
                 </div>
             </div>
 
@@ -148,12 +148,12 @@ const TableNode = memo(({ id, data }: NodeProps<TableNodeData>) => {
                 <div className="mt-3 border-t border-gray-100 pt-2 flex flex-col gap-1.5 max-h-56 overflow-y-auto">
                     <div className="text-[9px] uppercase tracking-wider text-gray-400 font-bold mb-0.5">Attributes</div>
                     {data.columns.map((c: any) => (
-                        <div key={c.name} className="flex justify-between items-center gap-4 bg-gray-50/80 px-2 py-1 rounded">
-                            <span className="text-[11px] font-medium text-gray-700">{c.name}</span>
+                        <div key={c.name} className="flex justify-between items-center gap-4 bg-gray-50/80 dark:bg-white/[0.04] px-2 py-1 rounded">
+                            <span className="text-[11px] font-medium text-gray-700 dark:text-slate-200">{c.name}</span>
                             <div className="flex items-center gap-1.5 shrink-0">
                                 {c.is_pk && <span className="text-[9px] bg-amber-100 text-amber-700 px-1 rounded-sm uppercase font-bold">PK</span>}
                                 {c.is_fk && <span className="text-[9px] bg-violet-100 text-violet-700 px-1 rounded-sm uppercase font-bold">FK</span>}
-                                <span className="text-[10px] text-gray-400 font-mono tracking-tighter">{c.type}</span>
+                                <span className="text-[10px] text-gray-400 dark:text-slate-500 font-mono tracking-tighter">{c.type}</span>
                             </div>
                         </div>
                     ))}
@@ -210,8 +210,8 @@ const CustomEdge = ({ id, source, target, sourceX, sourceY, targetX, targetY, so
                         opacity: isDimmed ? 0 : (isHovered || isFocused ? 1 : 0.85),
                     }}
                 >
-                    <div className="p-2.5 rounded-2xl bg-white/95 backdrop-blur-md border shadow-lg flex flex-col items-center gap-1.5 text-center min-w-[160px]" style={{ borderColor: catEdgeColor }}>
-                        <div className="text-[11px] text-slate-700 leading-tight w-full">
+                    <div className="p-2.5 rounded-2xl bg-white/95 dark:bg-slate-900/90 backdrop-blur-md border shadow-lg flex flex-col items-center gap-1.5 text-center min-w-[160px]" style={{ borderColor: catEdgeColor }}>
+                        <div className="text-[11px] text-slate-700 dark:text-slate-200 leading-tight w-full">
                             <div className="font-bold mb-1 text-[12px] truncate" style={{ color: catEdgeColor }}>{source}</div>
                             <div className="flex flex-col items-center justify-center gap-0.5 text-slate-500 text-[10px]">
                                 <span>uses</span>
@@ -246,10 +246,10 @@ const ZoomControls = () => {
     const { zoomIn, zoomOut, fitView } = useReactFlow();
     return (
         <Panel position="bottom-right" className="m-4 z-20">
-            <div className="flex bg-white border border-gray-200 rounded-lg overflow-hidden shadow-sm pointer-events-auto">
-                <button onClick={() => zoomOut()} className="px-3 py-1.5 text-[14px] text-gray-500 hover:bg-gray-50 border-r border-gray-200 transition-colors">−</button>
-                <button onClick={() => fitView({ duration: 800, padding: 0.2 })} className="px-3 py-1.5 text-[11px] uppercase tracking-wider font-medium text-gray-600 hover:bg-gray-50 border-r border-gray-200 transition-colors">Fit</button>
-                <button onClick={() => zoomIn()} className="px-3 py-1.5 text-[14px] text-gray-500 hover:bg-gray-50 transition-colors">+</button>
+            <div className="flex bg-white dark:bg-white/[0.05] border border-gray-200 dark:border-white/[0.08] rounded-lg overflow-hidden shadow-sm pointer-events-auto">
+                <button onClick={() => zoomOut()} className="px-3 py-1.5 text-[14px] text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-white/[0.06] border-r border-gray-200 dark:border-white/[0.08] transition-colors">−</button>
+                <button onClick={() => fitView({ duration: 800, padding: 0.2 })} className="px-3 py-1.5 text-[11px] uppercase tracking-wider font-medium text-gray-600 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-white/[0.06] border-r border-gray-200 dark:border-white/[0.08] transition-colors">Fit</button>
+                <button onClick={() => zoomIn()} className="px-3 py-1.5 text-[14px] text-gray-500 dark:text-slate-400 hover:bg-gray-50 dark:hover:bg-white/[0.06] transition-colors">+</button>
             </div>
         </Panel>
     );
@@ -538,9 +538,9 @@ const SchemaGraphContent = ({ connectionString }: { connectionString: string }) 
 
     if (loading) {
         return (
-            <div className="w-full h-full flex flex-col items-center justify-center bg-white border border-gray-100 rounded-b-3xl">
+            <div className="w-full h-full flex flex-col items-center justify-center bg-white dark:bg-white/[0.03] border border-gray-100 dark:border-white/[0.06] rounded-b-3xl">
                 <Database size={16} className="animate-pulse text-violet-500 mb-2" />
-                <div className="text-gray-500 font-medium text-sm">{dbType === 'mongodb' ? 'Analyzing Collections...' : 'Analyzing & Clustering Schema...'}</div>
+                <div className="text-gray-500 dark:text-slate-400 font-medium text-sm">{dbType === 'mongodb' ? 'Analyzing Collections...' : 'Analyzing & Clustering Schema...'}</div>
             </div>
         );
     }
@@ -554,7 +554,7 @@ const SchemaGraphContent = ({ connectionString }: { connectionString: string }) 
 
                     {/* Breadcrumbs or Filter Chips row */}
                     {!focusedNodeId ? (
-                        <div className="flex gap-2 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-full border border-gray-200 shadow-sm">
+                        <div className="flex gap-2 bg-white/90 dark:bg-white/[0.06] backdrop-blur-md px-3 py-1.5 rounded-full border border-gray-200 dark:border-white/[0.08] shadow-sm">
                             {(['All', 'Entities', 'Junctions', 'Lookups'] as const).map(f => (
                                 <button key={f} onClick={() => setActiveFilter(f)}
                                     className={`px-3 py-1 text-[12px] font-medium rounded-full transition-colors ${activeFilter === f ? 'bg-indigo-50 text-indigo-700 border border-indigo-200' : 'bg-transparent text-gray-500 hover:bg-gray-100'}`}>
@@ -563,7 +563,7 @@ const SchemaGraphContent = ({ connectionString }: { connectionString: string }) 
                             ))}
                         </div>
                     ) : (
-                        <div className="flex items-center gap-2 bg-white/90 backdrop-blur-md px-4 py-2 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+                        <div className="flex items-center gap-2 bg-white/90 dark:bg-white/[0.06] backdrop-blur-md px-4 py-2 rounded-xl border border-gray-200 dark:border-white/[0.08] shadow-sm hover:shadow-md transition-shadow">
                             <button onClick={handleClearFocus} className="text-[13px] font-bold text-gray-500 hover:text-gray-900 transition-colors">
                                 {dbType === 'mongodb' ? 'All Collections' : 'All Tables'}
                             </button>
@@ -581,12 +581,12 @@ const SchemaGraphContent = ({ connectionString }: { connectionString: string }) 
                         <button
                             onMouseEnter={() => setLegendExpanded(true)}
                             onMouseLeave={() => setLegendExpanded(false)}
-                            className="bg-white/90 backdrop-blur-md border border-gray-200 text-gray-400 hover:text-gray-600 w-7 h-7 flex items-center justify-center rounded-full shadow-sm"
+                            className="bg-white/90 dark:bg-white/[0.06] backdrop-blur-md border border-gray-200 dark:border-white/[0.08] text-gray-400 dark:text-slate-400 hover:text-gray-600 dark:hover:text-slate-200 w-7 h-7 flex items-center justify-center rounded-full shadow-sm"
                         >
                             <HelpCircle size={14} />
                         </button>
                         {legendExpanded && (
-                            <div className="absolute top-full left-0 mt-2 bg-white/95 backdrop-blur-md border border-gray-200 rounded-lg p-3 shadow-lg min-w-[160px] pointer-events-none text-left">
+                            <div className="absolute top-full left-0 mt-2 bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border border-gray-200 dark:border-white/[0.08] rounded-lg p-3 shadow-lg min-w-[160px] pointer-events-none text-left">
                                 <div className="text-[10px] uppercase font-bold text-gray-400 tracking-wider mb-2.5">Legend</div>
                                 <div className="flex items-center gap-2 text-[11px] text-gray-600 font-medium mb-1.5">
                                     <div className="w-2.5 h-2.5 rounded bg-indigo-50 border border-indigo-500"></div> Focal Node
@@ -607,21 +607,21 @@ const SchemaGraphContent = ({ connectionString }: { connectionString: string }) 
                     <div className="flex items-center gap-2">
                         {/* Typeahead Search */}
                         <div className="relative" onFocus={() => setIsSearchFocused(true)} onBlur={() => setTimeout(() => setIsSearchFocused(false), 200)}>
-                            <div className="relative group shadow-sm flex items-center bg-white border border-gray-200 rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-amber-400 focus-within:border-amber-400 transition-all">
+                            <div className="relative group shadow-sm flex items-center bg-white dark:bg-white/[0.06] border border-gray-200 dark:border-white/[0.08] rounded-xl overflow-hidden focus-within:ring-2 focus-within:ring-amber-400 focus-within:border-amber-400 transition-all">
                                 <Search size={14} className="absolute left-3 text-gray-400 z-10" />
                                 <input
                                     type="text"
                                     placeholder={dbType === 'mongodb' ? "Find collection or field..." : "Find table or column..."}
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
-                                    className="pl-9 pr-14 py-2 w-64 text-[13px] text-gray-900 border-none outline-none placeholder:text-gray-400 bg-transparent"
+                                    className="pl-9 pr-14 py-2 w-64 text-[13px] text-gray-900 dark:text-slate-100 border-none outline-none placeholder:text-gray-400 bg-transparent"
                                 />
                                 <span className="absolute right-3 text-[10px] text-gray-400 pointer-events-none">↵</span>
                             </div>
 
                             {/* Dropdown */}
                             {isSearchFocused && searchQuery.length > 1 && (searchResults.tables.length > 0 || searchResults.columns.length > 0) && (
-                                <div className="absolute top-full right-0 mt-1 w-72 bg-white border border-gray-200 rounded-xl shadow-lg overflow-hidden z-30">
+                                <div className="absolute top-full right-0 mt-1 w-72 bg-white dark:bg-slate-900/95 border border-gray-200 dark:border-white/[0.08] rounded-xl shadow-lg overflow-hidden z-30">
                                     {searchResults.tables.length > 0 && (
                                         <div className="p-1">
                                             {searchResults.tables.map(n => (
@@ -663,7 +663,7 @@ const SchemaGraphContent = ({ connectionString }: { connectionString: string }) 
                         <div className="relative group">
                             <button
                                 onClick={() => setOverlayMode(!overlayMode)}
-                                className={`flex items-center justify-center p-2.5 rounded-xl border text-[13px] font-medium transition-all shadow-sm ${overlayMode ? 'bg-rose-50 border-rose-200 text-rose-600' : 'bg-white border-gray-200 text-gray-500 hover:text-gray-900 hover:bg-gray-50'}`}
+                                className={`flex items-center justify-center p-2.5 rounded-xl border text-[13px] font-medium transition-all shadow-sm ${overlayMode ? 'bg-rose-50 dark:bg-rose-500/10 border-rose-200 dark:border-rose-500/30 text-rose-600' : 'bg-white dark:bg-white/[0.06] border-gray-200 dark:border-white/[0.08] text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-slate-100 hover:bg-gray-50 dark:hover:bg-white/[0.10]'}`}
                             >
                                 <Layers size={16} />
                             </button>
@@ -675,7 +675,7 @@ const SchemaGraphContent = ({ connectionString }: { connectionString: string }) 
 
                     {/* Active Heatmap Legend */}
                     {overlayMode && (
-                        <div className="bg-white/95 backdrop-blur-md border border-rose-100 px-3 py-1.5 rounded-lg shadow-sm flex items-center gap-2 animate-in fade-in slide-in-from-top-2">
+                        <div className="bg-white/95 dark:bg-white/[0.06] backdrop-blur-md border border-rose-100 dark:border-rose-500/20 px-3 py-1.5 rounded-lg shadow-sm flex items-center gap-2 animate-in fade-in slide-in-from-top-2">
                             <span className="text-[10px] font-bold text-gray-500 uppercase">Size</span>
                             <div className="w-24 h-1.5 rounded-full bg-gradient-to-r from-transparent via-rose-300 to-rose-600 border border-gray-100"></div>
                             <span className="text-[10px] font-bold text-rose-600">High</span>
@@ -684,7 +684,7 @@ const SchemaGraphContent = ({ connectionString }: { connectionString: string }) 
                 </div>
             </div>
 
-            <div className="w-full h-full absolute inset-0 z-0 bg-gray-50/30" style={{ backgroundImage: 'radial-gradient(circle, rgba(0,0,0,0.06) 1px, transparent 1px)', backgroundSize: '24px 24px' }}>
+            <div className="w-full h-full absolute inset-0 z-0 bg-gray-50/30 dark:bg-white/[0.01]" style={{ backgroundImage: 'radial-gradient(circle, rgba(0,0,0,0.06) 1px, transparent 1px)', backgroundSize: '24px 24px' }}>
                 <ReactFlow
                     nodes={nodes}
                     edges={edges}

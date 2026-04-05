@@ -178,11 +178,11 @@ export function DualSidebar({ onProjectLoad }: SidebarProps) {
     <motion.div
       animate={{ width: collapsed ? 64 : 260 }}
       transition={{ duration: 0.25, ease: [0.25, 1, 0.4, 1] }}
-      className="flex flex-col h-full bg-white/60 backdrop-blur-xl border-r border-slate-100/80 overflow-hidden"
+      className="flex flex-col h-full bg-white/60 dark:bg-white/[0.03] backdrop-blur-xl border-r border-slate-100/80 dark:border-white/[0.06] overflow-hidden"
       style={{ boxShadow: "2px 0 24px rgba(0,0,0,0.04)", minWidth: collapsed ? 64 : 260 }}
     >
       {/* ── Logo header with collapse toggle ── */}
-      <div className="flex items-center justify-between px-3 py-4 border-b border-slate-100 shrink-0">
+      <div className="flex items-center justify-between px-3 py-4 border-b border-slate-100 dark:border-white/[0.06] shrink-0">
         <AnimatePresence mode="wait">
           {!collapsed && (
             <motion.div
@@ -198,7 +198,7 @@ export function DualSidebar({ onProjectLoad }: SidebarProps) {
                 <Database size={14} color="white" strokeWidth={2.5} />
               </div>
               <div className="min-w-0">
-                <p className="text-[13px] font-black text-slate-900 leading-tight tracking-tight truncate">DB Lighthouse</p>
+                <p className="text-[13px] font-black text-slate-900 dark:text-slate-100 leading-tight tracking-tight truncate">DB Lighthouse</p>
                 <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">AI Database Agent</p>
               </div>
             </motion.div>
@@ -247,12 +247,12 @@ export function DualSidebar({ onProjectLoad }: SidebarProps) {
 
         {/* ── Active DB status pill ── */}
         {activeConn && (
-          <div className="mb-3 px-2 py-2.5 rounded-2xl border border-violet-100 bg-gradient-to-br from-violet-50 to-indigo-50">
+          <div className="mb-3 px-2 py-2.5 rounded-2xl border border-violet-100 dark:border-violet-500/20 bg-gradient-to-br from-violet-50 to-indigo-50 dark:from-violet-500/10 dark:to-indigo-500/10">
             <div className="flex items-center gap-2 mb-1">
               <div className="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.7)]" />
               <span className="text-[10px] font-black text-violet-700 uppercase tracking-widest">Connected</span>
             </div>
-            <p className="text-[12px] font-black text-slate-900 truncate pl-4">{activeProject || "Database"}</p>
+            <p className="text-[12px] font-black text-slate-900 dark:text-slate-100 truncate pl-4">{activeProject || "Database"}</p>
             <p className="text-[10px] font-bold text-slate-400 pl-4 truncate">{activeConn.split("@").pop()?.split("/")[0] || "Local"}</p>
           </div>
         )}
@@ -262,7 +262,7 @@ export function DualSidebar({ onProjectLoad }: SidebarProps) {
           <Search size={12} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <input value={searchVal} onChange={e => setSearchVal(e.target.value)}
             placeholder="Search databases, tables…"
-            className="w-full pl-8 pr-3 py-2 text-[12px] font-bold text-slate-700 bg-white border border-slate-200 rounded-xl outline-none focus:border-violet-300 focus:ring-2 focus:ring-violet-100 placeholder-slate-400 transition-all" />
+            className="w-full pl-8 pr-3 py-2 text-[12px] font-bold text-slate-700 dark:text-slate-200 bg-white dark:bg-white/[0.05] border border-slate-200 dark:border-white/[0.08] rounded-xl outline-none focus:border-violet-300 focus:ring-2 focus:ring-violet-100 placeholder-slate-400 transition-all" />
         </div>
 
 
@@ -292,18 +292,18 @@ export function DualSidebar({ onProjectLoad }: SidebarProps) {
                       exit={{ opacity: 0, x: -8 }}
                       className={`group w-full flex items-center gap-2 px-3 py-2.5 rounded-xl transition-all cursor-pointer ${
                         isActive
-                          ? "bg-violet-50 border border-violet-200"
-                          : "hover:bg-slate-50 border border-transparent"
+                          ? "bg-violet-50 dark:bg-violet-500/10 border border-violet-200 dark:border-violet-500/30"
+                          : "hover:bg-slate-50 dark:hover:bg-white/[0.04] border border-transparent"
                       }`}
                       onClick={() => handleProjectClick(p)}
                     >
                       <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
-                        isActive ? "bg-violet-100" : "bg-slate-100"
+                        isActive ? "bg-violet-100 dark:bg-violet-500/20" : "bg-slate-100 dark:bg-white/[0.06]"
                       }`}>
                         {getProjectIcon(p)}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className={`text-[12px] font-black truncate ${isActive ? "text-violet-800" : "text-slate-700"}`}>
+                        <p className={`text-[12px] font-black truncate ${isActive ? "text-violet-800 dark:text-violet-300" : "text-slate-700 dark:text-slate-200"}`}>
                           {p.projectName}
                         </p>
                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
@@ -344,7 +344,7 @@ export function DualSidebar({ onProjectLoad }: SidebarProps) {
         {/* ── Tables (if connected) ── */}
         {activeConn && filteredTables.length > 0 && (
           <>
-            <div className="h-px bg-slate-100 mx-2 my-3" />
+            <div className="h-px bg-slate-100 dark:bg-white/[0.06] mx-2 my-3" />
             <div>
               <button
                 onClick={() => setTablesExpanded(t => !t)}
@@ -366,11 +366,11 @@ export function DualSidebar({ onProjectLoad }: SidebarProps) {
                     {filteredTables.map(t => (
                       <button key={t}
                         onClick={() => window.dispatchEvent(new CustomEvent("focus-schema-node", { detail: { tableName: t } }))}
-                        className="group w-full flex items-center gap-2 px-3 py-2 rounded-xl text-left hover:bg-slate-50 transition-colors cursor-pointer">
-                        <div className="w-5 h-5 rounded-md bg-slate-100 flex items-center justify-center shrink-0 group-hover:bg-violet-100 transition-colors">
+                        className="group w-full flex items-center gap-2 px-3 py-2 rounded-xl text-left hover:bg-slate-50 dark:hover:bg-white/[0.04] transition-colors cursor-pointer">
+                        <div className="w-5 h-5 rounded-md bg-slate-100 dark:bg-white/[0.06] flex items-center justify-center shrink-0 group-hover:bg-violet-100 dark:group-hover:bg-violet-500/20 transition-colors">
                           <Table2 size={10} className="text-slate-400 group-hover:text-violet-500 transition-colors" />
                         </div>
-                        <span className="text-[12px] font-bold text-slate-600 group-hover:text-slate-900 truncate transition-colors">{t}</span>
+                        <span className="text-[12px] font-bold text-slate-600 dark:text-slate-300 group-hover:text-slate-900 dark:group-hover:text-slate-100 truncate transition-colors">{t}</span>
                       </button>
                     ))}
                   </motion.div>
@@ -385,12 +385,12 @@ export function DualSidebar({ onProjectLoad }: SidebarProps) {
 
       {/* ── User footer (hidden when collapsed) ── */}
       {!collapsed && (
-      <div className="shrink-0 border-t border-slate-100 p-3">
+      <div className="shrink-0 border-t border-slate-100 dark:border-white/[0.06] p-3">
         {user ? (
-          <div className="flex items-center gap-2.5 px-3 py-2.5 rounded-2xl bg-slate-50 border border-slate-100 hover:bg-slate-100 transition-colors cursor-pointer group">
+          <div className="flex items-center gap-2.5 px-3 py-2.5 rounded-2xl bg-slate-50 dark:bg-white/[0.04] border border-slate-100 dark:border-white/[0.06] hover:bg-slate-100 dark:hover:bg-white/[0.07] transition-colors cursor-pointer group">
             <Avatar user={user} />
             <div className="flex-1 min-w-0">
-              <p className="text-[12px] font-black text-slate-800 truncate">{user.displayName || "User"}</p>
+              <p className="text-[12px] font-black text-slate-800 dark:text-slate-100 truncate">{user.displayName || "User"}</p>
               <div className="flex items-center gap-1">
                 <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
                 <p className="text-[10px] font-bold text-slate-400 truncate">{user.email}</p>
