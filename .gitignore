@@ -96,5 +96,8 @@ coverage/
 # Ignore OS files
 Thumbs.db
 
-# Ignore editor backup files
-*~
+# Build logs and txt reports
+*tsc_output*.txt
+all_dbs.txt
+*.txt
+*.html
