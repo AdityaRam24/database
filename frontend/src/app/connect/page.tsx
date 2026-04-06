@@ -9,12 +9,12 @@ import { saveProject } from "@/lib/projectStorage";
 type Tab = "connection" | "file" | "ai" | "github" | "mongodb" | "firebase";
 
 const TABS: { id: Tab; icon: React.ReactNode; label: string; desc: string }[] = [
-    { id: "connection", icon: <Database size={18} />,  label: "PostgreSQL",  desc: "Live connection string" },
-    { id: "mongodb",    icon: <Leaf size={18} />,      label: "MongoDB",     desc: "MongoDB URI" },
-    { id: "firebase",   icon: <Flame size={18} />,     label: "Firebase",    desc: "Firestore service account" },
-    { id: "file",       icon: <FileCode2 size={18} />, label: "SQL File",    desc: "Upload a .sql schema" },
-    { id: "ai",         icon: <Sparkles size={18} />,  label: "Generate AI", desc: "Describe your database" },
-    { id: "github",     icon: <Github size={18} />,    label: "GitHub",      desc: "Import from a repo" },
+    { id: "connection", icon: <Database size={18} />, label: "PostgreSQL", desc: "Live connection string" },
+    { id: "mongodb", icon: <Leaf size={18} />, label: "MongoDB", desc: "MongoDB URI" },
+    { id: "firebase", icon: <Flame size={18} />, label: "Firebase", desc: "Firestore service account" },
+    { id: "file", icon: <FileCode2 size={18} />, label: "SQL File", desc: "Upload a .sql schema" },
+    { id: "ai", icon: <Sparkles size={18} />, label: "Generate AI", desc: "Describe your database" },
+    { id: "github", icon: <Github size={18} />, label: "GitHub", desc: "Import from a repo" },
 ];
 
 export default function ConnectPage() {
@@ -32,11 +32,11 @@ export default function ConnectPage() {
     const [sqlDialect, setSqlDialect] = useState("postgresql");
 
     const SQL_DIALECTS = [
-        { value: "postgresql", label: "PostgreSQL",  icon: "🐘" },
-        { value: "mysql",      label: "MySQL / MariaDB", icon: "🐬" },
-        { value: "sqlite",     label: "SQLite",      icon: "🗃️" },
-        { value: "mssql",      label: "SQL Server (MSSQL)", icon: "🪟" },
-        { value: "oracle",     label: "Oracle",      icon: "🔴" },
+        { value: "postgresql", label: "PostgreSQL", icon: "🐘" },
+        { value: "mysql", label: "MySQL / MariaDB", icon: "🐬" },
+        { value: "sqlite", label: "SQLite", icon: "🗃️" },
+        { value: "mssql", label: "SQL Server (MSSQL)", icon: "🪟" },
+        { value: "oracle", label: "Oracle", icon: "🔴" },
     ];
 
     const [mongoUri, setMongoUri] = useState("");
@@ -44,11 +44,11 @@ export default function ConnectPage() {
 
     const defaultNames: Record<Tab, string> = {
         connection: "My PostgreSQL DB",
-        mongodb:    "My MongoDB",
-        firebase:   "My Firestore",
-        file:       "SQL Schema",
-        ai:         "AI Generated DB",
-        github:     "GitHub Import",
+        mongodb: "My MongoDB",
+        firebase: "My Firestore",
+        file: "SQL Schema",
+        ai: "AI Generated DB",
+        github: "GitHub Import",
     };
 
     const handleConnect = async (e: React.FormEvent) => {

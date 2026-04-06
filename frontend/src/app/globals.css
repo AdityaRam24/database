@@ -568,6 +568,70 @@ html {
 }
 
 /* ═══════════════════════════════════════════════════════════ */
+/*  DARK MODE — WHITE BOX OVERRIDES                           */
+/*  Dashboard pages use many hardcoded `bg-white` classes.    */
+/*  These global overrides remap them in dark mode to match   */
+/*  the OptimizationReport container: rgba(255,255,255,0.03)  */
+/* ═══════════════════════════════════════════════════════════ */
+
+/* All plain bg-white boxes inside the dashboard main content */
+.dark [class*="bg-white"]:not([class*="bg-white/"]):not(.text-gradient):not(img):not(svg),
+.dark [class*="bg-gray-50"]:not([class*="/50"]):not([class*="/30"]):not([class*="/80"]) {
+  background-color: rgba(255, 255, 255, 0.03) !important;
+}
+
+/* Partially-transparent whites — make them more subtle */
+.dark [class*="bg-white/90"],
+.dark [class*="bg-white/95"],
+.dark [class*="bg-white/80"] {
+  background-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+.dark [class*="bg-white/60"],
+.dark [class*="bg-white/70"] {
+  background-color: rgba(255, 255, 255, 0.04) !important;
+}
+
+/* Light-colored section headers (border-b bg-white pattern used in page toolbars) */
+.dark .border-b.bg-white,
+.dark .bg-white.shadow-sm,
+.dark .bg-white.border {
+  background-color: rgba(255, 255, 255, 0.03) !important;
+  border-color: rgba(255, 255, 255, 0.06) !important;
+}
+
+/* Gray-100 borders in dark mode */
+.dark .border-gray-100,
+.dark .border-gray-200 {
+  border-color: rgba(255, 255, 255, 0.07) !important;
+}
+
+/* Text color overrides for elements that rely on dark text on white bg */
+.dark [class*="bg-white"] .text-slate-900,
+.dark [class*="bg-white"] .text-slate-800,
+.dark [class*="bg-white"] .text-gray-900,
+.dark [class*="bg-white"] .text-gray-800 {
+  color: hsl(210 40% 92%) !important;
+}
+
+.dark [class*="bg-white"] .text-slate-700,
+.dark [class*="bg-white"] .text-slate-600,
+.dark [class*="bg-white"] .text-gray-700,
+.dark [class*="bg-white"] .text-gray-600 {
+  color: hsl(215 20% 68%) !important;
+}
+
+/* ReactFlow canvas in dark mode */
+.dark .react-flow__background {
+  background-color: rgba(255, 255, 255, 0.01) !important;
+}
+
+.dark .react-flow__renderer,
+.dark .react-flow {
+  background-color: transparent !important;
+}
+
+/* ═══════════════════════════════════════════════════════════ */
 /*  RESPONSIVE                                                 */
 /* ═══════════════════════════════════════════════════════════ */
 @media (max-width: 1024px) {

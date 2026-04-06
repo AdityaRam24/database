@@ -76,7 +76,7 @@ function FormattedText({ text }: { text: string }) {
                 const parts = line.split(/(\*\*[^*]+\*\*)/g);
                 const rendered = parts.map((part, j) =>
                     part.startsWith('**') && part.endsWith('**')
-                        ? <strong key={j} className="font-black text-slate-900">{part.slice(2, -2)}</strong>
+                        ? <strong key={j} className="font-black text-slate-900 dark:text-slate-100">{part.slice(2, -2)}</strong>
                         : <span key={j}>{part}</span>
                 );
                 return (
@@ -111,7 +111,7 @@ function MiniBarChart({ columns, rows }: { columns: string[]; rows: any[][] }) {
     const values = rows.map(r => Number(r[1]) || 0);
     const max = Math.max(...values, 1);
     return (
-        <div className="mt-4 p-4 rounded-2xl bg-gradient-to-br from-violet-50 via-indigo-50 to-white border border-violet-100">
+        <div className="mt-4 p-4 rounded-2xl bg-gradient-to-br from-violet-50 via-indigo-50 to-white dark:from-violet-500/10 dark:via-indigo-500/10 dark:to-white/[0.02] border border-violet-100 dark:border-violet-500/20">
             <p className="text-[10px] font-black text-violet-500 uppercase tracking-widest mb-3 flex items-center gap-1.5">
                 <BarChart2 size={11}/> Visual Breakdown
             </p>
@@ -120,7 +120,7 @@ function MiniBarChart({ columns, rows }: { columns: string[]; rows: any[][] }) {
                     <div key={i} className="flex items-center gap-3 text-xs">
                         <span className="w-24 text-slate-600 font-bold truncate shrink-0">{String(row[0])}</span>
                         <div className="flex-1 flex items-center gap-2">
-                            <div className="flex-1 h-2.5 bg-white rounded-full overflow-hidden shadow-inner border border-violet-100">
+                            <div className="flex-1 h-2.5 bg-white dark:bg-white/[0.06] rounded-full overflow-hidden shadow-inner border border-violet-100 dark:border-violet-500/20">
                                 <motion.div className="h-full rounded-full"
                                     initial={{ width: 0 }}
                                     animate={{ width: `${Math.max(4, (values[i] / max) * 100)}%` }}
@@ -140,21 +140,21 @@ function MiniBarChart({ columns, rows }: { columns: string[]; rows: any[][] }) {
 function DataTable({ columns, rows }: { columns: string[]; rows: any[][] }) {
     const [limit, setLimit] = useState(8);
     return (
-        <div className="mt-4 rounded-2xl overflow-hidden border border-slate-200 shadow-sm">
+        <div className="mt-4 rounded-2xl overflow-hidden border border-slate-200 dark:border-white/[0.07] shadow-sm">
             <div className="overflow-x-auto">
                 <table className="w-full text-[12px]">
                     <thead>
-                        <tr style={{ background: 'linear-gradient(135deg,#f5f3ff,#ede9fe)' }}>
+                        <tr style={{ background: 'linear-gradient(135deg,#f5f3ff,#ede9fe)' }} className="dark:!bg-violet-500/10">
                             {columns.map(c => (
-                                <th key={c} className="text-violet-700 font-black text-left px-4 py-2.5 whitespace-nowrap text-[10px] uppercase tracking-widest border-b border-violet-100">{c}</th>
+                                <th key={c} className="text-violet-700 dark:text-violet-300 font-black text-left px-4 py-2.5 whitespace-nowrap text-[10px] uppercase tracking-widest border-b border-violet-100 dark:border-violet-500/20">{c}</th>
                             ))}
                         </tr>
                     </thead>
                     <tbody>
                         {rows.slice(0, limit).map((row, i) => (
-                            <tr key={i} className={`border-b border-slate-50 hover:bg-violet-50/30 transition-colors ${i % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'}`}>
+                            <tr key={i} className={`border-b border-slate-50 dark:border-white/[0.04] hover:bg-violet-50/30 dark:hover:bg-violet-500/5 transition-colors ${i % 2 === 0 ? 'bg-white dark:bg-white/[0.02]' : 'bg-slate-50/50 dark:bg-white/[0.01]'}`}>
                                 {row.map((cell, j) => (
-                                    <td key={j} className="px-4 py-2 font-medium text-slate-700" style={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                    <td key={j} className="px-4 py-2 font-medium text-slate-700 dark:text-slate-300" style={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                         {cell === null ? <span className="italic text-slate-300">empty</span> : String(cell)}
                                     </td>
                                 ))}
@@ -164,7 +164,7 @@ function DataTable({ columns, rows }: { columns: string[]; rows: any[][] }) {
                 </table>
             </div>
             {rows.length > limit ? (
-                <button onClick={() => setLimit(rows.length)} className="w-full text-center text-[11px] font-black text-violet-600 py-3 bg-violet-50 hover:bg-violet-100 transition-colors border-t border-violet-100 uppercase tracking-widest">
+                <button onClick={() => setLimit(rows.length)} className="w-full text-center text-[11px] font-black text-violet-600 py-3 bg-violet-50 dark:bg-violet-500/10 hover:bg-violet-100 dark:hover:bg-violet-500/20 transition-colors border-t border-violet-100 dark:border-violet-500/20 uppercase tracking-widest">
                     Show all {rows.length} rows ↓
                 </button>
             ) : rows.length > 8 && (
@@ -501,17 +501,15 @@ export default function AskAIPage() {
     return (
         <DashboardShell>
             <div
-                className="flex flex-col mx-3 sm:mx-5 mb-4 rounded-3xl overflow-hidden"
+                className="flex flex-col mx-3 sm:mx-5 mb-4 rounded-3xl overflow-hidden bg-gradient-to-br from-[#fdfcff] to-[#f8f5ff] dark:bg-none dark:bg-white/[0.03] border border-[#ede9fe] dark:border-white/[0.06]"
                 style={{
                     height: 'calc(100vh - 108px)',
-                    background: 'linear-gradient(165deg, #fdfcff 0%, #f8f5ff 100%)',
-                    border: '1px solid #ede9fe',
                     boxShadow: '0 8px 48px rgba(124,58,237,0.07), 0 2px 8px rgba(0,0,0,0.04)',
                 }}
             >
 
                 {/* ────────── Header ────────── */}
-                <div className="shrink-0 flex items-center justify-between px-5 py-3 border-b border-violet-100/80 bg-white/70 backdrop-blur-xl">
+                <div className="shrink-0 flex items-center justify-between px-5 py-3 border-b border-violet-100/80 dark:border-white/[0.06] bg-white/70 dark:bg-white/[0.03] backdrop-blur-xl">
                     <div className="flex items-center gap-3">
                         {/* Avatar */}
                         <div className="relative">
@@ -524,7 +522,7 @@ export default function AskAIPage() {
 
                         <div>
                             <div className="flex items-center gap-2">
-                                <h1 className="text-[15px] font-black text-slate-900 tracking-tight">Lumina</h1>
+                                <h1 className="text-[15px] font-black text-slate-900 dark:text-slate-100 tracking-tight">Lumina</h1>
                                 <span className="text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest"
                                     style={{ background: 'linear-gradient(135deg,#ede9fe,#ddd6fe)', color: '#6d28d9' }}>
                                     AI Guide
@@ -533,7 +531,7 @@ export default function AskAIPage() {
                             <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Your friendly database companion</p>
                         </div>
 
-                        <div className="hidden lg:flex items-center gap-1.5 ml-4 pl-4 border-l border-slate-100">
+                        <div className="hidden lg:flex items-center gap-1.5 ml-4 pl-4 border-l border-slate-100 dark:border-white/[0.06]">
                             {[
                                 { icon: Shield, label: 'Safe Mode', bg: '#f3e8ff', fg: '#7c3aed' },
                                 { icon: CheckCircle2, label: 'Firewall On', bg: '#dcfce7', fg: '#15803d' },
@@ -557,7 +555,7 @@ export default function AskAIPage() {
                         {/* Language */}
                         <div className="relative">
                             <button onClick={() => setShowLangPicker(p => !p)}
-                                className="flex items-center gap-1.5 text-[12px] px-3 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 font-bold text-slate-600 shadow-sm transition-all">
+                                className="flex items-center gap-1.5 text-[12px] px-3 py-2 rounded-xl border border-slate-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.05] hover:bg-slate-50 dark:hover:bg-white/[0.08] font-bold text-slate-600 dark:text-slate-300 shadow-sm transition-all">
                                 <Globe size={11} className="text-violet-500"/>
                                 {selectedLang.label}
                                 <ChevronDown size={10} className="text-slate-400"/>
@@ -565,10 +563,10 @@ export default function AskAIPage() {
                             <AnimatePresence>
                                 {showLangPicker && (
                                     <motion.div initial={{ opacity: 0, scale: 0.93, y: -6 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.93, y: -6 }}
-                                        className="absolute top-11 right-0 z-50 p-1.5 rounded-2xl shadow-2xl border border-slate-100 bg-white min-w-[180px]">
+                                        className="absolute top-11 right-0 z-50 p-1.5 rounded-2xl shadow-2xl border border-slate-100 dark:border-white/[0.08] bg-white dark:bg-slate-900/95 min-w-[180px]">
                                         {LANGUAGES.map(lang => (
                                             <button key={lang.code} onClick={() => { setLanguage(lang.code); setShowLangPicker(false); }}
-                                                className={`flex items-center w-full text-left text-[12px] px-3 py-2.5 rounded-xl transition-colors font-bold ${language === lang.code ? 'bg-violet-50 text-violet-700' : 'text-slate-600 hover:bg-slate-50'}`}>
+                                                className={`flex items-center w-full text-left text-[12px] px-3 py-2.5 rounded-xl transition-colors font-bold ${language === lang.code ? 'bg-violet-50 dark:bg-violet-500/10 text-violet-700 dark:text-violet-300' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/[0.05]'}`}>
                                                 {lang.label}
                                                 {language === lang.code && <CheckCircle2 size={13} className="ml-auto text-violet-500"/>}
                                             </button>
@@ -652,7 +650,7 @@ export default function AskAIPage() {
                                         <div className={`rounded-2xl px-5 py-4 text-[14px] shadow-sm font-medium ${
                                             msg.role === 'user'
                                                 ? 'text-white rounded-tr-sm'
-                                                : 'text-slate-800 bg-white border border-slate-100/80 rounded-tl-sm shadow-[0_2px_12px_rgba(0,0,0,0.04)]'
+                                                : 'text-slate-800 dark:text-slate-100 bg-white dark:bg-white/[0.05] border border-slate-100/80 dark:border-white/[0.07] rounded-tl-sm shadow-[0_2px_12px_rgba(0,0,0,0.04)]'
                                         }`}
                                             style={msg.role === 'user' ? { background: 'linear-gradient(135deg,#1e293b,#334155)', boxShadow: '0 4px 16px rgba(30,41,59,0.25)' } : {}}>
                                             <FormattedText text={msg.content} />
@@ -672,7 +670,7 @@ export default function AskAIPage() {
 
                                         {/* Query result */}
                                         {msg.query_result && (
-                                            <div className="bg-white border border-slate-100 rounded-2xl p-4 shadow-sm">
+                                            <div className="bg-white dark:bg-white/[0.04] border border-slate-100 dark:border-white/[0.06] rounded-2xl p-4 shadow-sm">
                                                 {msg.query_result.firewall_blocked ? (
                                                     <div className="flex items-center gap-2.5 text-[13px] text-rose-700 bg-rose-50 border border-rose-200 rounded-xl px-4 py-3 font-bold">
                                                         <Shield size={16}/> 🛡️ Blocked by Safety Firewall — this action looked risky!
@@ -723,7 +721,7 @@ export default function AskAIPage() {
 
                                         {/* Suggested action */}
                                         {msg.suggested_action && (
-                                            <div className="bg-gradient-to-br from-violet-50 to-indigo-50 border border-violet-200 rounded-2xl p-5 shadow-sm">
+                                            <div className="bg-gradient-to-br from-violet-50 to-indigo-50 dark:from-violet-500/10 dark:to-indigo-500/10 border border-violet-200 dark:border-violet-500/20 rounded-2xl p-5 shadow-sm">
                                                 <p className="text-[10px] font-black text-violet-600 uppercase tracking-widest mb-3 flex items-center gap-1.5">
                                                     <Lightbulb size={11} className="text-amber-500"/> Suggested Change
                                                 </p>
@@ -731,7 +729,7 @@ export default function AskAIPage() {
                                                     style={{ background: '#0f172a', color: '#4ade80' }}>
                                                     {msg.suggested_action}
                                                 </code>
-                                                <p className="text-[12px] text-slate-600 font-bold mb-4 bg-white/70 p-3 rounded-xl border border-violet-100">
+                                                <p className="text-[12px] text-slate-600 dark:text-slate-300 font-bold mb-4 bg-white/70 dark:bg-white/[0.04] p-3 rounded-xl border border-violet-100 dark:border-violet-500/20">
                                                     ⚠️ Review the command above — once approved, it will modify your database!
                                                 </p>
                                                 <motion.button whileTap={{ scale: 0.97 }}
@@ -759,7 +757,7 @@ export default function AskAIPage() {
                                 </div>
                                 <div>
                                     <span className="text-[10px] font-black uppercase tracking-widest text-violet-500">✦ Lumina</span>
-                                    <div className="mt-1 flex items-center gap-3 px-5 py-3.5 bg-white border border-slate-100 rounded-2xl rounded-tl-sm shadow-sm">
+                                    <div className="mt-1 flex items-center gap-3 px-5 py-3.5 bg-white dark:bg-white/[0.05] border border-slate-100 dark:border-white/[0.06] rounded-2xl rounded-tl-sm shadow-sm">
                                         <TypingWave/>
                                         <span className="text-[13px] font-bold text-slate-400">Thinking…</span>
                                     </div>
@@ -772,7 +770,7 @@ export default function AskAIPage() {
                 </div>
 
                 {/* ────────── Input Bar ────────── */}
-                <div className="shrink-0 px-4 sm:px-8 pb-5 pt-3 border-t border-violet-100/60 bg-white/75 backdrop-blur-xl">
+                <div className="shrink-0 px-4 sm:px-8 pb-5 pt-3 border-t border-violet-100/60 dark:border-white/[0.06] bg-white/75 dark:bg-white/[0.03] backdrop-blur-xl">
                     <div className="max-w-3xl mx-auto space-y-2">
 
                         {/* Voice error/tip */}
@@ -812,7 +810,7 @@ export default function AskAIPage() {
 
 
                         {/* Input row */}
-                        <div className={`flex gap-2 items-center px-2 py-2 rounded-2xl border bg-white transition-all ${isListening ? 'border-rose-300 shadow-[0_0_0_4px_rgba(244,63,94,0.08)]' : 'border-slate-200 focus-within:border-violet-400 focus-within:shadow-[0_0_0_4px_rgba(124,58,237,0.08)]'}`}
+                        <div className={`flex gap-2 items-center px-2 py-2 rounded-2xl border bg-white dark:bg-white/[0.05] transition-all ${isListening ? 'border-rose-300 shadow-[0_0_0_4px_rgba(244,63,94,0.08)]' : 'border-slate-200 dark:border-white/[0.08] focus-within:border-violet-400 focus-within:shadow-[0_0_0_4px_rgba(124,58,237,0.08)]'}`}
                             style={{ boxShadow: '0 4px 24px rgba(124,58,237,0.06)' }}>
 
                             <input ref={inputRef} value={input}
@@ -820,7 +818,7 @@ export default function AskAIPage() {
                                 onKeyDown={e => e.key === 'Enter' && !e.shiftKey && handleSend()}
                                 placeholder={!connectionString ? 'Connect a database first' : isListening ? 'Listening…' : 'Ask Lumina anything about your database…'}
                                 disabled={!connectionString}
-                                className="flex-1 px-4 py-2.5 text-[14px] bg-transparent border-none outline-none placeholder-slate-400 disabled:opacity-50 font-bold text-slate-800"
+                                className="flex-1 px-4 py-2.5 text-[14px] bg-transparent border-none outline-none placeholder-slate-400 dark:placeholder-slate-500 disabled:opacity-50 font-bold text-slate-800 dark:text-slate-100"
                             />
 
                             {/* Mic button */}
