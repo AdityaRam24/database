@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import DashboardShell from '@/components/DashboardShell';
+import VisionUploader from '@/components/VisionUploader';
 
 interface SafetyResult {
     is_safe: boolean;
@@ -239,6 +240,11 @@ export default function GovernancePage() {
                                 )}
                             </div>
                         )}
+
+                        {/* Vision Intelligence Layer */}
+                        <div className="mb-6">
+                            <VisionUploader />
+                        </div>
 
                         {/* AI Command Center */}
                         <div className="bg-white border border-gray-200 rounded-[24px] p-6 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden">

@@ -9,7 +9,7 @@ import {
   ShieldAlert, Shield, BookOpen, Plus, ArrowUpRight,
   RefreshCw, AlertCircle, PlugZap, Maximize2, X,
   Table2, TrendingUp, CheckCircle2, Sparkles,
-  Heart, Lock, MessageSquare, ChevronRight, Bot
+  Heart, Lock, MessageSquare, ChevronRight, Bot, Terminal, FlaskConical, History
 } from "lucide-react";
 import DashboardShell from "@/components/DashboardShell";
 import { motion, AnimatePresence } from "framer-motion";
@@ -39,6 +39,39 @@ const QUICK_ACTIONS = [
     path: "/dashboard/governance",
   },
   {
+    label: "Query Sandbox",
+    desc: "Test SQL safely before production",
+    whatItDoes: "Optimization Terminal",
+    icon: Terminal,
+    emoji: "💻",
+    color: "#f43f5e",
+    bg: "#fff1f2",
+    border: "#fecdd3",
+    path: "/dashboard/query-builder",
+  },
+  {
+    label: "Simulation Lab",
+    desc: "Predict structural change impact",
+    whatItDoes: "Shadow DB Sandbox",
+    icon: FlaskConical,
+    emoji: "🧪",
+    color: "#0ea5e9",
+    bg: "#f0f9ff",
+    border: "#bae6fd",
+    path: "/dashboard/lab",
+  },
+  {
+    label: "Schema Timeline",
+    desc: "View your historical structure",
+    whatItDoes: "Scrub through time",
+    icon: History,
+    emoji: "⏳",
+    color: "#d946ef",
+    bg: "#fdf4ff",
+    border: "#f5d0fe",
+    path: "/dashboard/time-machine",
+  },
+  {
     label: "Health Monitor",
     desc: "See if your database is running smoothly",
     whatItDoes: "Track live health stats",
@@ -59,17 +92,6 @@ const QUICK_ACTIONS = [
     bg: "#fff7ed",
     border: "#fed7aa",
     path: "/dashboard/incidents",
-  },
-  {
-    label: "Security Guard",
-    desc: "Protect sensitive data and manage who has access",
-    whatItDoes: "Keep your data private",
-    icon: Shield,
-    emoji: "🛡️",
-    color: "#818cf8",
-    bg: "#f5f3ff",
-    border: "#ddd6fe",
-    path: "/dashboard/security",
   },
   {
     label: "AI Knowledge Base",

@@ -14,7 +14,7 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import {
   LogOut, LogIn, Zap, GitMerge, Database,
-  BookOpen, Activity, Shield, ShieldAlert, Bot, ChevronDown,
+  BookOpen, Activity, Shield, ShieldAlert, Bot, ChevronDown, FlaskConical, History, Terminal
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { NavBar } from '@/components/ui/tubelight-navbar';
@@ -24,6 +24,9 @@ import { MenuToggle } from '@/components/ui/menu-toggle';
 
 const NAV_ITEMS = [
   { path: '/dashboard', label: 'Home', icon: Database, color: '#6366f1', textColor: '#818cf8' },
+  { path: '/dashboard/query-builder', label: 'Sandbox', icon: Terminal, color: '#f43f5e', textColor: '#fb7185' },
+  { path: '/dashboard/lab', label: 'Lab', icon: FlaskConical, color: '#0ea5e9', textColor: '#38bdf8' },
+  { path: '/dashboard/time-machine', label: 'Timeline', icon: History, color: '#d946ef', textColor: '#e879f9' },
   { path: '/dashboard/performance', label: 'Speed', icon: Zap, color: '#f59e0b', textColor: '#fbbf24' },
   { path: '/dashboard/governance', label: 'Changes', icon: GitMerge, color: '#3b82f6', textColor: '#60a5fa' },
   { path: '/dashboard/data', label: 'Explorer', icon: Database, color: '#10b981', textColor: '#34d399' },

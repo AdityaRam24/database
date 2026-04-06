@@ -43,49 +43,143 @@ COUNTRY_NAMES = [
 ]
 
 
+# Synonym mapping for more natural language support
+TABLE_SYNONYMS = {
+    'Customer': ['customers', 'users', 'clients', 'people', 'contacts'],
+    'Invoice': ['sales', 'orders', 'purchases', 'transactions', 'billing'],
+    'Track': ['songs', 'music', 'tracks', 'audio'],
+    'Album': ['albums', 'records', 'collections'],
+    'Artist': ['artists', 'singers', 'bands', 'musicians'],
+    'Employee': ['employees', 'staff', 'team members', 'workers'],
+    'InvoiceLine': ['items', 'order details', 'purchase lines'],
+}
+
 def build_keyword_sql(question: str, schema_context: str) -> str:
-    """Build a SQL query from the question using keyword matching."""
+    """Build a sophisticated SQL query from keywords when AI is offline."""
     q = question.lower()
+    
+    # Extract available tables and columns from schema
+    schema_map = {}
+    current_table = None
+    all_tables = re.findall(r'Table:\s*(\w+)', schema_context)
+    
+    # Parse schema_context into a structured map for intelligent column picking
+    for line in schema_context.split('\n'):
+        t_match = re.search(r'Table:\s*(\w+)', line)
+        if t_match:
+            current_table = t_match.group(1)
+            schema_map[current_table] = []
+        elif current_table and line.strip().startswith('-'):
+            c_match = re.search(r'-\s*(\w+)', line)
+            if c_match:
+                schema_map[current_table].append(c_match.group(1))
 
-    # Extract available tables from schema
-    tables_in_schema = re.findall(r'Table:\s*(\w+)', schema_context)
+    # 1. Identify Target Table using Synonyms and Column Evidence
+    available_tables = all_tables or ['Customer']
+    
+    # Heuristic: If we see a country/city/date, look for tables that have those columns
+    preferred_tables = []
+    has_country_word = any(c in q for c in COUNTRY_NAMES) or 'country' in q
+    if has_country_word:
+        preferred_tables = [t for t, cols in schema_map.items() if any('country' in c.lower() for c in cols)]
 
-    # Find best matching table
-    best_table = tables_in_schema[0] if tables_in_schema else 'Customer'
-    for patt, table_name in KEYWORD_PATTERNS:
-        if re.search(patt, q) and table_name != 'COUNT':
-            if table_name in tables_in_schema:
-                best_table = table_name
+    target_table = preferred_tables[0] if preferred_tables else available_tables[0]
+    found_table = False
+
+    # Try mapping by synonyms
+    for table_name, synonyms in TABLE_SYNONYMS.items():
+        if any(s in q for s in synonyms + [table_name.lower()]):
+            if table_name in available_tables:
+                target_table = table_name
+                found_table = True
+                break
+    
+    # Try mapping by direct name match
+    if not found_table:
+        for t in available_tables:
+            if t.lower() in q:
+                target_table = t
+                found_table = True
                 break
 
-    # Detect COUNT intent
-    is_count = bool(re.search(r'\bhow many\b|\bcount\b|\btotal number\b', q))
-
-    # Build WHERE clause
-    where_clauses = []
-
-    # Country filter
-    for country in COUNTRY_NAMES:
-        if country in q:
-            proper = country.title().replace('Usa', 'USA').replace('Uk', 'UK')
-            where_clauses.append(f'"Country" ILIKE \'{proper}\'')
-            break
-
-    # City filter
-    city_match = re.search(r'\bfrom\s+([A-Z][a-z]+(?:\s[A-Z][a-z]+)?)\b', question)
-    if city_match and not any(c in q for c in COUNTRY_NAMES):
-        where_clauses.append(f'"City" ILIKE \'{city_match.group(1)}\'')
-
-    # Build SQL
-    select_part = f'COUNT(*)' if is_count else '*'
-    sql = f'SELECT {select_part} FROM "{best_table}"'
-    if where_clauses:
-        sql += ' WHERE ' + ' AND '.join(where_clauses)
+    # 2. Identify Intent (SELECT vs COUNT)
+    is_count = bool(re.search(r'\bhow many\b|\bcount\b|\btotal\s+(?:number|count|of)\b', q))
+    if not is_count and q.strip().startswith('total '):
+        is_count = True
+    
+    # 3. Intelligent Column Picking (if not count)
+    select_cols = "*"
+    available_cols = schema_map.get(target_table, [])
     if not is_count:
-        limit = 50 if re.search(r'\ball\b|\bevery\b', q) else 10
+        target_cols = []
+        # Common column keywords
+        col_patterns = {
+            'Name': ['names', 'called', 'named'],
+            'Email': ['emails', 'email address'],
+            'Phone': ['phones', 'phone numbers', 'contact'],
+            'City': ['cities', 'city'],
+            'Country': ['countries', 'country'],
+            'Total': ['amount', 'price', 'total', 'cost'],
+            'Title': ['titles', 'subject'],
+        }
+        for col_name, keywords in col_patterns.items():
+            if any(k in q for k in keywords):
+                # Find best matching actual column in this table
+                for actual in available_cols:
+                    if col_name.lower() in actual.lower():
+                        target_cols.append(f'"{actual}"')
+        if target_cols:
+            select_cols = ", ".join(list(set(target_cols)))
+
+    # 4. Filters (WHERE)
+    where_parts = []
+    
+    # Country filters (ONLY if table has a Country column)
+    target_country_col = next((c for c in available_cols if 'country' in c.lower()), None)
+    if target_country_col:
+        for country in COUNTRY_NAMES:
+            if country in q:
+                proper = country.title().replace('Usa', 'USA').replace('Uk', 'UK')
+                where_parts.append(f'"{target_country_col}" ILIKE \'{proper}\'')
+                break
+            
+    # Simple numerical filters (e.g. "id > 10")
+    num_match = re.search(r'(\w+)\s*(>|<|=)\s*(\d+)', question)
+    if num_match:
+        col, op, val = num_match.groups()
+        # Verify column exists
+        for actual in available_cols:
+            if col.lower() in actual.lower():
+                where_parts.append(f'"{actual}" {op} {val}')
+                break
+
+    # 5. Sorting (ORDER BY)
+    order_by = ""
+    if re.search(r'\blatest\b|\brecent\b|\bnewest\b', q):
+        # Look for date columns
+        for actual in schema_map.get(target_table, []):
+            if any(k in actual.lower() for k in ['date', 'created', 'at', 'time']):
+                order_by = f' ORDER BY "{actual}" DESC'
+                break
+    elif re.search(r'\bhighest\b|\bmost\b|\btop\b', q):
+        # Look for numeric columns (Total, UnitPrice, etc)
+        for actual in schema_map.get(target_table, []):
+            if any(k in actual.lower() for k in ['total', 'price', 'amount', 'count']):
+                order_by = f' ORDER BY "{actual}" DESC'
+                break
+
+    # 6. Final Assembly
+    sql = f'SELECT {f"COUNT(*)" if is_count else select_cols} FROM "{target_table}"'
+    if where_parts:
+        sql += ' WHERE ' + ' AND '.join(where_parts)
+    sql += order_by
+    
+    # Default limit
+    if not is_count and 'LIMIT' not in sql.upper():
+        limit = 50 if 'all' in q else 10
         sql += f' LIMIT {limit}'
-    sql += ';'
-    return sql
+        
+    return sql + ';'
 
 
 @router.post("/query")

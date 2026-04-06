@@ -60,8 +60,8 @@ export function NavBar({ items, className }: NavBarProps) {
               href={item.url}
               onClick={() => setActiveTab(item.name)}
               className={cn(
-                "relative flex items-center justify-center cursor-pointer text-xs sm:text-sm font-semibold px-3 sm:px-4 py-2 rounded-full transition-all duration-300 shrink-0",
-                "text-zinc-500 hover:text-zinc-300",
+                "relative flex items-center justify-center cursor-pointer text-[12px] xl:text-[12px] tracking-tight font-bold px-1.5 xl:px-1.5 py-1.5 rounded-full transition-all duration-150 shrink-0",
+                "text-slate-500 hover:text-slate-700 dark:text-zinc-500 dark:hover:text-zinc-300",
               )}
               style={{
                 color: isActive ? (item.textColor || '#fff') : undefined,
@@ -69,9 +69,11 @@ export function NavBar({ items, className }: NavBarProps) {
                 border: isActive ? `1px solid ${item.color}40` : '1px solid transparent'
               }}
             >
-              <div className="flex items-center gap-2">
-                <Icon size={16} strokeWidth={2.5} style={{ color: isActive ? item.color : undefined }} />
-                <span className="hidden md:inline whitespace-nowrap">{item.name}</span>
+              <div className="flex items-center gap-1 xl:gap-1">
+                <Icon size={14} strokeWidth={2.5} style={{ color: isActive ? item.color : undefined }} />
+                <span className="hidden xl:inline-block whitespace-nowrap opacity-100">
+                  {item.name}
+                </span>
               </div>
               {isActive && (
                 <motion.div

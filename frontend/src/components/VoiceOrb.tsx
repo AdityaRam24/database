@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Mic, X, Loader2, Sparkles, BarChart2, Table2, Database, Send } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
 
 interface QueryResult {
   sql: string;
@@ -10,6 +11,7 @@ interface QueryResult {
   error: string | null;
   chart_type: string | null;
   explanation: string | null;
+  council_transcript?: { agent: string; message: string }[];
 }
 
 function OrbRings({ listening, volume }: { listening: boolean; volume: number }) {
@@ -61,7 +63,9 @@ function Waveform({ listening, volume }: { listening: boolean; volume: number })
 }
 
 export default function VoiceOrb() {
+  const { user } = useAuth();
   const [open, setOpen] = useState(false);
+  const [hasGreeted, setHasGreeted] = useState(false);
   const [listening, setListening] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [manualInput, setManualInput] = useState('');
@@ -71,23 +75,95 @@ export default function VoiceOrb() {
   const [connectionString, setConnectionString] = useState<string | null>(null);
   const [inlineConn, setInlineConn] = useState('');
   const [showConnInput, setShowConnInput] = useState(false);
+  const [councilMode, setCouncilMode] = useState(false);
   const recognitionRef = useRef<any>(null);
   const audioCtxRef = useRef<AudioContext | null>(null);
   const animFrameRef = useRef<number>(0);
   const streamRef = useRef<MediaStream | null>(null);
 
+  // Jarvis Voice Engine
+  const speak = useCallback((text: string) => {
+    if (!window.speechSynthesis) return;
+    window.speechSynthesis.cancel(); // Stop current speech
+    const utterance = new SpeechSynthesisUtterance(text);
+    
+    // Pick the best voice (prefer "Google UK English Male" or "Microsoft David" or "Arthur")
+    const voices = window.speechSynthesis.getVoices();
+    const jarvisVoice = voices.find(v => 
+      v.name.includes('UK') || v.name.includes('David') || v.name.includes('Arthur') || v.name.includes('Google UK English Male')
+    );
+    if (jarvisVoice) utterance.voice = jarvisVoice;
+    
+    utterance.rate = 1.05; // Slightly faster
+    utterance.pitch = 0.85; // Lower, more sophisticated pitch
+    window.speechSynthesis.speak(utterance);
+  }, []);
+
+  // Audio Effects
+  const playSound = useCallback((type: 'start' | 'stop') => {
+    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    
+    if (type === 'start') {
+      osc.frequency.setValueAtTime(440, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.1);
+      gain.gain.setValueAtTime(0.1, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
+    } else {
+      osc.frequency.setValueAtTime(880, ctx.currentTime);
+      osc.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + 0.1);
+      gain.gain.setValueAtTime(0.1, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
+    }
+    
+    osc.start();
+    osc.stop(ctx.currentTime + 0.1);
+  }, []);
+
   useEffect(() => {
     const cs = localStorage.getItem('db_connection_string');
     if (cs) setConnectionString(cs);
 
-    // Listen for project changes from sidebar
+    // Ensure voices are loaded
+    if (window.speechSynthesis) {
+      window.speechSynthesis.getVoices();
+      if (window.speechSynthesis.onvoiceschanged !== undefined) {
+        window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+      }
+    }
+
+    // Global Hotkey: Ctrl + J
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.key === 'j') {
+        e.preventDefault();
+        setOpen(prev => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+
     const handler = () => {
       const cs2 = localStorage.getItem('db_connection_string');
       if (cs2) setConnectionString(cs2);
     };
     window.addEventListener('project-changed', handler);
-    return () => window.removeEventListener('project-changed', handler);
+    
+    return () => {
+      window.removeEventListener('project-changed', handler);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
   }, []);
+
+  // Jarvis Welcome
+  useEffect(() => {
+    if (open && !hasGreeted && user) {
+      const firstName = user.displayName?.split(' ')[0] || 'Sir';
+      speak(`Jarvis online. Glad to see you again, ${firstName}. How can I assist with your database today?`);
+      setHasGreeted(true);
+    }
+  }, [open, hasGreeted, user, speak]);
 
   const activeConn = connectionString || inlineConn;
 
@@ -123,38 +199,56 @@ export default function VoiceOrb() {
     if (!text.trim() || !activeConn) return;
     setLoading(true);
     setResult(null);
+    
+    // Voice cue: Thinking
+    speak(councilMode ? "Convening the AI council, please wait." : "Analyzing data, please stand by.");
+
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/analysis/query`, {
+      const endpoint = councilMode ? '/council/deliberate' : '/voice/query';
+      const payload = councilMode 
+        ? { connection_string: activeConn, request: text }
+        : { connection_string: activeConn, question: text };
+
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          connection_string: activeConn,
-          question: text,
-          conversation_history: [],
-        }),
+        body: JSON.stringify(payload),
       });
       const data = await res.json();
       
       if (!res.ok) {
         setResult({ sql: '', rows: [], columns: [], error: data.detail || `Error ${res.status}`, chart_type: null, explanation: null });
+        speak("I encountered an error accessing the database core.");
         return;
       }
 
-      // /analysis/query returns {sql, rows, columns, error, explanation, chart_type}
       setResult({
-        sql: data.sql || '',
+        sql: data.sql || data.final_sql || '',
         rows: data.rows || [],
         columns: data.columns || [],
         error: data.error || null,
         chart_type: data.chart_type || null,
         explanation: data.explanation || null,
+        council_transcript: data.transcript || null,
       });
+
+      // Jarvis Voice Feedback
+      if (councilMode) {
+        speak("The Council has reached a consensus on your request.");
+      } else if (data.explanation) {
+        speak(data.explanation);
+      } else if (data.rows && data.rows.length > 0) {
+        speak(`Query complete. I've retrieved ${data.rows.length} relevant entries.`);
+      } else {
+        speak("The query returned no results.");
+      }
     } catch {
-      setResult({ sql: '', rows: [], columns: [], error: 'Could not reach backend. Is the server running?', chart_type: null, explanation: null });
+      setResult({ sql: '', rows: [], columns: [], error: 'Could not reach Jarvis backend.', chart_type: null, explanation: null });
+      speak("Backend systems are unresponsive, Sir.");
     } finally {
       setLoading(false);
     }
-  }, [activeConn]);
+  }, [activeConn, speak]);
 
   const startListening = useCallback(() => {
     const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
@@ -193,6 +287,7 @@ export default function VoiceOrb() {
     r._shouldRestart = true;
     r.start();
     setListening(true);
+    playSound('start');
     setTranscript('');
     setResult(null);
     setManualInput('');
@@ -205,6 +300,7 @@ export default function VoiceOrb() {
       recognitionRef.current.stop();
     }
     setListening(false);
+    playSound('stop');
     stopMic();
     // Auto-submit whatever was captured
     setTranscript(prev => {
@@ -235,13 +331,23 @@ export default function VoiceOrb() {
         @keyframes pulse-orb-2 { 0%,100%{opacity:.25} 50%{opacity:.7} }
         @keyframes pulse-orb-3 { 0%,100%{opacity:.15} 50%{opacity:.5} }
         .orb-float { animation: float-orb 3s ease-in-out infinite; }
+        .jarvis-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .jarvis-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .jarvis-scrollbar::-webkit-scrollbar-thumb { background: rgba(139,92,246,0.3); border-radius: 10px; }
+        .jarvis-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(139,92,246,0.5); }
       `}</style>
 
       {/* ── Slide-up panel ── */}
       {open && (
         <div
-          className="fixed bottom-24 right-5 z-[9999] w-[360px] max-w-[calc(100vw-2.5rem)] rounded-3xl shadow-2xl overflow-hidden flex flex-col"
-          style={{ background: 'rgba(8,8,18,0.97)', border: '1px solid rgba(139,92,246,0.35)', backdropFilter: 'blur(24px)', maxHeight: '70vh' }}
+          className="fixed bottom-24 right-5 z-[9999] w-[440px] max-w-[calc(100vw-2.5rem)] rounded-3xl shadow-2xl overflow-hidden flex flex-col"
+          style={{ 
+            background: 'rgba(8,8,18,0.98)', 
+            border: '1px solid rgba(139,92,246,0.3)', 
+            backdropFilter: 'blur(30px)', 
+            maxHeight: '82vh',
+            boxShadow: '0 20px 50px rgba(0,0,0,0.5), 0 0 20px rgba(139,92,246,0.1)'
+          }}
         >
           {/* Header */}
           <div className="flex items-center justify-between px-5 py-3.5 border-b border-white/[0.07] shrink-0">
@@ -286,7 +392,7 @@ export default function VoiceOrb() {
           )}
 
           {/* Main body */}
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 overflow-y-auto jarvis-scrollbar min-h-0 relative">
             {/* Status / transcript */}
             <div className="px-5 py-4 min-h-[70px]">
               {!activeConn ? (
@@ -324,6 +430,21 @@ export default function VoiceOrb() {
                   <div className="text-rose-400 text-[12px] font-bold bg-rose-500/10 border border-rose-500/20 rounded-xl p-3">{result.error}</div>
                 ) : (
                   <>
+                    {result.council_transcript && result.council_transcript.length > 0 && (
+                      <div className="space-y-2 mb-3">
+                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 border-b border-white/[0.05] pb-1 mb-2 flex items-center gap-2"><Sparkles size={11} className="text-amber-400" /> Council Deliberation</p>
+                        {result.council_transcript.map((t, idx) => (
+                           <div key={idx} className={`p-3 rounded-xl border flex flex-col gap-1.5 ${
+                             t.agent === 'Architect' ? 'bg-blue-500/10 border-blue-500/20 text-blue-200' :
+                             t.agent === 'Guardian' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-200' :
+                             'bg-violet-500/10 border-violet-500/30 text-violet-200'
+                           }`}>
+                             <span className="text-[9px] uppercase tracking-widest font-black opacity-80">The {t.agent}</span>
+                             <span className="text-[12px] leading-relaxed">"{t.message}"</span>
+                           </div>
+                        ))}
+                      </div>
+                    )}
                     {result.explanation && (
                       <div className="flex items-start gap-2 bg-violet-500/10 border border-violet-500/20 rounded-xl p-3">
                         <Sparkles size={11} className="text-violet-400 shrink-0 mt-0.5" />
@@ -342,20 +463,20 @@ export default function VoiceOrb() {
                           <BarChart2 size={11} className="text-violet-400" />
                           <span className="text-[9px] font-black uppercase tracking-widest text-slate-500">{result.rows.length} rows</span>
                         </div>
-                        <div className="overflow-x-auto">
-                          <table className="w-full text-[11px]">
+                        <div className="overflow-x-auto jarvis-scrollbar pb-2">
+                          <table className="w-full text-[11px] border-collapse">
                             <thead>
-                              <tr className="border-b border-white/[0.05]">
+                              <tr className="border-b border-white/[0.1]">
                                 {result.columns.map(col => (
-                                  <th key={col} className="text-left px-3 py-2 text-[9px] font-black uppercase tracking-widest text-slate-600 whitespace-nowrap">{col}</th>
+                                  <th key={col} className="text-left px-3 py-2.5 text-[9px] font-black uppercase tracking-widest text-slate-500 whitespace-nowrap bg-white/[0.02]">{col}</th>
                                 ))}
                               </tr>
                             </thead>
                             <tbody>
-                              {result.rows.slice(0, 6).map((row, i) => (
-                                <tr key={i} className="border-b border-white/[0.03] hover:bg-white/[0.02]">
+                              {result.rows.map((row, i) => (
+                                <tr key={i} className="border-b border-white/[0.03] hover:bg-white/[0.03] transition-colors">
                                   {result.columns.map((col, j) => (
-                                    <td key={col} className="px-3 py-2 text-slate-400 font-mono whitespace-nowrap max-w-[120px] truncate">
+                                    <td key={col} className="px-3 py-2 text-slate-300 font-mono whitespace-nowrap">
                                       {String(Array.isArray(row) ? row[j] : (row as any)[col] ?? 'null')}
                                     </td>
                                   ))}
@@ -363,9 +484,6 @@ export default function VoiceOrb() {
                               ))}
                             </tbody>
                           </table>
-                          {result.rows.length > 6 && (
-                            <p className="text-center text-[10px] text-slate-700 font-black py-2">+{result.rows.length - 6} more</p>
-                          )}
                         </div>
                       </div>
                     )}
@@ -376,7 +494,20 @@ export default function VoiceOrb() {
           </div>
 
           {/* Bottom action bar */}
-          <div className="px-4 py-3 border-t border-white/[0.06] shrink-0 flex flex-col gap-2">
+          <div className="px-4 py-3 border-t border-white/[0.06] shrink-0 flex flex-col gap-2 relative">
+            
+            {/* Toggle Council Mode */}
+            <div className="flex justify-end mb-1">
+              <button 
+                onClick={() => setCouncilMode(!councilMode)}
+                className={`text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-md transition-colors flex items-center gap-1.5 ${
+                  councilMode ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' : 'text-slate-500 hover:text-slate-300'
+                }`}
+              >
+                <Sparkles size={10} /> {councilMode ? 'Council Active' : 'Enable Council'}
+              </button>
+            </div>
+
             {/* Text input */}
             <div className="flex gap-2">
               <input

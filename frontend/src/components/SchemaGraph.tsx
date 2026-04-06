@@ -19,7 +19,7 @@ import ReactFlow, {
     EdgeLabelRenderer
 } from 'reactflow';
 import 'reactflow/dist/style.css';
-import { Database, ChevronRight, Search, Layers, Zap, HelpCircle, RefreshCcw } from 'lucide-react';
+import { Database, ChevronRight, Search, Layers, Zap, HelpCircle, RefreshCcw, Activity } from 'lucide-react';
 import dagre from 'dagre';
 
 // ─── Interfaces ─────────────────────────────────────────────────────────────
@@ -42,6 +42,7 @@ interface TableNodeData {
     isHovered: boolean;
     isSearchHighlighted: boolean;
     overlayMode: boolean;
+    liveTelemetryMode: boolean;
     connectionDegree: number;
     category: 'entity' | 'junction' | 'lookup';
     onFocusNode: (id: string, panTo: boolean) => void;
@@ -175,6 +176,7 @@ const CustomEdge = ({ id, source, target, sourceX, sourceY, targetX, targetY, so
     const cardinality = data?.cardinality || '1:n';
     const sourceCol = data?.source_col || '';
     const targetCol = data?.target_col || '';
+    const liveTelemetryMode = data?.liveTelemetryMode || false;
 
     const catEdgeColor = CATEGORY_STYLES[sourceCategory as keyof typeof CATEGORY_STYLES].borderLeft;
     const isTotal = participation === 'total';
@@ -200,6 +202,22 @@ const CustomEdge = ({ id, source, target, sourceX, sourceY, targetX, targetY, so
         >
             <path d={edgePath} fill="none" strokeOpacity={0} strokeWidth={20} className="react-flow__edge-interaction cursor-pointer z-50" />
             <BaseEdge path={edgePath} markerEnd={markerEnd} style={edgeStyle} />
+            
+            {liveTelemetryMode && !isDimmed && (
+                <path
+                    d={edgePath}
+                    fill="none"
+                    stroke={catEdgeColor}
+                    strokeWidth={isTotal ? 4 : 2}
+                    className="origin-center"
+                    strokeDasharray="4 8"
+                    style={{
+                        animation: "dash 1s linear infinite",
+                        opacity: isTotal ? 1 : 0.6,
+                        filter: `drop-shadow(0 0 4px ${catEdgeColor})`
+                    }}
+                />
+            )}
             
             <EdgeLabelRenderer>
                 <div
@@ -280,6 +298,7 @@ const SchemaGraphContent = ({ connectionString }: { connectionString: string }) 
     const [isSearchFocused, setIsSearchFocused] = useState(false);
     const [activeFilter, setActiveFilter] = useState<'All' | 'Entities' | 'Junctions' | 'Lookups'>('All');
     const [overlayMode, setOverlayMode] = useState(false);
+    const [liveTelemetryMode, setLiveTelemetryMode] = useState(false);
     const [legendExpanded, setLegendExpanded] = useState(false);
 
     const [graphData, setGraphData] = useState<{ nodes: any[], edges: any[] }>({ nodes: [], edges: [] });
@@ -479,10 +498,11 @@ const SchemaGraphContent = ({ connectionString }: { connectionString: string }) 
                 isDimmed,
                 isSearchHighlighted,
                 overlayMode,
+                liveTelemetryMode,
             };
 
             const isChanged = node.data.isFocused !== newData.isFocused || node.data.isHovered !== newData.isHovered || node.data.isDimmed !== newData.isDimmed ||
-                node.data.isSearchHighlighted !== newData.isSearchHighlighted || node.data.overlayMode !== newData.overlayMode;
+                node.data.isSearchHighlighted !== newData.isSearchHighlighted || node.data.overlayMode !== newData.overlayMode || node.data.liveTelemetryMode !== newData.liveTelemetryMode;
 
             if (!isChanged) return node;
             return { ...node, data: newData };
@@ -509,8 +529,8 @@ const SchemaGraphContent = ({ connectionString }: { connectionString: string }) 
                 else isHovered = true;
             }
 
-            const newData = { ...edge.data, isDimmed, isHovered, isFocused };
-            const isChanged = edge.data.isDimmed !== newData.isDimmed || edge.data.isHovered !== newData.isHovered || edge.data.isFocused !== newData.isFocused;
+            const newData = { ...edge.data, isDimmed, isHovered, isFocused, liveTelemetryMode };
+            const isChanged = edge.data.isDimmed !== newData.isDimmed || edge.data.isHovered !== newData.isHovered || edge.data.isFocused !== newData.isFocused || edge.data.liveTelemetryMode !== newData.liveTelemetryMode;
 
             if (!isChanged) return edge;
             return { ...edge, data: newData };
@@ -668,7 +688,20 @@ const SchemaGraphContent = ({ connectionString }: { connectionString: string }) 
                                 <Layers size={16} />
                             </button>
                             <div className="absolute top-full right-0 mt-2 w-max px-2.5 py-1.5 bg-slate-800 text-white text-[11px] font-medium rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
-                                Color nodes by row count size
+                                Color nodes by size
+                            </div>
+                        </div>
+
+                        {/* Live Telemetry Mode */}
+                        <div className="relative group">
+                            <button
+                                onClick={() => setLiveTelemetryMode(!liveTelemetryMode)}
+                                className={`flex items-center justify-center p-2.5 rounded-xl border text-[13px] font-medium transition-all shadow-sm ${liveTelemetryMode ? 'bg-indigo-50 border-indigo-200 text-indigo-600' : 'bg-white border-gray-200 text-gray-500 hover:text-gray-900 hover:bg-gray-50'}`}
+                            >
+                                <Activity size={16} className={liveTelemetryMode ? "animate-pulse" : ""} />
+                            </button>
+                            <div className="absolute top-full right-0 mt-2 w-max px-2.5 py-1.5 bg-slate-800 text-white text-[11px] font-medium rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
+                                Live Telemetry Mode
                             </div>
                         </div>
                     </div>

@@ -163,6 +163,61 @@ class AIService:
             logger.error(f"AI schema generation failed: {e}")
             raise e
 
+    async def generate_schema_from_image(self, base64_image: str) -> str:
+        """
+        Takes a base64 encoded image (such as an ER diagram or whiteboard sketch) 
+        and uses a Vision-capable AI model to generate PostgreSQL DDL.
+        """
+        try:
+            prompt_text = "You are an expert PostgreSQL database architect with perfect computer vision. Look at this database diagram (ERD or whiteboard sketch). Extract every table, column, data type, primary key, and foreign key relationship you can see. Return ONLY the valid PostgreSQL CREATE TABLE statements (DDL). No markdown formatting, no explanations, no text before or after the SQL. IF IT IS NOT A DIAGRAM, throw an error."
+            
+            if self.ai_mode == "OLLAMA":
+                base = str(self.client.base_url).split("/v1")[0]
+                url = f"{base}/api/chat"
+                async with httpx.AsyncClient(timeout=120.0) as client:
+                    payload = {
+                        "model": self.model,
+                        "messages": [
+                            {"role": "system", "content": "Return ONLY valid SQL DDL from images."},
+                            {"role": "user", "content": prompt_text, "images": [base64_image]}
+                        ],
+                        "stream": False,
+                        "options": {"temperature": 0.1, "num_predict": 2000}
+                    }
+                    resp = await client.post(url, json=payload)
+                    resp.raise_for_status()
+                    data = resp.json()
+                    content = data["message"]["content"].strip()
+            else:
+                # OpenAI / JAN API Vision Format
+                response = await self.client.chat.completions.create(
+                    model=self.model,
+                    messages=[
+                        {"role": "system", "content": "Return ONLY valid SQL DDL from images."},
+                        {
+                            "role": "user", 
+                            "content": [
+                                {"type": "text", "text": prompt_text},
+                                {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"}}
+                            ]
+                        }
+                    ],
+                    max_tokens=2000,
+                    temperature=0.1,
+                    timeout=120.0
+                )
+                content = response.choices[0].message.content.strip()
+
+            # Clean output
+            for tag in ["```sql", "```"]:
+                if content.startswith(tag): content = content[len(tag):]
+            if content.endswith("```"): content = content[:-3]
+            return content.strip()
+            
+        except Exception as e:
+            logger.error(f"AI Vision generation failed: {e}")
+            raise e
+
     async def generate_governance_patch(self, description: str, schema_context: str) -> str:
         """Generate a SQL patch from a natural language description of what to change."""
         try:
