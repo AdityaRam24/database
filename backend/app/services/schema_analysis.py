@@ -27,19 +27,23 @@ class SchemaAnalysisService:
                 # Total Size & Table Count
                 query = text("""
                     SELECT
-                        count(*) as total_tables,
-                        sum(pg_total_relation_size(quote_ident(schemaname) || '.' || quote_ident(tablename))) as total_size_bytes
-                    FROM pg_tables
-                    WHERE schemaname = 'public';
+                        (SELECT count(*) FROM pg_tables WHERE schemaname = 'public') as total_tables,
+                        (SELECT sum(pg_total_relation_size(quote_ident(schemaname) || '.' || quote_ident(tablename))) FROM pg_tables WHERE schemaname = 'public') as total_size_bytes,
+                        (SELECT count(*) FROM information_schema.table_constraints WHERE constraint_type = 'PRIMARY KEY' AND table_schema = 'public') as total_pk_count,
+                        (SELECT count(*) FROM information_schema.table_constraints WHERE constraint_type = 'FOREIGN KEY' AND table_schema = 'public') as total_fk_count;
                 """)
                 result = conn.execute(query).fetchone()
                 total_tables = result[0]
                 total_size_bytes = result[1] or 0
-
+                total_pk_count = result[2]
+                total_fk_count = result[3]
+                
                 return {
                     "total_tables": total_tables,
                     "total_size_bytes": total_size_bytes,
                     "total_size_mb": round(total_size_bytes / (1024 * 1024), 2),
+                    "total_pk_count": total_pk_count,
+                    "total_fk_count": total_fk_count,
                     "optimization_score": score
                 }
         except Exception as e:
@@ -57,10 +61,13 @@ class SchemaAnalysisService:
                     SELECT
                         t.tablename,
                         c.reltuples::bigint as estimated_rows,
-                        pg_total_relation_size(quote_ident(t.schemaname) || '.' || quote_ident(t.tablename)) as size_bytes
+                        pg_total_relation_size(quote_ident(t.schemaname) || '.' || quote_ident(t.tablename)) as size_bytes,
+                        s.seq_scan,
+                        s.idx_scan
                     FROM pg_tables t
                     JOIN pg_class c ON c.relname = t.tablename
                     JOIN pg_namespace n ON n.oid = c.relnamespace
+                    LEFT JOIN pg_stat_user_tables s ON s.relname = t.tablename
                     WHERE t.schemaname = 'public' AND n.nspname = 'public';
                 """)
                 nodes_result = conn.execute(nodes_query).fetchall()
@@ -106,6 +113,8 @@ class SchemaAnalysisService:
                             "label": table_name,
                             "rows": row[1],
                             "size_bytes": row[2],
+                            "seq_scan": row[3] or 0,
+                            "idx_scan": row[4] or 0,
                             "columns": columns_by_table.get(table_name, [])
                         },
                         "position": {"x": 0, "y": 0}

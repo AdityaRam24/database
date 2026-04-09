@@ -227,22 +227,39 @@ function ActionCard({ action, onClick, index }: { action: typeof QUICK_ACTIONS[0
     <motion.button
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.35, delay: 0.15 + index * 0.05 }}
-      whileHover={{ y: -3, boxShadow: `0 8px 24px ${action.color}22` }}
-      whileTap={{ scale: 0.97 }}
+      whileHover={{ 
+        y: -10, 
+        scale: 1.02,
+        boxShadow: `0 16px 40px ${action.color}22`
+      }}
+      transition={{ 
+        duration: 0.35, 
+        delay: 0.15 + index * 0.05,
+        y: { type: "tween", duration: 0.8, ease: "easeInOut" },
+        scale: { type: "tween", duration: 0.8, ease: "easeInOut" },
+        boxShadow: { duration: 0.8, ease: "easeInOut" }
+      }}
+      whileTap={{ scale: 0.98, transition: { duration: 0.1 } }}
       onClick={onClick}
-      className="group text-left rounded-2xl p-4 border transition-all duration-200 cursor-pointer"
+      className="group text-left rounded-2xl p-4 border transition-all duration-700 ease-in-out cursor-pointer relative overflow-hidden"
       style={{ background: action.bg, borderColor: action.border }}
     >
-      <div className="flex items-start justify-between mb-3">
-        <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl" style={{ background: `${action.color}18` }}>
+      <div className="absolute inset-0 bg-white/0 group-hover:bg-white/20 transition-colors duration-1000" />
+      
+      <div className="relative z-10 flex items-start justify-between mb-3">
+        <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl shadow-sm transition-transform duration-1000 group-hover:scale-110" style={{ background: `${action.color}18` }}>
           {action.emoji}
         </div>
-        <ChevronRight size={14} className="mt-1 transition-all group-hover:translate-x-1" style={{ color: action.color }} />
+        <ChevronRight size={14} className="mt-1 transition-all duration-700 group-hover:translate-x-1" style={{ color: action.color }} />
       </div>
-      <p className="text-[13px] font-black text-slate-900 leading-tight mb-1">{action.label}</p>
-      <p className="text-[11px] font-bold leading-snug" style={{ color: `${action.color}cc` }}>{action.whatItDoes}</p>
-      <p className="text-[10px] text-slate-500 font-medium mt-1.5 leading-snug hidden group-hover:block">{action.desc}</p>
+      <p className="relative z-10 text-[13px] font-black text-slate-900 leading-tight mb-1 transition-all duration-700">{action.label}</p>
+      <p className="relative z-10 text-[11px] font-bold leading-snug transition-all duration-700" style={{ color: `${action.color}cc` }}>{action.whatItDoes}</p>
+      
+      <div className="relative z-10 overflow-hidden transition-all duration-1000 max-h-0 group-hover:max-h-20 opacity-0 group-hover:opacity-100 mt-0 group-hover:mt-2">
+        <p className="text-[10px] text-slate-500 font-medium leading-relaxed italic border-l-2 pl-2" style={{ borderColor: `${action.color}33` }}>
+          {action.desc}
+        </p>
+      </div>
     </motion.button>
   );
 }

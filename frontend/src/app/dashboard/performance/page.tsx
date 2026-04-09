@@ -94,6 +94,7 @@ export default function PerformancePage() {
     const [simulating, setSimulating] = useState<number | null>(null);
     const [simResults, setSimResults] = useState<Record<number, SimResult>>({});
     const [showLearn, setShowLearn] = useState(false);
+    const [guideMode, setGuideMode] = useState(false);
 
     const runAnalysis = async (cs: string, ai: boolean) => {
         setLoading(true);
@@ -191,6 +192,12 @@ export default function PerformancePage() {
                         >
                             <Radar size={13} /> Architecture Overview
                         </button>
+                        <button
+                            onClick={() => setGuideMode(v => !v)}
+                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-bold transition-all shadow-sm ${guideMode ? 'bg-amber-100 border-amber-300 text-amber-700' : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50'}`}
+                        >
+                            <Info size={13} /> {guideMode ? 'Exit Guide Mode' : 'Explain this Page'}
+                        </button>
                         <div className="h-4 w-[1px] bg-gray-200 mx-1"></div>
                         <label className="flex items-center gap-1.5 text-xs text-slate-600 font-bold cursor-pointer select-none px-2">
                             <input type="checkbox" checked={withAI} onChange={e => setWithAI(e.target.checked)} className="accent-violet-600 w-3.5 h-3.5" />
@@ -252,14 +259,17 @@ export default function PerformancePage() {
                         </div>
                         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                             {[
-                                { label: 'Sub-Optimal Penalty Nodes', value: criticalCount,  color: criticalCount > 0 ? 'text-rose-600' : 'text-emerald-500', sub: 'High sequential scan lag' },
-                                { label: 'State Space Prunings',      value: zombies.length - droppedZombies.size, color: 'text-amber-500', sub: `${zombieSizeMB} MB of reclaimable space` },
-                                { label: 'Optimal Policy Actions',    value: recommendations.length, color: 'text-violet-700', sub: 'Actions ready for deployment' },
-                                { label: 'Collections Observed',      value: tableNames.length, color: 'text-slate-900',   sub: 'Nodes evaluated in current state' },
+                                { label: 'Sub-Optimal Penalty Nodes', value: criticalCount,  color: criticalCount > 0 ? 'text-rose-600' : 'text-emerald-500', sub: 'High sequential scan lag', guide: 'Speed Bumps' },
+                                { label: 'State Space Prunings',      value: zombies.length - droppedZombies.size, color: 'text-amber-500', sub: `${zombieSizeMB} MB of reclaimable space`, guide: 'Cleanup Targets' },
+                                { label: 'Optimal Policy Actions',    value: recommendations.length, color: 'text-violet-700', sub: 'Actions ready for deployment', guide: 'Fixes Available' },
+                                { label: 'Collections Observed',      value: tableNames.length, color: 'text-slate-900',   sub: 'Nodes evaluated in current state', guide: 'Tables Monitored' },
                             ].map((s, i) => (
                                 <div key={i} className="flex flex-col relative before:absolute before:left-0 before:-ml-3 before:top-1 before:bottom-1 before:w-[1px] before:bg-gray-100 first:before:hidden">
                                     <span className={`text-[32px] font-black tracking-tighter leading-none mb-1.5 drop-shadow-sm ${s.color}`}>{s.value}</span>
-                                    <span className="text-[11px] font-bold text-gray-700 uppercase tracking-wide">{s.label}</span>
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-[11px] font-bold text-gray-700 uppercase tracking-wide">{s.label}</span>
+                                        {guideMode && <span className="text-[9px] font-black px-1.5 py-0.5 bg-amber-100 text-amber-700 rounded border border-amber-200 animate-in fade-in zoom-in">{s.guide}</span>}
+                                    </div>
                                     {s.sub && <span className="text-[10px] text-gray-400 font-semibold mt-1">{s.sub}</span>}
                                 </div>
                             ))}
@@ -300,12 +310,16 @@ export default function PerformancePage() {
                             {/* ─── Tab A: Environment State ─── */}
                             {activeTab === 'map' && (
                                 <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
-                                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 bg-white p-4 rounded-2xl border border-gray-100 shadow-sm">
+                                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 bg-white p-5 rounded-2xl border border-gray-100 shadow-sm relative overflow-hidden">
                                         <div className="flex-1">
-                                            <p className="text-[13px] text-slate-600 leading-relaxed font-medium">
-                                                Nodes marked with <span className="text-rose-600 font-black px-1.5 py-0.5 rounded bg-rose-50 border border-rose-100">Red Penalties</span> represent unoptimized environment states. 
-                                                The agent is detecting heavy sequential scans, meaning queries perform mechanical full-table reads instead of jumping directly to the target via optimal indexing.
+                                            <p className="text-[13px] text-slate-700 leading-relaxed font-bold">
+                                                Nodes marked with <span className="text-rose-600 font-black px-1.5 py-0.5 rounded bg-rose-50 border border-rose-100 uppercase tracking-tighter">Penalty Nodes</span> represent environment bottlenecks. 
+                                                The agent detects <span className="text-rose-600 underline decoration-rose-200 underline-offset-2">Sequential Scans</span>: a state where the database reads every single row on disk to satisfy a query, causing mechanical lag and high latency.
                                             </p>
+                                        </div>
+                                        <div className="shrink-0 flex items-center gap-2 bg-slate-50 px-4 py-2 rounded-xl border border-slate-100">
+                                            <div className="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></div>
+                                            <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Live Pressure Sensing</span>
                                         </div>
                                     </div>
 
@@ -349,7 +363,10 @@ export default function PerformancePage() {
                                                         </span>
                                                         <span className="font-bold text-[15px] text-slate-800 truncate">{col.column_name}</span>
                                                         
-                                                        {col.is_indexed && (
+                                                        {col.seq_scan_count > 1000 && (
+                                                            <span className="ml-auto text-[9px] text-rose-700 bg-rose-50 border border-rose-200 px-1.5 py-0.5 rounded font-black uppercase tracking-widest animate-pulse">Critical Load</span>
+                                                        )}
+                                                        {col.is_indexed && !col.seq_scan_count && (
                                                             <span className="ml-auto text-[9px] text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded font-black uppercase tracking-widest"><Zap size={10} className="inline mr-0.5 mb-0.5"/> Optimal</span>
                                                         )}
                                                     </div>
@@ -476,8 +493,14 @@ export default function PerformancePage() {
                                     <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 bg-white p-5 rounded-2xl border border-gray-100 shadow-sm relative overflow-hidden">
                                         <div className="absolute bg-gradient-to-r from-violet-500/10 to-transparent inset-0 z-0 pointer-events-none"></div>
                                         <div className="relative z-10 flex-1">
+                                            <div className="flex items-center gap-2 mb-2">
+                                                <Cpu size={16} className="text-violet-600"/>
+                                                <h3 className="text-xs font-black uppercase tracking-widest text-slate-900">Agent Policy Engine</h3>
+                                            </div>
                                             <p className="text-[13px] text-slate-700 leading-relaxed font-bold">
-                                                Optimal Policy Action Matrix. The AI agent constructed valid index resolutions mapping to the environment anomalies. Click <strong className="text-emerald-600 font-black px-1 5 py-0.5 rounded bg-emerald-50 border border-emerald-100">Simulate Actions</strong> to load them iteratively in a virtual sandbox framework validating efficiency gains purely virtually before committing to production changes.
+                                                The agent constructs <strong>Optimal Policy Actions</strong> (SQL resolutions) to neutralize environment anomalies. 
+                                                Each action is scored with an <span className="text-violet-600 underline decoration-violet-200 underline-offset-2">Expected Q-Value</span>: a measure of the predicted performance reward this policy will yield.
+                                                Higher Q-Values indicate <strong>Critical High-Impact</strong> resolutions that should be prioritized.
                                             </p>
                                         </div>
                                     </div>

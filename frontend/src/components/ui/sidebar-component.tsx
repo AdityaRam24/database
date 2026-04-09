@@ -5,10 +5,11 @@ import { LogoGithub as GithubIcon } from "@carbon/icons-react";
 import {
   Database, Trash2, FileCode, Sparkles, Table,
   Plus, ChevronDown, Search, Settings, Table2, Server,
-  PanelLeftClose, PanelLeftOpen, ChevronsLeft, ChevronsRight
+  PanelLeftClose, PanelLeftOpen, ChevronsLeft, ChevronsRight,
+  RefreshCw
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
-import { getUserProjects, deleteProject, Project } from "@/lib/projectStorage";
+import { getUserProjects, deleteProject, saveProject, Project } from "@/lib/projectStorage";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -126,10 +127,44 @@ export function DualSidebar({ onProjectLoad }: SidebarProps) {
   }, [activeConn]);
 
   // Load user projects
+  const fetchProjects = () => {
+    getUserProjects(user?.uid || null).then(setProjects);
+  };
+
   useEffect(() => {
-    if (!user) return;
-    getUserProjects(user.uid).then(setProjects);
+    fetchProjects();
+
+    const handleSync = () => {
+      fetchProjects();
+    };
+
+    // Safety Pulse: re-fetch once after a short delay to catch any navigation races
+    const timer = setTimeout(fetchProjects, 500);
+
+    window.addEventListener('projects-updated', handleSync);
+    return () => {
+      window.removeEventListener('projects-updated', handleSync);
+      clearTimeout(timer);
+    };
   }, [user]);
+
+  // Project Guardian: Auto-heal the registry if the active DB is missing from the list
+  useEffect(() => {
+    if (!activeConn || projects.length === 0) return;
+    
+    const exists = projects.some(p => p.connectionString === activeConn);
+    if (!exists) {
+      console.log(`[Guardian] Active connection ${activeProject} missing from registry. Auto-healing...`);
+      saveProject(user?.uid || null, {
+        projectName: activeProject || "Recovered Database",
+        connectionType: localStorage.getItem("db_type") as any || "connection",
+        sqlContent: "",
+        connectionString: activeConn
+      }).then(() => {
+        fetchProjects(); // Refresh the list after healing
+      });
+    }
+  }, [activeConn, projects, user, activeProject]);
 
   const handleProjectClick = async (project: Project) => {
     if (project.sqlContent && project.connectionString === "SHADOW_DB") {
@@ -270,7 +305,16 @@ export function DualSidebar({ onProjectLoad }: SidebarProps) {
           {/* ── My Databases ── */}
           <div className="mb-1">
             <div className="flex items-center justify-between px-2 mb-1.5">
-              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">My Databases</p>
+              <div className="flex items-center gap-2">
+                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">My Databases</p>
+                <button 
+                  onClick={fetchProjects}
+                  className="p-1 rounded hover:bg-slate-100 text-slate-300 hover:text-slate-500 transition-colors"
+                  title="Refresh registry"
+                >
+                  <RefreshCw size={10} />
+                </button>
+              </div>
               <motion.button whileTap={{ scale: 0.92 }}
                 onClick={() => router.push("/connect")}
                 className="w-5 h-5 rounded-lg flex items-center justify-center bg-violet-100 text-violet-600 hover:bg-violet-200 transition-colors cursor-pointer"

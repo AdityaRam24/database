@@ -32,6 +32,14 @@ class TableDataRequest(BaseModel):
     connection_string: str
     table_name: str
 
+class SandboxGenerateRequest(BaseModel):
+    connection_string: str
+    prompt: str
+
+class LabGenerateRequest(BaseModel):
+    connection_string: str
+    prompt: str
+
 
 def _is_mongodb(conn: str) -> bool:
     return conn.startswith("mongodb://") or conn.startswith("mongodb+srv://")
@@ -179,6 +187,64 @@ async def run_query(request: QueryRequest):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@router.post("/generate-sandbox-sql")
+async def generate_sandbox_sql(request: SandboxGenerateRequest):
+    """Generates a SQL query from natural language without executing it, specifically for the sandbox."""
+    try:
+        service = SchemaAnalysisService(request.connection_string)
+        # Fetch schema context
+        graph_data = service.get_schema_graph_data()
+        schema_lines = []
+        for node in graph_data.get("nodes", []):
+            table_name = node["data"]["label"]
+            columns = node["data"].get("columns", [])
+            col_strs = [f"  - {c['name']} ({c['type']}{'  PK' if c['is_pk'] else ''})" for c in columns]
+            schema_lines.append(f"Table: {table_name}")
+            schema_lines.extend(col_strs)
+        schema_context = "\n".join(schema_lines) if schema_lines else ""
+
+        ai_service = AIService()
+        # Use existing generation logic but in dry-run mode
+        result = await ai_service.generate_and_heal_sql(
+            question=request.prompt,
+            schema_context=schema_context,
+            connection_string=request.connection_string,
+            max_retries=2
+        )
+        return {"sql": result["sql"], "explanation": result["explanation"], "error": result["error"]}
+    except Exception as e:
+        logger.error(f"Sandbox SQL generation failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.post("/generate-lab-sql")
+async def generate_lab_sql(request: LabGenerateRequest):
+    """Generates structural/patch SQL (DDL) from natural language for the Simulation Lab."""
+    try:
+        service = SchemaAnalysisService(request.connection_string)
+        # Fetch schema context
+        graph_data = service.get_schema_graph_data()
+        schema_lines = []
+        for node in graph_data.get("nodes", []):
+            table_name = node["data"]["label"]
+            columns = node["data"].get("columns", [])
+            col_strs = [f"  - {c['name']} ({c['type']}{'  PK' if c['is_pk'] else ''})" for c in columns]
+            schema_lines.append(f"Table: {table_name}")
+            schema_lines.extend(col_strs)
+        schema_context = "\n".join(schema_lines) if schema_lines else ""
+
+        ai_service = AIService()
+        # Use existing generation logic specialized for DDL patches
+        sql = await ai_service.generate_governance_patch(
+            description=request.prompt,
+            schema_context=schema_context
+        )
+        return {"sql": sql}
+    except Exception as e:
+        logger.error(f"Lab SQL generation failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.post("/explain")
 async def explain_sql(request: ExplainRequest):
     """Translates a SQL query into plain English."""
@@ -278,6 +344,7 @@ def estimate_query_cost(request: QueryCostRequest):
             co2_grams = round(gb_scanned * 0.3, 4)
 
             return {
+                "supported": True,
                 "query": request.sql,
                 "plan_summary": {
                     "total_cost": round(total_cost, 2),

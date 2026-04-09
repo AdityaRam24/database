@@ -62,21 +62,26 @@ const METRIC_CONFIG: Record<string, { label: string; icon: any; color: string; f
 
 /* ── Animated ECG Heartbeat ────────────────────────────────────────── */
 
-function ECGHeartbeat() {
+function ECGHeartbeat({ severity = 'normal' }: { severity?: 'normal' | 'warning' | 'critical' }) {
+    const pulseColors = {
+        normal: { stroke: "#10b981", shadow: "#10b981", bg: "bg-emerald-500", text: "text-emerald-500" },
+        warning: { stroke: "#f59e0b", shadow: "#f59e0b", bg: "bg-amber-500", text: "text-amber-500" },
+        critical: { stroke: "#ef4444", shadow: "#ef4444", bg: "bg-rose-500", text: "text-rose-500" }
+    };
+    
+    const config = pulseColors[severity];
+    const duration = severity === 'critical' ? 0.6 : severity === 'warning' ? 1.2 : 2.5;
+
     return (
         <div className="w-full max-w-sm mx-auto my-8 relative flex items-center justify-center h-24 overflow-hidden rounded-xl bg-slate-900 border border-slate-800 shadow-inner group">
-            {/* Background grid */}
             <div className="absolute inset-0 bg-[size:16px_16px] bg-[linear-gradient(to_right,#ffffff05_1px,transparent_1px),linear-gradient(to_bottom,#ffffff05_1px,transparent_1px)]"></div>
             
-            {/* The SVG Line */}
             <svg viewBox="0 0 400 100" className="w-full h-full relative z-10" preserveAspectRatio="none">
-                {/* Static faint baseline */}
-                <path d="M0,50 L400,50" stroke="#10b981" strokeWidth="1" strokeOpacity="0.2" fill="none" />
+                <path d="M0,50 L400,50" stroke={config.stroke} strokeWidth="1" strokeOpacity="0.2" fill="none" />
                 
-                {/* The animated pulse path */}
                 <motion.path
                     d="M-50,50 L50,50 L65,50 L75,20 L85,80 L100,25 L115,50 L250,50 L265,50 L275,20 L285,80 L300,25 L315,50 L450,50"
-                    stroke="#10b981"
+                    stroke={config.stroke}
                     strokeWidth="3"
                     strokeLinecap="round"
                     strokeLinejoin="round"
@@ -84,16 +89,18 @@ function ECGHeartbeat() {
                     initial={{ pathLength: 0, pathOffset: 1 }}
                     animate={{ pathLength: 1, pathOffset: 0 }}
                     transition={{
-                        duration: 2.5,
+                        duration,
                         ease: "linear",
                         repeat: Infinity,
                     }}
-                    style={{ filter: "drop-shadow(0 0 6px #10b981)" }}
+                    style={{ filter: `drop-shadow(0 0 6px ${config.shadow})` }}
                 />
             </svg>
             <div className="absolute top-2 left-3 flex items-center gap-2">
-                 <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
-                 <span className="text-[9px] font-black uppercase tracking-widest text-emerald-500 font-mono">Telemetry Monitor Active</span>
+                 <div className={`w-2 h-2 rounded-full ${config.bg} animate-pulse`}></div>
+                 <span className={`text-[9px] font-black uppercase tracking-widest ${config.text} font-mono`}>
+                    {severity === 'normal' ? 'Standard Rhythm' : severity === 'warning' ? 'Tachycardia / Elevated' : 'Critical Arrhythmia'}
+                 </span>
             </div>
         </div>
     );
@@ -168,6 +175,7 @@ export default function AnomalyPage() {
     const [anomalyResult, setAnomalyResult] = useState<AnomalyResult | null>(null);
     const [history, setHistory] = useState<HistoryData | null>(null);
     const [error, setError] = useState<string | null>(null);
+    const [guideMode, setGuideMode] = useState(false);
 
     const API = process.env.NEXT_PUBLIC_API_URL;
 
@@ -306,38 +314,75 @@ export default function AnomalyPage() {
                         <>
                             {/* ── Vital Status Pillars ── */}
                             {anomalyResult?.status === 'analyzed' && (
-                                <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
-                                    {Object.entries(anomalyResult.metrics_summary).map(([key, entry]) => {
-                                        const cfg = METRIC_CONFIG[key];
-                                        if (!cfg) return null;
-                                        const Icon = cfg.icon;
-                                        const isAnomalous = entry.severity !== 'normal';
-                                        const status = getHumanReadableStatus(entry.z_score);
-                                        
-                                        return (
-                                            <div key={key} className={`relative flex flex-col justify-between overflow-hidden rounded-[20px] p-5 shadow-sm transition-all border
-                                                ${isAnomalous ? 'bg-white border-rose-200 ring-4 ring-rose-50' : 'bg-white border-slate-200 hover:border-slate-300'}`}>
-                                                
-                                                <div className="flex items-center gap-2 mb-4 shrink-0">
-                                                    <div className="w-7 h-7 rounded-lg bg-slate-50 flex items-center justify-center border border-slate-100">
-                                                         <Icon size={14} style={{ color: cfg.color }} />
+                                <>
+                                    <div className="bg-white border border-slate-200 rounded-2xl p-4 flex items-center gap-3">
+                                        <div className="w-8 h-8 rounded-full bg-indigo-50 flex items-center justify-center text-indigo-600 border border-indigo-100"><Info size={16}/></div>
+                                        <p className="text-[12px] text-slate-500 font-medium">
+                                            The <strong>Autonomous Health Monitor</strong> evaluates real-time telemetry against historical baselines. 
+                                            {guideMode ? (
+                                                <span className="block mt-1 text-slate-700 italic border-l-2 border-amber-300 pl-3 py-1 bg-amber-50/50 rounded-r-lg">
+                                                    "It checks if your database is behaving like it usually does. If it sees something 'weird' or 'erratic' compared to yesterday, it flags it here."
+                                                </span>
+                                            ) : (
+                                                <> Status is determined by <span className="text-indigo-600 font-bold">Z-Scores</span>: a statistical measure of how many "steps" a metric has strayed from its usual path.</>
+                                            )}
+                                        </p>
+                                    </div>
+                                    <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+                                        {Object.entries(anomalyResult.metrics_summary).map(([key, entry]) => {
+                                            const cfg = METRIC_CONFIG[key];
+                                            if (!cfg) return null;
+                                            const Icon = cfg.icon;
+                                            const isAnomalous = entry.severity !== 'normal';
+                                            const status = getHumanReadableStatus(entry.z_score);
+                                            
+                                            return (
+                                                <div key={key} title={`Z-Score: ${entry.z_score.toFixed(2)} SD from mean`} className={`relative flex flex-col justify-between overflow-hidden rounded-[20px] p-5 shadow-sm transition-all border group
+                                                    ${isAnomalous ? 'bg-white border-rose-200 ring-4 ring-rose-50' : 'bg-white border-slate-200 hover:border-slate-300'}`}>
+                                                    
+                                                    <div className="flex items-center gap-2 mb-4 shrink-0">
+                                                        <div className="w-7 h-7 rounded-lg bg-slate-50 flex items-center justify-center border border-slate-100">
+                                                             <Icon size={14} style={{ color: cfg.color }} />
+                                                        </div>
+                                                        <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest line-clamp-1">{cfg.label}</span>
                                                     </div>
-                                                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest line-clamp-1">{cfg.label}</span>
-                                                </div>
-                                                
-                                                <div className="flex-1">
-                                                    <p className={`text-2xl font-black mb-3 truncate font-mono ${isAnomalous ? 'text-rose-600' : 'text-slate-800'}`}>
-                                                        {cfg.format(entry.current_value)}
-                                                    </p>
-                                                </div>
+                                                    
+                                                    <div className="flex-1">
+                                                        <p className={`text-2xl font-black mb-3 truncate font-mono ${isAnomalous ? 'text-rose-600' : 'text-slate-800'}`}>
+                                                            {cfg.format(entry.current_value)}
+                                                        </p>
+                                                    </div>
 
-                                                <div className={`mt-auto inline-flex w-max items-center px-2 py-1 rounded-md text-[9px] font-black uppercase tracking-widest border ${status.cls}`}>
-                                                    {status.label}
+                                                    <div className="flex items-center justify-between mt-auto">
+                                                        <div className={`inline-flex w-max items-center px-2 py-1 rounded-md text-[9px] font-black uppercase tracking-widest border ${status.cls}`}>
+                                                            {status.label}
+                                                        </div>
+                                                        <span className="text-[9px] text-slate-400 font-mono opacity-0 group-hover:opacity-100 transition-opacity">
+                                                            {guideMode ? 'Anomaly Strength' : 'Z-Score'}: {entry.z_score.toFixed(1)}
+                                                        </span>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                    
+                                    {guideMode && (
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6 animate-in slide-in-from-top-4 duration-500">
+                                             <div className="bg-amber-50 border border-amber-100 p-4 rounded-2xl">
+                                                 <p className="text-[10px] font-black text-amber-600 uppercase mb-2">Steady Rhythm</p>
+                                                 <p className="text-xs text-amber-800 font-medium font-mono leading-relaxed">The database pulse is normal. Green telemetry means zero deviations from history.</p>
+                                             </div>
+                                             <div className="bg-amber-50 border border-amber-100 p-4 rounded-2xl">
+                                                 <p className="text-[10px] font-black text-amber-600 uppercase mb-2">Z-Score (Weirdness)</p>
+                                                 <p className="text-xs text-amber-800 font-medium font-mono leading-relaxed">A high Z-score means a metric has strayed far from its normal path (like a heart rate spike).</p>
+                                             </div>
+                                             <div className="bg-amber-50 border border-amber-100 p-4 rounded-2xl">
+                                                 <p className="text-[10px] font-black text-amber-600 uppercase mb-2">Telemetry Streams</p>
+                                                 <p className="text-xs text-amber-800 font-medium font-mono leading-relaxed">Continuous sensor data mapped against your database baseline snapshots.</p>
+                                             </div>
+                                        </div>
+                                    )}
+                                </>
                             )}
 
                             {/* ── Anomaly Alerts / Diagnoses ── */}
@@ -389,14 +434,25 @@ export default function AnomalyPage() {
                             )}
 
                             {/* ── All clear (Heartbeat) ── */}
-                            {anomalyResult?.status === 'analyzed' && anomalyResult.anomalies.length === 0 && (
+                            {anomalyResult?.status === 'analyzed' && (
                                 <div className="mt-4 mb-8">
-                                    <ECGHeartbeat />
+                                    <ECGHeartbeat severity={anomalyCount > 0 ? (anomalyResult.anomalies.some(a => a.severity === 'critical') ? 'critical' : 'warning') : 'normal'} />
                                     <div className="text-center">
-                                         <p className="text-sm font-black text-emerald-700 mb-1 uppercase tracking-widest flex items-center justify-center gap-2">
-                                             <CheckCircle size={16}/> Engine Metrics Stable
-                                         </p>
-                                         <p className="text-xs font-bold text-slate-500">System operating well within historical tolerance limits.</p>
+                                         {anomalyCount === 0 ? (
+                                             <>
+                                                 <p className="text-sm font-black text-emerald-700 mb-1 uppercase tracking-widest flex items-center justify-center gap-2">
+                                                     <CheckCircle size={16}/> Engine Metrics Stable
+                                                 </p>
+                                                 <p className="text-xs font-bold text-slate-500">System operating well within historical tolerance limits.</p>
+                                             </>
+                                         ) : (
+                                             <>
+                                                 <p className="text-sm font-black text-rose-700 mb-1 uppercase tracking-widest flex items-center justify-center gap-2">
+                                                     <AlertTriangle size={16}/> Abnormal Pulse Detected
+                                                 </p>
+                                                 <p className="text-xs font-bold text-slate-500">Telemetry streams show erratic activity signatures. Manual audit required.</p>
+                                             </>
+                                         )}
                                     </div>
                                 </div>
                             )}

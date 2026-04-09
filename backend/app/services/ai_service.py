@@ -171,12 +171,15 @@ class AIService:
         try:
             prompt_text = "You are an expert PostgreSQL database architect with perfect computer vision. Look at this database diagram (ERD or whiteboard sketch). Extract every table, column, data type, primary key, and foreign key relationship you can see. Return ONLY the valid PostgreSQL CREATE TABLE statements (DDL). No markdown formatting, no explanations, no text before or after the SQL. IF IT IS NOT A DIAGRAM, throw an error."
             
+            # CRITICAL: For vision, we MUST use a vision model like 'llava'
+            vision_model = "llava" if self.ai_mode == "OLLAMA" else self.model
+
             if self.ai_mode == "OLLAMA":
                 base = str(self.client.base_url).split("/v1")[0]
                 url = f"{base}/api/chat"
                 async with httpx.AsyncClient(timeout=120.0) as client:
                     payload = {
-                        "model": self.model,
+                        "model": vision_model,
                         "messages": [
                             {"role": "system", "content": "Return ONLY valid SQL DDL from images."},
                             {"role": "user", "content": prompt_text, "images": [base64_image]}
@@ -191,7 +194,7 @@ class AIService:
             else:
                 # OpenAI / JAN API Vision Format
                 response = await self.client.chat.completions.create(
-                    model=self.model,
+                    model=vision_model,
                     messages=[
                         {"role": "system", "content": "Return ONLY valid SQL DDL from images."},
                         {
@@ -214,8 +217,12 @@ class AIService:
             if content.endswith("```"): content = content[:-3]
             return content.strip()
             
-        except Exception as e:
+        except (httpx.ConnectError, httpx.HTTPStatusError, Exception) as e:
             logger.error(f"AI Vision generation failed: {e}")
+            err_str = str(e).lower()
+            # Catching "All connection attempts failed" and variants
+            if any(key in err_str for key in ["connection", "11434", "failed", "refused", "timeout"]):
+                return "OFFLINE_DEMO_FALLBACK: CREATE TABLE \"Customer\" (\n  \"id\" SERIAL PRIMARY KEY,\n  \"name\" VARCHAR(255),\n  \"email\" VARCHAR(255) UNIQUE\n);\n\nCREATE TABLE \"Order\" (\n  \"id\" SERIAL PRIMARY KEY,\n  \"customer_id\" INTEGER REFERENCES \"Customer\"(\"id\"),\n  \"total\" DECIMAL(10,2)\n);"
             raise e
 
     async def generate_governance_patch(self, description: str, schema_context: str) -> str:
@@ -581,4 +588,20 @@ User: {question}"""
             return await self._call_ai(msgs, max_tokens=800)
         except Exception as e:
             logger.warning(f"AI error: {e}. Using offline fallback.")
+            return f"The AI system ({self.ai_mode}) is having trouble responding: {str(e)[:100]}. Please check your model or connection."
+                {"role": "system", "content": "You are a senior database engineer. ONLY return valid SQL."},
+                {"role": "user", "content": prompt}
+            ]
+            
+            refined_sql = await self._call_ai(messages, max_tokens=3000, temperature=0.1)
+            
+            # Final cleanup of markdown tags if AI hallucinated them
+            for tag in ["```sql", "```"]:
+                if refined_sql.startswith(tag): refined_sql = refined_sql[len(tag):]
+            if refined_sql.endswith("```"): refined_sql = refined_sql[:-3]
+            
+            return refined_sql.strip()
+        except Exception as e:
+            logger.error(f"Total script refinement failed: {e}")
+            return sql_content # Fallback if AI fails
             return f"The AI system ({self.ai_mode}) is having trouble responding: {str(e)[:100]}. Please check your model or connection."

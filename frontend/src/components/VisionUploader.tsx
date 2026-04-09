@@ -1,7 +1,8 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { Upload, Image as ImageIcon, Loader2, Database, AlertCircle, Sparkles } from 'lucide-react';
+import { Upload, Image as ImageIcon, Loader2, Database, AlertCircle, Sparkles, Wand2, Terminal, Info, RefreshCw } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export default function VisionUploader() {
   const [file, setFile] = useState<File | null>(null);
@@ -54,7 +55,13 @@ export default function VisionUploader() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.detail || 'Vision API failed');
-      setSqlResult(data.sql_ddl);
+      
+      if (data.sql_ddl.startsWith("OFFLINE_DEMO_FALLBACK:")) {
+        setSqlResult(data.sql_ddl.replace("OFFLINE_DEMO_FALLBACK: ", ""));
+        setError("AI_OFFLINE_DEMO");
+      } else {
+        setSqlResult(data.sql_ddl);
+      }
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -63,20 +70,25 @@ export default function VisionUploader() {
   };
 
   return (
-    <div className="bg-slate-900/50 border border-slate-800 rounded-2xl p-6 backdrop-blur-xl">
+    <motion.div 
+      initial={{ opacity: 0, scale: 0.98 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.8 }}
+      className="bg-[#0a0c14] border border-violet-500/20 rounded-[32px] p-8 backdrop-blur-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] relative overflow-hidden"
+    >
       <div className="mb-6 flex items-center gap-3">
         <div className="w-10 h-10 rounded-xl bg-violet-500/20 flex items-center justify-center border border-violet-500/30">
           <Sparkles className="w-5 h-5 text-violet-400" />
         </div>
         <div>
-          <h2 className="text-lg font-bold text-white tracking-wide">Vision to Schema</h2>
-          <p className="text-slate-400 text-sm">Upload a photo of your whiteboard ER diagram to generate live DDL.</p>
+          <h2 className="text-xl font-black text-white tracking-tight">Vision Intelligence</h2>
+          <p className="text-indigo-400/80 text-[10px] font-black uppercase tracking-[0.2em] mt-1">Blueprint-to-Schema Engine</p>
         </div>
       </div>
 
       <div 
         className={`border-2 border-dashed rounded-xl p-8 transition-all flex flex-col items-center justify-center cursor-pointer min-h-[200px] ${
-          file ? 'border-violet-500/50 bg-violet-500/5' : 'border-slate-700 bg-slate-800/20 hover:bg-slate-800/40 hover:border-slate-600'
+          file ? 'border-violet-500/50 bg-violet-500/5' : 'border-indigo-900 bg-indigo-950/20 hover:bg-indigo-900/40 hover:border-indigo-600'
         }`}
         onDragOver={e => e.preventDefault()}
         onDrop={handleDrop}
@@ -86,29 +98,58 @@ export default function VisionUploader() {
         
         {preview ? (
           <div className="relative w-full flex flex-col items-center gap-4">
-            <img src={preview} alt="Schema Preview" className="max-h-64 rounded-lg shadow-xl border border-slate-700" />
+            <img src={preview} alt="Schema Preview" className="max-h-64 rounded-lg shadow-xl border border-indigo-800" />
             <button 
               onClick={(e) => { e.stopPropagation(); setFile(null); setPreview(null); setSqlResult(null); }}
-              className="px-4 py-1.5 rounded-full bg-slate-800 text-slate-300 text-xs font-bold hover:bg-slate-700 transition"
+              className="px-4 py-1.5 rounded-full bg-indigo-900 text-indigo-300 text-xs font-bold hover:bg-indigo-800 transition"
             >
               Change Image
             </button>
           </div>
         ) : (
-          <div className="flex flex-col items-center gap-3 text-slate-400">
-            <div className="w-16 h-16 rounded-full bg-slate-800/80 flex items-center justify-center mb-2">
-              <ImageIcon className="w-8 h-8 text-slate-500" />
+          <div className="flex flex-col items-center gap-3 text-indigo-400">
+            <div className="w-16 h-16 rounded-full bg-indigo-950/80 flex items-center justify-center mb-2">
+              <ImageIcon className="w-8 h-8 text-indigo-500" />
             </div>
-            <p className="font-semibold text-slate-300">Drag & drop your diagram here</p>
-            <p className="text-xs">Supports JPEG, PNG up to 10MB</p>
+            <div className="text-center">
+              <p className="font-black text-white text-xl tracking-tight">Drop Blueprint Here</p>
+              <p className="text-[10px] font-black text-indigo-400/60 uppercase tracking-[0.3em] mt-2">Whiteboard or ERD · MAX 10MB</p>
+            </div>
           </div>
         )}
       </div>
 
-      {error && (
-        <div className="mt-4 p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-start gap-2">
-          <AlertCircle className="w-4 h-4 text-rose-400 mt-0.5 shrink-0" />
-          <p className="text-sm text-rose-200">{error}</p>
+      {(error || sqlResult) && error === "AI_OFFLINE_DEMO" && (
+        <div className="mt-4 p-4 rounded-xl bg-amber-500/10 border border-amber-500/20 flex flex-col gap-3">
+          <div className="flex items-start gap-2">
+            <AlertCircle className="w-4 h-4 text-amber-400 mt-0.5 shrink-0" />
+            <div className="flex-1">
+              <p className="text-sm font-black text-amber-200">Running in Demo Mode</p>
+              <p className="text-[11px] text-amber-200/70 mt-1 uppercase font-bold tracking-wider">Your Local AI server is offline. This is a sample result.</p>
+            </div>
+          </div>
+          <div className="bg-indigo-950/60 p-3 rounded-lg border border-indigo-900/50">
+             <p className="text-[10px] font-black text-indigo-400 uppercase mb-2">How to fix this:</p>
+             <ol className="text-[11px] text-indigo-200 space-y-2 list-decimal list-inside font-bold">
+                <li>Download Ollama from <a href="https://ollama.com" className="text-violet-400 underline">ollama.com</a></li>
+                <li>Open PowerShell and run: <code className="text-violet-400 bg-indigo-900 px-1 rounded">ollama run llava</code></li>
+                <li>Make sure Ollama is open in your system tray.</li>
+             </ol>
+          </div>
+        </div>
+      )}
+
+      {error && error !== "AI_OFFLINE_DEMO" && (
+        <div className="mt-4 p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 flex flex-col gap-2">
+          <div className="flex items-start gap-2">
+            <AlertCircle className="w-4 h-4 text-rose-400 mt-0.5 shrink-0" />
+            <p className="text-sm text-rose-200">{error.includes("Fetch") ? "Connection Timeout" : error}</p>
+          </div>
+          {error.includes("fetch") && (
+             <div className="bg-rose-900/40 p-3 rounded-lg border border-rose-500/30">
+                <p className="text-[10px] font-bold text-rose-200">PRO TIP: Your firewall might be blocking port 11434. Check your security settings!</p>
+             </div>
+          )}
         </div>
       )}
 
@@ -129,23 +170,26 @@ export default function VisionUploader() {
       {sqlResult && (
         <div className="mt-6">
           <div className="flex items-center justify-between mb-2 px-1">
-            <h3 className="text-xs font-black uppercase tracking-widest text-emerald-400 flex items-center gap-2">
-              <Database className="w-3.5 h-3.5" /> Generated SQL
-            </h3>
+            <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center border border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.1)]">
+                    <Database className="w-4 h-4 text-emerald-400" />
+                </div>
+                <h3 className="text-xs font-black uppercase tracking-[0.2em] text-emerald-400/80">Compiled Payloads</h3>
+            </div>
             <button 
               onClick={() => navigator.clipboard.writeText(sqlResult)}
-              className="text-[10px] text-slate-400 hover:text-white bg-slate-800 px-2.5 py-1 rounded-md transition"
+              className="text-[10px] font-black uppercase tracking-widest text-indigo-300 hover:text-white px-4 py-1.5 rounded-lg border border-indigo-500/20 bg-indigo-500/5 hover:bg-indigo-500/20 transition-all"
             >
-              COPY
+              Copy SQL
             </button>
           </div>
-          <div className="bg-slate-950 p-4 rounded-xl border border-emerald-500/30 overflow-x-auto">
+          <div className="bg-[#05070a] p-4 rounded-xl border border-emerald-500/30 overflow-x-auto">
             <pre className="text-xs font-mono text-emerald-300">
               <code>{sqlResult}</code>
             </pre>
           </div>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 }

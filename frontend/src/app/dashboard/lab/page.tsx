@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import DashboardShell from "@/components/DashboardShell";
 import { motion } from "framer-motion";
-import { Play, FlaskConical, ShieldAlert, CheckCircle2, FlaskRound, Server, Code2, ArrowRight } from "lucide-react";
+import { Play, FlaskConical, ShieldAlert, CheckCircle2, FlaskRound, Server, Code2, ArrowRight, Sparkles, Wand2 } from "lucide-react";
 
 export default function LabPage() {
   const [sql, setSql] = useState("CREATE INDEX idx_users_active ON users(active);");
@@ -11,6 +11,8 @@ export default function LabPage() {
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
   const [connectionString, setConnectionString] = useState<string | null>(null);
+  const [prompt, setPrompt] = useState("");
+  const [generating, setGenerating] = useState(false);
 
   useEffect(() => {
     const saved = localStorage.getItem("db_connection_string");
@@ -54,6 +56,33 @@ export default function LabPage() {
     }
   };
 
+  const handleGenerate = async () => {
+    if (!prompt.trim() || !connectionString) return;
+    setGenerating(true);
+    setError(null);
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/analysis/generate-lab-sql`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ connection_string: connectionString, prompt }),
+      });
+      const data = await res.json();
+      if (data.sql) {
+        setSql(data.sql);
+        // Delay slightly for visual effect before auto-simulating
+        setTimeout(() => {
+           runExperiment();
+        }, 300);
+      } else if (data.error) {
+        setError(data.error);
+      }
+    } catch (err: any) {
+      setError("AI generation failed. Please check your connection.");
+    } finally {
+      setGenerating(false);
+    }
+  };
+
   return (
     <DashboardShell>
       <div className="flex flex-col h-full bg-slate-50 min-h-0">
@@ -72,6 +101,37 @@ export default function LabPage() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-7xl mx-auto">
             {/* Left side: Editor */}
             <div className="flex flex-col gap-4">
+              {/* Magic Prompt Field */}
+              <div className="bg-indigo-50/50 p-5 rounded-3xl border border-indigo-100 shadow-sm">
+                 <div className="flex items-center gap-2 mb-3">
+                    <div className="w-7 h-7 rounded-lg bg-indigo-600 flex items-center justify-center text-white shadow-md">
+                        <Sparkles size={16} />
+                    </div>
+                    <div>
+                        <h3 className="text-sm font-black text-slate-900 tracking-tight">Experiment Prompt</h3>
+                        <p className="text-[10px] font-bold text-indigo-500 uppercase tracking-widest">Describe your change (e.g. "Add specific index")</p>
+                    </div>
+                 </div>
+                 <div className="relative group">
+                    <input 
+                        type="text"
+                        value={prompt}
+                        onChange={(e) => setPrompt(e.target.value)}
+                        placeholder="e.g. 'Optimize searching by customer email'..."
+                        className="w-full h-12 pl-4 pr-12 rounded-xl border border-indigo-200 bg-white shadow-inner focus:outline-none focus:ring-2 focus:ring-indigo-500/20 text-sm font-medium transition-all group-hover:border-indigo-300"
+                        onKeyDown={(e) => e.key === 'Enter' && handleGenerate()}
+                    />
+                    <button 
+                        onClick={handleGenerate}
+                        disabled={generating || !prompt.trim()}
+                        className="absolute right-1.5 top-1.5 h-9 px-4 rounded-lg bg-indigo-900 text-white flex items-center gap-2 hover:bg-slate-800 transition-all disabled:opacity-50 cursor-pointer shadow-md group-active:scale-95"
+                    >
+                        {generating ? <div className="w-3 h-3 border-2 border-white/20 border-t-white rounded-full animate-spin" /> : <Wand2 size={14} className="text-indigo-400" />}
+                        <span className="text-[11px] font-black uppercase tracking-wider">Generate</span>
+                    </button>
+                 </div>
+              </div>
+
               <div className="rounded-2xl border border-indigo-200 bg-white overflow-hidden shadow-sm flex flex-col h-[400px]">
                 <div className="px-4 py-2 bg-indigo-50 border-b border-indigo-100 flex items-center gap-2">
                   <Code2 size={14} className="text-indigo-500" />

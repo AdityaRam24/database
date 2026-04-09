@@ -132,35 +132,33 @@ export default function ConnectPage() {
             localStorage.setItem("db_connection_string", finalConnStr);
             localStorage.setItem("project_name", finalName);
 
-            if (user) {
-                let sqlContent = "";
+            let sqlContent = "";
 
-                if (activeTab === "file" && file) {
-                    try { sqlContent = await file.text(); } catch { }
-                } else if (activeTab === "github") {
-                    try {
-                        const rawUrl = githubUrl
-                            .replace("github.com", "raw.githubusercontent.com")
-                            .replace("/blob/", "/");
-                        const rawRes = await fetch(rawUrl);
-                        sqlContent = rawRes.ok ? await rawRes.text() : githubUrl;
-                    } catch {
-                        sqlContent = githubUrl;
-                    }
-                } else if (activeTab === "ai") {
-                    sqlContent = aiDescription;
-                }
-
+            if (activeTab === "file" && file) {
+                try { sqlContent = await file.text(); } catch { }
+            } else if (activeTab === "github") {
                 try {
-                    await saveProject(user.uid, {
-                        projectName: finalName,
-                        connectionType: activeTab,
-                        sqlContent,
-                        connectionString: finalConnStr,
-                    });
-                } catch (e) {
-                    console.warn("Could not persist project:", e);
+                    const rawUrl = githubUrl
+                        .replace("github.com", "raw.githubusercontent.com")
+                        .replace("/blob/", "/");
+                    const rawRes = await fetch(rawUrl);
+                    sqlContent = rawRes.ok ? await rawRes.text() : githubUrl;
+                } catch {
+                    sqlContent = githubUrl;
                 }
+            } else if (activeTab === "ai") {
+                sqlContent = aiDescription;
+            }
+
+            try {
+                await saveProject(user?.uid || null, {
+                    projectName: finalName,
+                    connectionType: activeTab,
+                    sqlContent,
+                    connectionString: finalConnStr,
+                });
+            } catch (e) {
+                console.warn("Could not persist project:", e);
             }
 
             setSuccess(true);

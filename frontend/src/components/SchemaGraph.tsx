@@ -42,7 +42,10 @@ interface TableNodeData {
     isHovered: boolean;
     isSearchHighlighted: boolean;
     overlayMode: boolean;
+    heatmapMode: 'size' | 'rows' | 'scans';
     liveTelemetryMode: boolean;
+    seq_scan: number;
+    idx_scan: number;
     connectionDegree: number;
     category: 'entity' | 'junction' | 'lookup';
     onFocusNode: (id: string, panTo: boolean) => void;
@@ -82,8 +85,16 @@ const TableNode = memo(({ id, data }: NodeProps<TableNodeData>) => {
 
     const isBottleneck = data.connectionDegree > 4;
 
-    const heatmapColor = data.overlayMode && data.size_bytes !== undefined
-        ? `rgba(239, 68, 68, ${Math.min(data.size_bytes / (1024 * 1024 * 50) * 0.8, 0.9)})`
+    const metricValue = data.heatmapMode === 'size' 
+        ? (data.size_bytes || 0) 
+        : (data.heatmapMode === 'rows' ? (data.rows || 0) : (data.seq_scan || 0));
+    
+    // We'll pass max values in data later, for now we use a heuristic or just pass it in node data
+    const maxVal = (data as any).maxHeatmapVal || 1;
+    const intensity = Math.min(metricValue / maxVal, 1) * 0.8;
+
+    const heatmapColor = data.overlayMode 
+        ? `rgba(239, 68, 68, ${intensity})`
         : 'transparent';
 
     let containerClasses = `relative rounded-[10px] bg-white dark:bg-white/[0.05] border-t border-r border-b border-gray-200 dark:border-white/[0.08] px-3 py-2.5 min-w-[130px] cursor-pointer transition-all duration-150`;
@@ -177,6 +188,7 @@ const CustomEdge = ({ id, source, target, sourceX, sourceY, targetX, targetY, so
     const sourceCol = data?.source_col || '';
     const targetCol = data?.target_col || '';
     const liveTelemetryMode = data?.liveTelemetryMode || false;
+    const seqScan = data?.source_seq_scan || 0;
 
     const catEdgeColor = CATEGORY_STYLES[sourceCategory as keyof typeof CATEGORY_STYLES].borderLeft;
     const isTotal = participation === 'total';
@@ -184,6 +196,8 @@ const CustomEdge = ({ id, source, target, sourceX, sourceY, targetX, targetY, so
     const [edgePath, labelX, labelY] = getSmoothStepPath({
         sourceX, sourceY, sourcePosition, targetX, targetY, targetPosition, borderRadius: 16,
     });
+
+    const flowSpeed = seqScan > 1000 ? '0.5s' : seqScan > 100 ? '1s' : '2s';
 
     const edgeStyle = useMemo(() => ({
         ...style,
@@ -212,7 +226,7 @@ const CustomEdge = ({ id, source, target, sourceX, sourceY, targetX, targetY, so
                     className="origin-center"
                     strokeDasharray="4 8"
                     style={{
-                        animation: "dash 1s linear infinite",
+                        animation: `dash ${flowSpeed} linear infinite`,
                         opacity: isTotal ? 1 : 0.6,
                         filter: `drop-shadow(0 0 4px ${catEdgeColor})`
                     }}
@@ -298,6 +312,7 @@ const SchemaGraphContent = ({ connectionString }: { connectionString: string }) 
     const [isSearchFocused, setIsSearchFocused] = useState(false);
     const [activeFilter, setActiveFilter] = useState<'All' | 'Entities' | 'Junctions' | 'Lookups'>('All');
     const [overlayMode, setOverlayMode] = useState(false);
+    const [heatmapMode, setHeatmapMode] = useState<'size' | 'rows' | 'scans'>('size');
     const [liveTelemetryMode, setLiveTelemetryMode] = useState(false);
     const [legendExpanded, setLegendExpanded] = useState(false);
 
@@ -465,6 +480,12 @@ const SchemaGraphContent = ({ connectionString }: { connectionString: string }) 
             hoveredScope.add(hoveredEdgeScope.target);
         }
 
+        const maxVal = Math.max(...nodes.map(n => {
+            if (heatmapMode === 'size') return n.data.size_bytes || 0;
+            if (heatmapMode === 'rows') return n.data.rows || 0;
+            return n.data.seq_scan || 0;
+        }), 1);
+
         setNodes((nds) => nds.map((node) => {
             let isDimmed = false;
 
@@ -498,16 +519,18 @@ const SchemaGraphContent = ({ connectionString }: { connectionString: string }) 
                 isDimmed,
                 isSearchHighlighted,
                 overlayMode,
+                heatmapMode,
+                maxHeatmapVal: maxVal,
                 liveTelemetryMode,
             };
 
             const isChanged = node.data.isFocused !== newData.isFocused || node.data.isHovered !== newData.isHovered || node.data.isDimmed !== newData.isDimmed ||
-                node.data.isSearchHighlighted !== newData.isSearchHighlighted || node.data.overlayMode !== newData.overlayMode || node.data.liveTelemetryMode !== newData.liveTelemetryMode;
+                node.data.isSearchHighlighted !== newData.isSearchHighlighted || node.data.overlayMode !== newData.overlayMode || node.data.heatmapMode !== newData.heatmapMode || node.data.liveTelemetryMode !== newData.liveTelemetryMode;
 
             if (!isChanged) return node;
             return { ...node, data: newData };
         }));
-    }, [focusedNodeId, hoveredNodeId, hoveredEdgeScope, searchQuery, overlayMode, activeFilter, graphData, setNodes, handleFocusNode, handleNodeHover]);
+    }, [focusedNodeId, hoveredNodeId, hoveredEdgeScope, searchQuery, overlayMode, heatmapMode, activeFilter, graphData, setNodes, handleFocusNode, handleNodeHover]);
 
     // Update Edges State
     useEffect(() => {
@@ -529,13 +552,16 @@ const SchemaGraphContent = ({ connectionString }: { connectionString: string }) 
                 else isHovered = true;
             }
 
-            const newData = { ...edge.data, isDimmed, isHovered, isFocused, liveTelemetryMode };
-            const isChanged = edge.data.isDimmed !== newData.isDimmed || edge.data.isHovered !== newData.isHovered || edge.data.isFocused !== newData.isFocused || edge.data.liveTelemetryMode !== newData.liveTelemetryMode;
+            const sourceNode = nodes.find(n => n.id === edge.source);
+            const sourceSeqScan = sourceNode?.data.seq_scan || 0;
+
+            const newData = { ...edge.data, isDimmed, isHovered, isFocused, liveTelemetryMode, source_seq_scan: sourceSeqScan };
+            const isChanged = edge.data.isDimmed !== newData.isDimmed || edge.data.isHovered !== newData.isHovered || edge.data.isFocused !== newData.isFocused || edge.data.liveTelemetryMode !== newData.liveTelemetryMode || edge.data.source_seq_scan !== newData.source_seq_scan;
 
             if (!isChanged) return edge;
             return { ...edge, data: newData };
         }));
-    }, [focusedNodeId, hoveredNodeId, hoveredEdgeScope, graphData, setEdges]);
+    }, [focusedNodeId, hoveredNodeId, hoveredEdgeScope, graphData, nodes, liveTelemetryMode, setEdges]);
 
     // Typeahead search results
     const searchResults = useMemo(() => {
@@ -679,6 +705,21 @@ const SchemaGraphContent = ({ connectionString }: { connectionString: string }) 
                             )}
                         </div>
 
+                        {/* Heatmap Mode Selector */}
+                        {overlayMode && (
+                            <div className="flex bg-white dark:bg-slate-900/90 border border-rose-200 dark:border-rose-500/30 rounded-xl overflow-hidden shadow-sm animate-in fade-in slide-in-from-right-2">
+                                {(['size', 'rows', 'scans'] as const).map(m => (
+                                    <button
+                                        key={m}
+                                        onClick={() => setHeatmapMode(m)}
+                                        className={`px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-colors ${heatmapMode === m ? 'bg-rose-500 text-white' : 'text-rose-600 hover:bg-rose-50'}`}
+                                    >
+                                        {m}
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+
                         {/* Heatmap Tooltip + Button */}
                         <div className="relative group">
                             <button
@@ -687,8 +728,9 @@ const SchemaGraphContent = ({ connectionString }: { connectionString: string }) 
                             >
                                 <Layers size={16} />
                             </button>
-                            <div className="absolute top-full right-0 mt-2 w-max px-2.5 py-1.5 bg-slate-800 text-white text-[11px] font-medium rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
-                                Color nodes by size
+                            <div className="absolute top-full right-0 mt-2 w-max max-w-[2000px] px-3 py-2 bg-slate-800 text-white text-[11px] font-medium rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 shadow-xl border border-slate-700 leading-relaxed translate-y-1 group-hover:translate-y-0 duration-200">
+                                <span className="text-rose-400 font-bold block mb-1">Heat Detector</span>
+                                Colors tables by "Stress". Brighter red = more work or storage pressure on that table.
                             </div>
                         </div>
 
@@ -700,8 +742,9 @@ const SchemaGraphContent = ({ connectionString }: { connectionString: string }) 
                             >
                                 <Activity size={16} className={liveTelemetryMode ? "animate-pulse" : ""} />
                             </button>
-                            <div className="absolute top-full right-0 mt-2 w-max px-2.5 py-1.5 bg-slate-800 text-white text-[11px] font-medium rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
-                                Live Telemetry Mode
+                            <div className="absolute top-full right-0 mt-2 w-max max-w-[200px] px-3 py-2 bg-slate-800 text-white text-[11px] font-medium rounded-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 shadow-xl border border-slate-700 leading-relaxed translate-y-1 group-hover:translate-y-0 duration-200">
+                                <span className="text-emerald-400 font-bold block mb-1">Flow Telemetry</span>
+                                Shows "Traffic" between tables. Faster moving lines = more people asking for this data right now.
                             </div>
                         </div>
                     </div>
@@ -709,9 +752,9 @@ const SchemaGraphContent = ({ connectionString }: { connectionString: string }) 
                     {/* Active Heatmap Legend */}
                     {overlayMode && (
                         <div className="bg-white/95 dark:bg-white/[0.06] backdrop-blur-md border border-rose-100 dark:border-rose-500/20 px-3 py-1.5 rounded-lg shadow-sm flex items-center gap-2 animate-in fade-in slide-in-from-top-2">
-                            <span className="text-[10px] font-bold text-gray-500 uppercase">Size</span>
+                            <span className="text-[10px] font-bold text-gray-500 uppercase">{heatmapMode === 'size' ? 'Size' : (heatmapMode === 'rows' ? 'Rows' : 'Scans')}</span>
                             <div className="w-24 h-1.5 rounded-full bg-gradient-to-r from-transparent via-rose-300 to-rose-600 border border-gray-100"></div>
-                            <span className="text-[10px] font-bold text-rose-600">High</span>
+                            <span className="text-[10px] font-bold text-rose-600">Peak</span>
                         </div>
                     )}
                 </div>
