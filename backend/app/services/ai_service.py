@@ -589,19 +589,3 @@ User: {question}"""
         except Exception as e:
             logger.warning(f"AI error: {e}. Using offline fallback.")
             return f"The AI system ({self.ai_mode}) is having trouble responding: {str(e)[:100]}. Please check your model or connection."
-                {"role": "system", "content": "You are a senior database engineer. ONLY return valid SQL."},
-                {"role": "user", "content": prompt}
-            ]
-            
-            refined_sql = await self._call_ai(messages, max_tokens=3000, temperature=0.1)
-            
-            # Final cleanup of markdown tags if AI hallucinated them
-            for tag in ["```sql", "```"]:
-                if refined_sql.startswith(tag): refined_sql = refined_sql[len(tag):]
-            if refined_sql.endswith("```"): refined_sql = refined_sql[:-3]
-            
-            return refined_sql.strip()
-        except Exception as e:
-            logger.error(f"Total script refinement failed: {e}")
-            return sql_content # Fallback if AI fails
-            return f"The AI system ({self.ai_mode}) is having trouble responding: {str(e)[:100]}. Please check your model or connection."

@@ -329,10 +329,8 @@ class DBService:
         except Exception as e:
             logger.error(f"Failed to apply SQL: {e}")
             raise e
-                result = connection.execute(text(
-                    "SELECT count(*) FROM information_schema.tables WHERE table_schema = 'public'"
-                ))
-                return result.scalar()
+            result = connection.execute(text("SELECT count(*) FROM information_schema.tables WHERE table_schema = 'public'"))
+            return result.scalar()
         except Exception:
             return 0
 
