@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Header
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Optional
 import os
@@ -18,9 +18,19 @@ def _firebase_configured() -> bool:
 class ProjectIn(BaseModel):
     uid: str
     projectName: str
-    connectionType: str  # 'connection' | 'file' | 'ai' | 'github'
-    sqlContent: Optional[str] = ""
+    connectionType: str          # 'connection' | 'file' | 'ai' | 'github' | 'mongodb' | 'firebase'
     connectionString: str
+    sqlContent: Optional[str] = ""
+
+    # ── Rich metadata ──────────────────────────────────────────────────────
+    fileName: Optional[str] = None    # e.g. "chinook.sql"
+    fileType: Optional[str] = None    # MIME or extension, e.g. "text/x-sql"
+    dialect: Optional[str] = None     # e.g. "postgresql", "mysql", "sqlite"
+    dbHost: Optional[str] = None      # hostname extracted from conn string
+    dbName: Optional[str] = None      # database name extracted from conn string
+    description: Optional[str] = None # AI prompt text
+    githubUrl: Optional[str] = None   # original GitHub URL
+    connectedAt: Optional[str] = None # ISO 8601 timestamp from frontend
 
 
 @router.post("")
@@ -38,13 +48,36 @@ async def save_project(project: ProjectIn):
             .collection("projects")
             .document()
         )
-        doc_ref.set({
-            "projectName": project.projectName,
+
+        # Build the document — only include optional fields when they have a value
+        doc_data: dict = {
+            "projectName":    project.projectName,
             "connectionType": project.connectionType,
-            "sqlContent": project.sqlContent or "",
             "connectionString": project.connectionString,
-            "createdAt": SERVER_TIMESTAMP,
-        })
+            "sqlContent":     project.sqlContent or "",
+            "createdAt":      SERVER_TIMESTAMP,
+        }
+
+        # Rich metadata — stored only when present so existing documents
+        # remain backward-compatible (no null/None pollution).
+        if project.fileName:
+            doc_data["fileName"] = project.fileName
+        if project.fileType:
+            doc_data["fileType"] = project.fileType
+        if project.dialect:
+            doc_data["dialect"] = project.dialect
+        if project.dbHost:
+            doc_data["dbHost"] = project.dbHost
+        if project.dbName:
+            doc_data["dbName"] = project.dbName
+        if project.description:
+            doc_data["description"] = project.description
+        if project.githubUrl:
+            doc_data["githubUrl"] = project.githubUrl
+        if project.connectedAt:
+            doc_data["connectedAt"] = project.connectedAt
+
+        doc_ref.set(doc_data)
         return {"id": doc_ref.id, "status": "saved"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -69,11 +102,20 @@ async def get_projects(uid: str):
         for doc in docs:
             data = doc.to_dict()
             projects.append({
-                "id": doc.id,
-                "projectName": data.get("projectName", ""),
-                "connectionType": data.get("connectionType", "connection"),
-                "sqlContent": data.get("sqlContent", ""),
+                "id":               doc.id,
+                "projectName":      data.get("projectName", ""),
+                "connectionType":   data.get("connectionType", "connection"),
                 "connectionString": data.get("connectionString", ""),
+                "sqlContent":       data.get("sqlContent", ""),
+                # Rich metadata — may be absent in older documents
+                "fileName":         data.get("fileName"),
+                "fileType":         data.get("fileType"),
+                "dialect":          data.get("dialect"),
+                "dbHost":           data.get("dbHost"),
+                "dbName":           data.get("dbName"),
+                "description":      data.get("description"),
+                "githubUrl":        data.get("githubUrl"),
+                "connectedAt":      data.get("connectedAt"),
             })
         return {"projects": projects}
     except Exception as e:

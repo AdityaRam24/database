@@ -138,13 +138,17 @@ export function DualSidebar({ onProjectLoad }: SidebarProps) {
       fetchProjects();
     };
 
-    // Safety Pulse: re-fetch once after a short delay to catch any navigation races
-    const timer = setTimeout(fetchProjects, 500);
+    // Safety Pulse: re-fetch at 500ms and 1500ms after mount to handle cross-page
+    // navigation races where the 'projects-updated' event fires before the sidebar
+    // is mounted (e.g. navigating from /connect → /dashboard immediately after saving).
+    const timer1 = setTimeout(fetchProjects, 500);
+    const timer2 = setTimeout(fetchProjects, 1500);
 
     window.addEventListener('projects-updated', handleSync);
     return () => {
       window.removeEventListener('projects-updated', handleSync);
-      clearTimeout(timer);
+      clearTimeout(timer1);
+      clearTimeout(timer2);
     };
   }, [user]);
 

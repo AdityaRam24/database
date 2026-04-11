@@ -150,12 +150,59 @@ export default function ConnectPage() {
                 sqlContent = aiDescription;
             }
 
+            // ── Build rich metadata ─────────────────────────────────────────
+            let fileName: string | undefined;
+            let fileType: string | undefined;
+            let dialect: string | undefined;
+            let dbHost: string | undefined;
+            let dbName: string | undefined;
+            let description: string | undefined;
+            let savedGithubUrl: string | undefined;
+
+            if (activeTab === "file" && file) {
+                fileName = file.name;
+                fileType = file.type || (file.name.endsWith(".sql") ? "text/x-sql" : "application/octet-stream");
+                dialect  = sqlDialect;
+            } else if (activeTab === "github") {
+                fileName = githubUrl.split("/").pop() || "schema.sql";
+                fileType = "text/x-sql";
+                savedGithubUrl = githubUrl;
+            } else if (activeTab === "ai") {
+                description = aiDescription;
+            } else if (activeTab === "connection") {
+                dialect = "postgresql";
+                try {
+                    const u = new URL(finalConnStr);
+                    dbHost = u.hostname;
+                    dbName = u.pathname.replace(/^\//, "");
+                } catch { /* non-parseable conn string — skip */ }
+            } else if (activeTab === "mongodb") {
+                try {
+                    const u = new URL(finalConnStr);
+                    dbHost = u.hostname;
+                    dbName = u.pathname.replace(/^\//, "");
+                } catch { /* non-parseable URI — skip */ }
+            } else if (activeTab === "firebase") {
+                try {
+                    const parsed = JSON.parse(firebaseJson);
+                    dbName = parsed.project_id;
+                } catch { /* ignore */ }
+            }
+
             try {
                 await saveProject(user?.uid || null, {
                     projectName: finalName,
                     connectionType: activeTab,
                     sqlContent,
                     connectionString: finalConnStr,
+                    // Rich metadata
+                    fileName,
+                    fileType,
+                    dialect,
+                    dbHost,
+                    dbName,
+                    description,
+                    githubUrl: savedGithubUrl,
                 });
             } catch (e) {
                 console.warn("Could not persist project:", e);
