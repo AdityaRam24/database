@@ -326,6 +326,19 @@ def get_table_data(request: TableDataRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@router.post("/table-intelligence")
+def get_table_intelligence(request: TableDataRequest):
+    try:
+        if _is_firebase(request.connection_string) or _is_mongodb(request.connection_string):
+            return {
+                "table_name": request.table_name,
+                "msg": "Intelligence panel currently supported only for PostgreSQL."
+            }
+        service = SchemaAnalysisService(request.connection_string)
+        return service.get_table_intelligence(request.table_name)
+    except Exception as e:
+        logger.error(f"Intelligence fetch failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 class DriftScanRequest(BaseModel):
     connection_string: str

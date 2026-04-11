@@ -859,9 +859,69 @@
         "total_seq_scans": 36,
         "xact_rollback": 136
       }
+    },
+    {
+      "timestamp": "2026-04-11T09:51:06.610953",
+      "metrics": {
+        "queries": [],
+        "query_stats": {
+          "total_calls": 0,
+          "avg_mean_time": 0.0,
+          "max_mean_time": 0.0
+        },
+        "table_sizes": {
+          "users": 49152,
+          "user_profiles": 16384,
+          "categories": 32768,
+          "orders": 32768,
+          "order_items": 24576,
+          "products": 32768
+        },
+        "connection_count": 3,
+        "table_seq_scans": {
+          "users": 42,
+          "products": 41,
+          "orders": 24,
+          "categories": 21,
+          "user_profiles": 21,
+          "order_items": 1
+        },
+        "total_seq_scans": 150,
+        "xact_rollback": 350
+      }
+    },
+    {
+      "timestamp": "2026-04-11T10:00:19.743641",
+      "metrics": {
+        "queries": [],
+        "query_stats": {
+          "total_calls": 0,
+          "avg_mean_time": 0.0,
+          "max_mean_time": 0.0
+        },
+        "table_sizes": {
+          "users": 49152,
+          "user_profiles": 16384,
+          "categories": 32768,
+          "orders": 32768,
+          "order_items": 24576,
+          "products": 32768
+        },
+        "connection_count": 3,
+        "table_seq_scans": {
+          "users": 50,
+          "products": 49,
+          "orders": 28,
+          "categories": 25,
+          "user_profiles": 25,
+          "order_items": 1
+        },
+        "total_seq_scans": 178,
+        "xact_rollback": 486
+      }
     }
   ],
-  "last_updated": "2026-04-09T18:09:15.505465",
+  "last_updated": "2026-04-11T10:00:19.743641",
   "incident_history": [
     {
       "id": "INC-1775479611-3409",

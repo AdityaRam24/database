@@ -78,6 +78,14 @@ export default function GovernancePage() {
         setMounted(true);
     }, []);
 
+
+    useEffect(() => {
+        const s = sessionStorage.getItem("gov_sql"); if(s) setSqlPatch(s);
+        const n = sessionStorage.getItem("gov_nl"); if(n) setNlDescription(n);
+    }, []);
+    useEffect(() => { sessionStorage.setItem("gov_sql", sqlPatch); }, [sqlPatch]);
+    useEffect(() => { sessionStorage.setItem("gov_nl", nlDescription); }, [nlDescription]);
+
     const saveHistory = (item: HistoryItem) => {
         setHistory(prev => {
             const next = [item, ...prev].slice(0, 20);
