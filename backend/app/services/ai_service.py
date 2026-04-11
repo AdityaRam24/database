@@ -225,6 +225,118 @@ class AIService:
                 return "OFFLINE_DEMO_FALLBACK: CREATE TABLE \"Customer\" (\n  \"id\" SERIAL PRIMARY KEY,\n  \"name\" VARCHAR(255),\n  \"email\" VARCHAR(255) UNIQUE\n);\n\nCREATE TABLE \"Order\" (\n  \"id\" SERIAL PRIMARY KEY,\n  \"customer_id\" INTEGER REFERENCES \"Customer\"(\"id\"),\n  \"total\" DECIMAL(10,2)\n);"
             raise e
 
+    @staticmethod
+    def _extract_sql_from_llm_response(response: str) -> str:
+        """
+        Robustly pull SQL out of an LLM response regardless of whether
+        the model obeyed the 'no markdown' instruction.
+
+        Priority:
+        1. If the response contains fenced code blocks (```sql, ```plsql, ```),
+           extract and concatenate all of them.
+        2. Otherwise, find the first line that looks like SQL and discard
+           everything before it (strips prose preamble from small/local models).
+        """
+        # Priority 1: extract fenced code blocks
+        blocks = re.findall(r'```(?:sql|plsql|postgresql|pgsql)?\s*([\s\S]*?)```', response, re.IGNORECASE)
+        if blocks:
+            return "\n\n".join(b.strip() for b in blocks if b.strip())
+
+        # Priority 2: find the first SQL-looking line and return from there
+        sql_start_pattern = re.compile(
+            r'^\s*(CREATE|ALTER|DROP|INSERT|UPDATE|DELETE|GRANT|REVOKE|BEGIN|COMMENT)\b',
+            re.IGNORECASE
+        )
+        lines = response.splitlines()
+        for i, line in enumerate(lines):
+            if sql_start_pattern.match(line):
+                return "\n".join(lines[i:]).strip()
+
+        # Fallback: return as-is
+        return response.strip()
+
+    async def _repair_single_statement(self, raw_stmt: str, source_dialect: str) -> str:
+        """Send one failing statement to the LLM and return the PostgreSQL equivalent."""
+        system_prompt = (
+            "You are a PostgreSQL migration expert. "
+            "OUTPUT ONLY THE CONVERTED POSTGRESQL SQL STATEMENT — "
+            "no explanations, no markdown, no code fences, no prose. "
+            "Your entire response must be a single executable PostgreSQL statement."
+        )
+        dialect_hints = (
+            "AUTO_INCREMENT → SERIAL, TINYINT/MEDIUMINT → SMALLINT/INTEGER, "
+            "backticks → double-quotes, ENGINE=InnoDB/CHARSET/COLLATE → remove, "
+            "UNSIGNED → remove, PL/SQL IS → AS, EXCEPTION → PostgreSQL EXCEPTION syntax, "
+            "SYSDATE → CURRENT_DATE, NVL() → COALESCE(), DECODE() → CASE WHEN, "
+            "Oracle object types → CREATE TYPE ... AS (...)."
+        )
+        prompt = (
+            f"Convert this single {source_dialect.upper()} statement to valid PostgreSQL.\n"
+            f"Common fixes: {dialect_hints}\n"
+            f"OUTPUT ONLY THE POSTGRESQL STATEMENT. NO OTHER TEXT.\n\n"
+            f"{source_dialect.upper()} statement:\n{raw_stmt}"
+        )
+        messages = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": prompt},
+            {"role": "assistant", "content": ""},
+        ]
+        result = await self._call_ai(messages, max_tokens=1000, temperature=0.1)
+        return self._extract_sql_from_llm_response(result)
+
+    async def repair_dialect_sql(self, original_sql: str, source_dialect: str, error: str) -> str:
+        """
+        Called when sqlglot fails to convert a SQL file from source_dialect to PostgreSQL.
+
+        Strategy:
+        1. Re-run sqlglot statement-by-statement via convert_partial().
+        2. For each statement sqlglot couldn't convert, send ONLY that statement to the LLM.
+        3. Splice the LLM repairs back into the full list and reassemble.
+
+        This guarantees the rest of the file is never lost — only the broken
+        statements go to the LLM.
+        """
+        from app.services.dialect_converter import DialectConverter
+
+        print("\n" + "="*60)
+        print("DIALECT REPAIR — ORIGINAL ERROR")
+        print("="*60)
+        print(error)
+        print("="*60 + "\n")
+
+        converted_list, failed_list = DialectConverter.convert_partial(original_sql, source_dialect)
+
+        if not failed_list:
+            # sqlglot handled everything this time — join and return
+            result = ";\n".join(s for s in converted_list if s) + ";"
+            print("No LLM repair needed — sqlglot converted all statements.\n")
+            return result
+
+        print(f"sqlglot failed on {len(failed_list)} statement(s). Sending each to LLM for repair...\n")
+
+        for idx, (pos, raw_stmt) in enumerate(failed_list):
+            print(f"--- LLM repair {idx + 1}/{len(failed_list)} ---")
+            print(f"Original:\n{raw_stmt}\n")
+            try:
+                repaired = await self._repair_single_statement(raw_stmt, source_dialect)
+                print(f"Repaired:\n{repaired}\n")
+                converted_list[pos] = repaired
+            except Exception as e:
+                logger.warning(f"LLM could not repair statement at position {pos}: {e}")
+                # Keep it out (None entries are skipped below)
+
+        final_sql = ";\n".join(s for s in converted_list if s)
+        if final_sql and not final_sql.endswith(";"):
+            final_sql += ";"
+
+        print("="*60)
+        print("FINAL ASSEMBLED SQL (sent to PostgreSQL)")
+        print("="*60)
+        print(final_sql)
+        print("="*60 + "\n")
+
+        return final_sql
+
     async def generate_governance_patch(self, description: str, schema_context: str) -> str:
         """Generate a SQL patch from a natural language description of what to change."""
         try:

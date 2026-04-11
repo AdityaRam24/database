@@ -79,10 +79,18 @@ async def upload_sql(
                 sql_content = DialectConverter.convert(sql_content, dialect)
                 logger.info("Dialect conversion successful.")
             except Exception as conv_err:
-                raise HTTPException(
-                    status_code=422,
-                    detail=f"Dialect conversion failed: {str(conv_err)}"
-                )
+                logger.warning(f"Dialect conversion failed: {conv_err}. Attempting LLM-assisted repair...")
+                try:
+                    ai_service = AIService()
+                    sql_content = await ai_service.repair_dialect_sql(sql_content, dialect, str(conv_err))
+                    logger.info("LLM-assisted dialect repair succeeded.")
+                except Exception as llm_err:
+                    logger.error(f"LLM repair also failed: {llm_err}")
+                    raise HTTPException(
+                        status_code=422,
+                        detail=f"Dialect conversion failed and LLM repair was unable to fix it. "
+                               f"Conversion error: {str(conv_err)}. LLM error: {str(llm_err)}"
+                    )
 
         # Create dedicated isolated database
         new_db_url = DBService.create_dedicated_db_from_sql(sql_content, project_name)
