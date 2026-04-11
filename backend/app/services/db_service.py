@@ -310,43 +310,13 @@ class DBService:
         Applies a SQL command to the specified database (defaulting to Shadow DB).
         """
         # 1. Security Validation
-        forbidden_keywords = ["DROP DATABASE", "DROP TABLE", "DELETE FROM", "TRUNCATE"]
+        forbidden_keywords = ["DROP DATABASE"]
         upper_sql = sql_command.upper()
         
         for keyword in forbidden_keywords:
             if keyword in upper_sql:
                 logger.warning(f"Blocked destructive SQL: {sql_command}")
-                raise ValueError(f"Destructive command '{keyword}' is not allowed.")
-
-        # 2. Execute on Target DB
-        try:
-            target_url = connection_string or settings.SHADOW_DB_URL
-            engine = create_engine(target_url, poolclass=NullPool)
-            with engine.connect() as connection:
-                connection.execute(text(sql_command))
-                connection.commit()
-            return True
-        except Exception as e:
-            logger.error(f"Failed to apply SQL: {e}")
-            raise e
-            result = connection.execute(text("SELECT count(*) FROM information_schema.tables WHERE table_schema = 'public'"))
-            return result.scalar()
-        except Exception:
-            return 0
-
-    @staticmethod
-    async def apply_change(sql_command: str, connection_string: str = None) -> bool:
-        """
-        Applies a SQL command to the specified database (defaulting to Shadow DB).
-        """
-        # 1. Security Validation
-        forbidden_keywords = ["DROP DATABASE", "DROP TABLE", "DELETE FROM", "TRUNCATE"]
-        upper_sql = sql_command.upper()
-        
-        for keyword in forbidden_keywords:
-            if keyword in upper_sql:
-                logger.warning(f"Blocked destructive SQL: {sql_command}")
-                raise ValueError(f"Destructive command '{keyword}' is not allowed.")
+                raise ValueError(f"Destructive command '{keyword}' is not allowed for safety concerns.")
 
         # 2. Execute on Target DB
         try:

@@ -190,7 +190,7 @@ class SchemaAnalysisService:
             logger.error(f"Error fetching graph data: {e}")
             raise e
 
-    def get_table_data(self, table_name: str, limit: int = 100) -> Dict[str, Any]:
+    def get_table_data(self, table_name: str, limit: int = 1000) -> Dict[str, Any]:
         """
         Safely fetches up to `limit` rows from the specified table.
         Returns columns and rows data.

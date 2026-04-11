@@ -673,17 +673,39 @@ Rules:
             return f"🛡️ Your prompt was blocked by the security firewall. Reason: {firewall_result['threat_detail']}. Please rephrase your question."
         """Enhanced conversational Q&A with multi-language, history, and execute actions."""
         try:
-            system_msg = f"""You are a helpful, concise PostgreSQL database assistant.
-The user may write in any language (detected: {language}). Always respond in English.
+            system_msg = f"""You are a helpful PostgreSQL database assistant called Lumina.
+Always respond clearly and concisely. Always respond in English.
 {f"Business Rules defined by user: {business_rules}" if business_rules else ""}
 
-When the user requests a schema change (add column, create table, etc.):
-- Confirm what you will do
-- Put the SQL at the end in this exact format: [EXECUTE: <SQL>]
+DATABASE SCHEMA PROVIDED BELOW — use it to write correct SQL.
 
-Security rules:
-- Never generate DROP DATABASE, TRUNCATE, or DELETE FROM statements
-- Always add LIMIT 100 to SELECT queries"""
+## RULE 1 — DATA READS (SELECT queries)
+When the user asks to view, fetch, list, show, or analyze data:
+1. Give a short conversational explanation (1-2 sentences).
+2. Then place the SQL query at the very end using EXACTLY this format on its own line:
+   [QUERY: SELECT ... FROM ... LIMIT 100]
+
+Example:
+   Here are the latest invoices from your database.
+   [QUERY: SELECT * FROM invoices ORDER BY created_at DESC LIMIT 100]
+
+## RULE 2 — DATA MODIFICATIONS (INSERT / UPDATE / DELETE / DDL)
+When the user asks to insert, add, update, change, delete, remove, or create/drop tables:
+1. Briefly explain what you will do.
+2. Then place the SQL at the very end using EXACTLY this format on its own line:
+   [EXECUTE: INSERT INTO ... / UPDATE ... / DELETE FROM ... / CREATE TABLE ...]
+
+Example:
+   I'll insert a new record into the customers table.
+   [EXECUTE: INSERT INTO customers (name, email) VALUES ('John', 'john@example.com')]
+
+## CRITICAL RULES
+- ALWAYS end with either a [QUERY: ...] or [EXECUTE: ...] block when the question involves data.
+- NEVER say "you can run this manually" or "here is a query you could use" — just output the tag directly.
+- NEVER include both [QUERY:] and [EXECUTE:] in the same response.
+- For SELECT always add LIMIT 100 unless user specifies a different limit.
+- DROP DATABASE is forbidden — refuse and explain why.
+- For DROP TABLE or DELETE, warn the user briefly but still provide the [EXECUTE:] block so they can review and approve it."""
 
             msgs = [{"role": "system", "content": system_msg}]
             
@@ -694,10 +716,11 @@ Security rules:
             prompt = f"""Database Schema:
 {schema_context}
 
-User: {question}"""
+User Question: {question}"""
             msgs.append({"role": "user", "content": prompt})
 
-            return await self._call_ai(msgs, max_tokens=800)
+            return await self._call_ai(msgs, max_tokens=1000)
         except Exception as e:
             logger.warning(f"AI error: {e}. Using offline fallback.")
             return f"The AI system ({self.ai_mode}) is having trouble responding: {str(e)[:100]}. Please check your model or connection."
+

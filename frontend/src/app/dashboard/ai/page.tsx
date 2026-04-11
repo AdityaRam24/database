@@ -128,7 +128,7 @@ function MiniBarChart({ columns, rows }: { columns: string[]; rows: any[][] }) {
                                     style={{ background: `linear-gradient(90deg, hsl(${255 - i*14},80%,65%), hsl(${238 - i*14},70%,58%))` }}
                                 />
                             </div>
-                            <span className="text-slate-800 font-black w-10 text-right tabular-nums">{row[1]}</span>
+                            <span className="text-slate-800 dark:text-slate-300 font-black w-10 text-right tabular-nums">{row[1]}</span>
                         </div>
                     </div>
                 ))}
@@ -439,8 +439,29 @@ export default function AskAIPage() {
             });
             const data = await res.json();
             const reply = data.answer || 'Hmm, I got an empty response. Could you try rephrasing?';
-            addMessage({ role: 'ai', content: reply, suggested_action: data.suggested_action, query_result: null });
+            
+            // If the AI auto-generated a query result along with the answer, directly use it!
+            const newMsgId = genId();
+            setMessages(prev => [...prev, {
+                id: newMsgId,
+                role: 'ai',
+                content: reply,
+                suggested_action: data.suggested_action,
+                query_result: data.query_result || null
+            }]);
             speak(reply);
+            
+            // If the query was successful, fetch its cost dynamically in the background
+            if (data.query_result && data.query_result.sql && !data.query_result.error) {
+                try {
+                    const cr = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/analysis/query-cost`, {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ connection_string: connectionString, sql: data.query_result.sql }),
+                    });
+                    const costData = await cr.json();
+                    setMessages(p => p.map(m => m.id === newMsgId ? { ...m, query_result: { ...m.query_result!, query_cost: costData } } : m));
+                } catch {}
+            }
         } catch (e: any) {
             if (e.name !== 'AbortError') {
                 addMessage({ role: 'ai', content: "😕 I couldn't reach the AI server. Please make sure your Ollama server is running!", query_result: null });
@@ -485,13 +506,17 @@ export default function AskAIPage() {
             const data = await res.json();
             if (data.success) {
                 setMessages(p => p.map(m => m.id === msgId ? { ...m, suggested_action: undefined } : m));
-                addMessage({ role: 'ai', content: '✅ Done! The change was applied successfully. Your database is now updated!', query_result: null });
+                addMessage({ role: 'ai', content: `✅ Done! Change applied successfully.\n\n**SQL run:** ${sql}\n\nYour database has been updated!`, query_result: null });
             } else {
                 addMessage({ role: 'ai', content: `😕 Something went wrong: ${data.error || data.detail}. Your database was NOT changed — don't worry!`, query_result: null });
             }
         } catch {
             addMessage({ role: 'ai', content: "😕 Couldn't connect to the server. Please try again!", query_result: null });
         } finally { setExecuting(null); }
+    };
+
+    const handleDismissAction = (msgId: string) => {
+        setMessages(p => p.map(m => m.id === msgId ? { ...m, suggested_action: undefined } : m));
     };
 
     const selectedLang = LANGUAGES.find(l => l.code === language) || LANGUAGES[0];
@@ -596,7 +621,7 @@ export default function AskAIPage() {
                                     <Database size={38} color="white"/>
                                 </div>
                                 <div>
-                                    <h2 className="text-xl font-black text-slate-900 mb-2">No Database Connected</h2>
+                                    <h2 className="text-xl font-black text-slate-900 dark:text-slate-100 mb-2">No Database Connected</h2>
                                     <p className="text-slate-500 text-sm font-bold max-w-xs">Connect a database from the sidebar to start chatting with Lumina!</p>
                                 </div>
                             </div>
@@ -610,14 +635,14 @@ export default function AskAIPage() {
                                         style={{ background: 'linear-gradient(135deg,#7c3aed,#4f46e5)', boxShadow: '0 8px 32px rgba(124,58,237,0.3)' }}>
                                         <MessageCircle size={34} color="white"/>
                                     </div>
-                                    <h2 className="text-2xl font-black text-slate-900">Hey, I'm Lumina! 👋</h2>
+                                    <h2 className="text-2xl font-black text-slate-900 dark:text-slate-100">Hey, I'm Lumina! 👋</h2>
                                     <p className="text-slate-500 font-bold text-sm mt-2">Ask me anything — in plain English!</p>
                                 </div>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 w-full max-w-2xl">
                                     {STARTERS.map(s => (
                                         <motion.button key={s.text} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
                                             onClick={() => handleSend(s.text)}
-                                            className="text-left px-4 py-4 rounded-2xl border border-slate-200 bg-white hover:border-violet-300 hover:shadow-md transition-all cursor-pointer group">
+                                            className="text-left px-4 py-4 rounded-2xl border border-slate-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.05] hover:border-violet-300 dark:hover:border-violet-400 hover:shadow-md transition-all cursor-pointer group">
                                             <span className="text-2xl mb-3 block">{s.emoji}</span>
                                             <span className="text-[13px] font-bold text-slate-700 group-hover:text-violet-700 transition-colors leading-snug">{s.text}</span>
                                         </motion.button>
@@ -657,11 +682,11 @@ export default function AskAIPage() {
                                         </div>
 
                                         {/* Show Data button */}
-                                        {msg.role === 'ai' && i > 0 && (
+                                        {msg.role === 'ai' && i > 0 && !msg.query_result && !msg.suggested_action && !msg.content.includes('The change was applied') && !msg.content.includes('Something went wrong') && (
                                             <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
                                                 onClick={() => handleRunQuery(msg.id, messages[i - 1]?.content || msg.content)}
                                                 disabled={!!msg.loading_query}
-                                                className="self-start flex items-center gap-2 text-[11px] font-black uppercase tracking-widest px-4 py-2 rounded-full border border-violet-200 bg-white text-violet-600 hover:bg-violet-50 hover:border-violet-300 transition-all shadow-sm disabled:opacity-60 cursor-pointer">
+                                                className="self-start flex items-center gap-2 text-[11px] font-black uppercase tracking-widest px-4 py-2 rounded-full border border-violet-300 dark:border-violet-500/40 bg-white dark:bg-violet-500/10 text-violet-600 dark:text-violet-400 hover:bg-violet-50 dark:hover:bg-violet-500/20 hover:border-violet-400 transition-all shadow-sm disabled:opacity-60 cursor-pointer mt-2">
                                                 {msg.loading_query
                                                     ? <><Loader2 size={11} className="animate-spin"/> Fetching your data…</>
                                                     : <><Play size={11} fill="currentColor"/> Show me the data</>}
@@ -703,7 +728,7 @@ export default function AskAIPage() {
                                                     {msg.query_result.rows.length > 0 && <DataTable columns={msg.query_result.columns} rows={msg.query_result.rows}/>}
                                                     <p className="text-[10px] text-slate-400 mt-3 flex items-center gap-1.5 font-black uppercase tracking-widest">
                                                         <CheckCircle2 size={10} className="text-emerald-500"/>
-                                                        {msg.query_result.rows.length} result{msg.query_result.rows.length !== 1 ? 's' : ''} · max 100 rows applied
+                                                        {msg.query_result.rows.length} row{msg.query_result.rows.length !== 1 ? 's' : ''} returned
                                                     </p>
                                                     {msg.query_result.query_cost && (
                                                         <div className="mt-3 flex items-center gap-3 px-3 py-2.5 rounded-xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-100">
@@ -722,24 +747,32 @@ export default function AskAIPage() {
                                         {/* Suggested action */}
                                         {msg.suggested_action && (
                                             <div className="bg-gradient-to-br from-violet-50 to-indigo-50 dark:from-violet-500/10 dark:to-indigo-500/10 border border-violet-200 dark:border-violet-500/20 rounded-2xl p-5 shadow-sm">
-                                                <p className="text-[10px] font-black text-violet-600 uppercase tracking-widest mb-3 flex items-center gap-1.5">
-                                                    <Lightbulb size={11} className="text-amber-500"/> Suggested Change
+                                                <p className="text-[10px] font-black text-violet-600 dark:text-violet-400 uppercase tracking-widest mb-3 flex items-center gap-1.5">
+                                                    <Lightbulb size={11} className="text-amber-500"/> Pending Database Change
                                                 </p>
                                                 <code className="text-[12px] font-mono block p-4 rounded-xl mb-4"
                                                     style={{ background: '#0f172a', color: '#4ade80' }}>
                                                     {msg.suggested_action}
                                                 </code>
                                                 <p className="text-[12px] text-slate-600 dark:text-slate-300 font-bold mb-4 bg-white/70 dark:bg-white/[0.04] p-3 rounded-xl border border-violet-100 dark:border-violet-500/20">
-                                                    ⚠️ Review the command above — once approved, it will modify your database!
+                                                    ⚠️ Review the SQL above carefully — once approved, it will permanently modify your database!
                                                 </p>
-                                                <motion.button whileTap={{ scale: 0.97 }}
-                                                    onClick={() => handleExecute(msg.id, msg.suggested_action!)}
-                                                    disabled={executing !== null}
-                                                    className="w-full py-3.5 rounded-2xl text-[12px] font-black text-white uppercase tracking-wider flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
-                                                    style={{ background: 'linear-gradient(135deg,#7c3aed,#4f46e5)', boxShadow: '0 4px 20px rgba(124,58,237,0.35)' }}>
-                                                    {executing === msg.id ? <Loader2 size={14} className="animate-spin"/> : <CheckCircle2 size={14}/>}
-                                                    Yes, Apply This Change
-                                                </motion.button>
+                                                <div className="flex gap-3">
+                                                    <button
+                                                        onClick={() => handleDismissAction(msg.id)}
+                                                        disabled={executing !== null}
+                                                        className="flex-1 py-3 rounded-2xl text-[12px] font-black uppercase tracking-wider border border-slate-200 dark:border-white/[0.1] bg-white dark:bg-white/[0.05] text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/[0.08] transition-all disabled:opacity-50 cursor-pointer">
+                                                        No, dismiss
+                                                    </button>
+                                                    <motion.button whileTap={{ scale: 0.97 }}
+                                                        onClick={() => handleExecute(msg.id, msg.suggested_action!)}
+                                                        disabled={executing !== null}
+                                                        className="flex-1 py-3 rounded-2xl text-[12px] font-black text-white uppercase tracking-wider flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
+                                                        style={{ background: 'linear-gradient(135deg,#7c3aed,#4f46e5)', boxShadow: '0 4px 20px rgba(124,58,237,0.35)' }}>
+                                                        {executing === msg.id ? <Loader2 size={14} className="animate-spin"/> : <CheckCircle2 size={14}/>}
+                                                        Yes, Apply Change
+                                                    </motion.button>
+                                                </div>
                                             </div>
                                         )}
                                     </div>

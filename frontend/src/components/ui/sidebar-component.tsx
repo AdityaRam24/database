@@ -12,6 +12,7 @@ import { useAuth } from "@/context/AuthContext";
 import { getUserProjects, deleteProject, saveProject, Project } from "@/lib/projectStorage";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTheme } from "next-themes";
 
 
 /* ─── Logo ──────────────────────────────────────────────────── */
@@ -96,6 +97,8 @@ interface SidebarProps {
 export function DualSidebar({ onProjectLoad }: SidebarProps) {
   const { user } = useAuth();
   const router = useRouter();
+  const { theme, setTheme } = useTheme();
+  const [showSettings, setShowSettings] = useState(false);
   const [projects, setProjects] = useState<Project[]>([]);
   const [activeConn, setActiveConn] = useState<string | null>(null);
   const [activeProject, setActiveProject] = useState<string>("");
@@ -431,18 +434,39 @@ export function DualSidebar({ onProjectLoad }: SidebarProps) {
 
       {/* ── User footer (hidden when collapsed) ── */}
       {!collapsed && (
-        <div className="shrink-0 border-t border-slate-100 dark:border-white/[0.06] p-3">
+        <div className="shrink-0 border-t border-slate-100 dark:border-white/[0.06] p-3 relative">
+          <AnimatePresence>
+            {showSettings && (
+              <motion.div 
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 10 }}
+                className="absolute bottom-full mb-2 left-3 right-3 p-2 rounded-2xl backdrop-blur-xl bg-white/95 dark:bg-[#16161b]/95 border border-slate-200 dark:border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.12)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.5)] z-50 ring-1 ring-black/5 dark:ring-white/5"
+              >
+                <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-2 py-1.5 mb-1">Theme Settings</p>
+                <div className="flex flex-col gap-0.5">
+                  <button onClick={() => { setTheme('light'); setShowSettings(false); }} className={`w-full text-left px-3 py-2 rounded-xl text-[11px] font-black transition-all ${theme === 'light' ? 'bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-300' : 'hover:bg-slate-100 dark:hover:bg-white/5 text-slate-600 dark:text-slate-300'}`}>Light Mode</button>
+                  <button onClick={() => { setTheme('dark'); setShowSettings(false); }} className={`w-full text-left px-3 py-2 rounded-xl text-[11px] font-black transition-all ${theme === 'dark' ? 'bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-300' : 'hover:bg-slate-100 dark:hover:bg-white/5 text-slate-600 dark:text-slate-300'}`}>Dark Mode</button>
+                  <button onClick={() => { setTheme('system'); setShowSettings(false); }} className={`w-full text-left px-3 py-2 rounded-xl text-[11px] font-black transition-all ${theme === 'system' ? 'bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-300' : 'hover:bg-slate-100 dark:hover:bg-white/5 text-slate-600 dark:text-slate-300'}`}>System Default</button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           {user ? (
-            <div className="flex items-center gap-2.5 px-3 py-2.5 rounded-2xl bg-slate-50 dark:bg-white/[0.04] border border-slate-100 dark:border-white/[0.06] hover:bg-slate-100 dark:hover:bg-white/[0.07] transition-colors cursor-pointer group">
+            <div 
+              onClick={() => setShowSettings(!showSettings)}
+              className="flex items-center gap-2.5 px-3 py-2.5 rounded-2xl bg-slate-50 dark:bg-white/[0.04] border border-slate-100 dark:border-white/[0.06] hover:bg-slate-100 dark:hover:bg-white/[0.07] transition-colors cursor-pointer group"
+            >
               <Avatar user={user} />
               <div className="flex-1 min-w-0">
                 <p className="text-[12px] font-black text-slate-800 dark:text-slate-100 truncate">{user.displayName || "User"}</p>
                 <div className="flex items-center gap-1">
-                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_4px_rgba(52,211,153,0.7)]" />
                   <p className="text-[10px] font-bold text-slate-400 truncate">{user.email}</p>
                 </div>
               </div>
-              <Settings size={13} className="text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
+              <Settings size={13} className={`text-slate-400 transition-opacity shrink-0 ${showSettings ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`} />
             </div>
           ) : (
             <button onClick={() => router.push("/")}
