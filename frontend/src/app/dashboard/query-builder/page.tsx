@@ -25,6 +25,16 @@ export default function QueryBuilderPage() {
     return () => window.removeEventListener("project-changed", handler);
   }, []);
 
+
+  useEffect(() => {
+    const s = sessionStorage.getItem("qb_sql"); if(s) setSql(s);
+    const p = sessionStorage.getItem("qb_prompt"); if(p) setPrompt(p);
+    const r = sessionStorage.getItem("qb_result"); if(r) try { setResult(JSON.parse(r)); } catch {}
+  }, []);
+  useEffect(() => { sessionStorage.setItem("qb_sql", sql); }, [sql]);
+  useEffect(() => { sessionStorage.setItem("qb_prompt", prompt); }, [prompt]);
+  useEffect(() => { if(result) sessionStorage.setItem("qb_result", JSON.stringify(result)); else sessionStorage.removeItem("qb_result"); }, [result]);
+
   const analyzeQuery = async () => {
     if (!sql.trim()) return;
     if (!connectionString) {

@@ -214,3 +214,77 @@ class SchemaAnalysisService:
         except Exception as e:
             logger.error(f"Error fetching table data for {table_name}: {e}")
             raise e
+
+    def get_table_intelligence(self, table_name: str) -> Dict[str, Any]:
+        """
+        Fetches detailed intelligence for a specific table: DDL, indexes, constraints, and column stats.
+        """
+        try:
+            with self.engine.connect() as conn:
+                safe_table = table_name.replace("'", "''")
+                safe_ident = table_name.replace('"', '""')
+
+                # 1. basic properties
+                query_info = text(f"""
+                    SELECT c.reltuples::bigint,
+                           pg_total_relation_size('"{safe_ident}"') as size_bytes,
+                           obj_description(c.oid) as description
+                    FROM pg_class c
+                    JOIN pg_namespace n ON n.oid = c.relnamespace
+                    WHERE c.relname = '{safe_table}' AND n.nspname = 'public';
+                """)
+                info = conn.execute(query_info).fetchone()
+                
+                # 2. Columns (reusing information_schema)
+                query_cols = text(f"""
+                    SELECT column_name, data_type, is_nullable, character_maximum_length, column_default
+                    FROM information_schema.columns
+                    WHERE table_name = '{safe_table}' AND table_schema = 'public'
+                    ORDER BY ordinal_position;
+                """)
+                cols = [dict(zip(["name", "type", "nullable", "max_len", "default"], r)) for r in conn.execute(query_cols).fetchall()]
+
+                # 3. Indexes and their usage (Index Health)
+                query_idx = text(f"""
+                    SELECT
+                        i.relname as index_name,
+                        am.amname as index_type,
+                        idx.indisunique as is_unique,
+                        pg_get_indexdef(idx.indexrelid) as index_def,
+                        s.idx_scan,
+                        s.idx_tup_read,
+                        s.idx_tup_fetch
+                    FROM pg_index idx
+                    JOIN pg_class c ON c.oid = idx.indrelid
+                    JOIN pg_namespace n ON n.oid = c.relnamespace
+                    JOIN pg_class i ON i.oid = idx.indexrelid
+                    JOIN pg_am am ON i.relam = am.oid
+                    LEFT JOIN pg_stat_user_indexes s ON s.indexrelid = idx.indexrelid
+                    WHERE c.relname = '{safe_table}' AND n.nspname = 'public';
+                """)
+                indexes = [dict(zip(["name", "type", "is_unique", "definition", "scans", "tup_read", "tup_fetch"], r)) 
+                           for r in conn.execute(query_idx).fetchall()]
+
+                # 4. Generate DDL
+                col_defs = []
+                for c in cols:
+                    def_str = f'"{c["name"]}" {c["type"]}'
+                    if c["max_len"]: def_str += f'({c["max_len"]})'
+                    if c["nullable"] == "NO": def_str += ' NOT NULL'
+                    if c["default"]: def_str += f' DEFAULT {c["default"]}'
+                    col_defs.append("  " + def_str)
+                
+                ddl = f'CREATE TABLE "{table_name}" (\n' + ",\n".join(col_defs) + '\n);'
+
+                return {
+                    "table_name": table_name,
+                    "rows": info[0] if info else 0,
+                    "size_bytes": info[1] if info else 0,
+                    "description": info[2] if info else "",
+                    "columns": cols,
+                    "indexes": indexes,
+                    "ddl": ddl
+                }
+        except Exception as e:
+            logger.error(f"Error fetching table intelligence for {table_name}: {e}")
+            raise e

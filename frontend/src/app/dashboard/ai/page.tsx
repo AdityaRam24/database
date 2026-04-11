@@ -231,15 +231,26 @@ export default function AskAIPage() {
         }
     }, []);
 
+
+    useEffect(() => {
+        const s = sessionStorage.getItem("ai_input"); if(s) setInput(s);
+        const m = sessionStorage.getItem("ai_messages"); if(m) try { const parsed = JSON.parse(m); if(parsed.length) setMessages(parsed); } catch {}
+    }, []);
+    useEffect(() => { sessionStorage.setItem("ai_input", input); }, [input]);
+    useEffect(() => { if(messages.length) sessionStorage.setItem("ai_messages", JSON.stringify(messages)); else sessionStorage.removeItem("ai_messages"); }, [messages]);
+
     /* Welcome message */
     useEffect(() => {
         if (connectionString) {
-            setMessages([{
-                id: 'welcome',
-                role: 'ai',
-                content: `👋 Hey there! I'm **Lumina**, your friendly database guide!\n\nI'm connected to your database and ready to help. Think of me as a super-smart friend who can look inside your data and explain everything in everyday language — no tech skills needed!\n\nYou can:\n• Type your question in the box below\n• 🎤 Tap the microphone and just speak to me\n• 🔊 Enable my voice so I can talk back to you\n\nIn short: I make databases easy and fun to understand! 🚀`,
-                query_result: null,
-            }]);
+            setMessages(prev => {
+                if (prev.length > 0) return prev;
+                return [{
+                    id: 'welcome',
+                    role: 'ai',
+                    content: `👋 Hey there! I'm **Lumina**, your friendly database guide!\n\nI'm connected to your database and ready to help. Think of me as a super-smart friend who can look inside your data and explain everything in everyday language — no tech skills needed!\n\nYou can:\n• Type your question in the box below\n• 🎤 Tap the microphone and just speak to me\n• 🔊 Enable my voice so I can talk back to you\n\nIn short: I make databases easy and fun to understand! 🚀`,
+                    query_result: null,
+                }];
+            });
         }
     }, [connectionString]);
 
@@ -520,7 +531,7 @@ export default function AskAIPage() {
     };
 
     const selectedLang = LANGUAGES.find(l => l.code === language) || LANGUAGES[0];
-    const clearChat = () => setMessages(connectionString ? [{ id: genId(), role: 'ai', content: '🧹 Chat cleared! What would you like to explore next?', query_result: null }] : []);
+    const clearChat = () => { sessionStorage.removeItem('ai_messages'); setMessages(connectionString ? [{ id: genId(), role: 'ai', content: '🧹 Chat cleared! What would you like to explore next?', query_result: null }] as any : []); };
 
     /* ─────────────────────────── RENDER ─────────────────────────────── */
     return (
