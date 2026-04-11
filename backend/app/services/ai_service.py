@@ -284,6 +284,50 @@ class AIService:
         result = await self._call_ai(messages, max_tokens=1000, temperature=0.1)
         return self._extract_sql_from_llm_response(result)
 
+    async def repair_postgresql_sql(self, sql_content: str, error: str) -> str:
+        """
+        Called when psycopg2 fails to execute a PostgreSQL SQL file.
+
+        Strategy:
+        1. Send the FULL SQL file + execution error to the LLM.
+        2. LLM returns the COMPLETE corrected SQL (not just the broken snippet).
+        3. The caller re-runs the full corrected SQL against the database.
+        """
+        system_prompt = (
+            "You are a PostgreSQL expert. Fix the SQL syntax/semantic error described below "
+            "and return the COMPLETE corrected SQL file. "
+            "OUTPUT ONLY VALID POSTGRESQL SQL — no markdown code fences, no explanations, no prose. "
+            "Every original statement must be preserved; only fix what is broken."
+        )
+        prompt = (
+            f"The following PostgreSQL SQL file failed to execute with this error:\n\n"
+            f"ERROR: {error}\n\n"
+            f"Return the COMPLETE corrected SQL file with the error fixed. "
+            f"Do not omit any statements.\n\n"
+            f"SQL FILE:\n{sql_content}"
+        )
+
+        print("\n" + "="*60)
+        print("POSTGRESQL EXECUTION REPAIR — ERROR")
+        print("="*60)
+        print(error)
+        print("="*60 + "\n")
+
+        messages = [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": prompt},
+        ]
+        result = await self._call_ai(messages, max_tokens=4000, temperature=0.1)
+        fixed_sql = self._extract_sql_from_llm_response(result)
+
+        print("="*60)
+        print("LLM-REPAIRED SQL (full file, sent back to PostgreSQL)")
+        print("="*60)
+        print(fixed_sql)
+        print("="*60 + "\n")
+
+        return fixed_sql
+
     async def repair_dialect_sql(self, original_sql: str, source_dialect: str, error: str) -> str:
         """
         Called when sqlglot fails to convert a SQL file from source_dialect to PostgreSQL.

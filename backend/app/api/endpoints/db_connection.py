@@ -92,8 +92,27 @@ async def upload_sql(
                                f"Conversion error: {str(conv_err)}. LLM error: {str(llm_err)}"
                     )
 
-        # Create dedicated isolated database
-        new_db_url = DBService.create_dedicated_db_from_sql(sql_content, project_name)
+        # Create dedicated isolated database; if execution fails, ask the LLM to
+        # repair the FULL SQL file and retry with the corrected version.
+        try:
+            new_db_url = DBService.create_dedicated_db_from_sql(sql_content, project_name)
+        except Exception as exec_err:
+            logger.warning(f"SQL execution failed: {exec_err}. Attempting LLM repair of full file...")
+            try:
+                ai_service = AIService()
+                sql_content = await ai_service.repair_postgresql_sql(sql_content, str(exec_err))
+                logger.info("LLM repair succeeded. Retrying execution with fully corrected SQL...")
+                new_db_url = DBService.create_dedicated_db_from_sql(sql_content, project_name)
+            except Exception as llm_err:
+                logger.error(f"LLM repair also failed: {llm_err}")
+                raise HTTPException(
+                    status_code=422,
+                    detail=(
+                        f"SQL execution failed and LLM repair was unable to fix it. "
+                        f"Execution error: {str(exec_err)}. "
+                        f"LLM error: {str(llm_err)}"
+                    )
+                )
 
         # Verify by getting table count from the new DB
         table_count = DBService.get_table_count(new_db_url)
@@ -282,8 +301,26 @@ async def import_from_github(request: GitHubImportRequest):
             f.write(sql_content)
         logger.info(f"Saved GitHub schema to: {file_path}")
 
-        # Create dedicated DB
-        new_db_url = DBService.create_dedicated_db_from_sql(sql_content, request.project_name)
+        # Create dedicated DB; retry with LLM repair if execution fails.
+        try:
+            new_db_url = DBService.create_dedicated_db_from_sql(sql_content, request.project_name)
+        except Exception as exec_err:
+            logger.warning(f"GitHub SQL execution failed: {exec_err}. Attempting LLM repair...")
+            try:
+                ai_service = AIService()
+                sql_content = await ai_service.repair_postgresql_sql(sql_content, str(exec_err))
+                logger.info("LLM repair succeeded. Retrying execution with fully corrected SQL...")
+                new_db_url = DBService.create_dedicated_db_from_sql(sql_content, request.project_name)
+            except Exception as llm_err:
+                logger.error(f"LLM repair also failed: {llm_err}")
+                raise HTTPException(
+                    status_code=422,
+                    detail=(
+                        f"SQL execution failed and LLM repair was unable to fix it. "
+                        f"Execution error: {str(exec_err)}. "
+                        f"LLM error: {str(llm_err)}"
+                    )
+                )
 
         table_count = DBService.get_table_count(new_db_url)
         project_id = str(uuid.uuid4())
