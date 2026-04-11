@@ -15,6 +15,8 @@ router = APIRouter()
 class VoiceQueryRequest(BaseModel):
     connection_string: str
     question: str
+    sql_override: Optional[str] = None   # pre-built SQL (e.g. from council mode) — skips AI generation
+
 
 
 KEYWORD_PATTERNS = [
@@ -211,28 +213,33 @@ async def voice_query(req: VoiceQueryRequest):
     explanation = None
     used_fallback = False
 
-    # Try AI first (Ollama)
-    try:
-        from app.services.ai_service import AIService
-        ai = AIService()
-        result = await ai.generate_and_heal_sql(
-            question=req.question,
-            schema_context=schema_context,
-            connection_string=req.connection_string,
-            conversation_history=[],
-        )
-        if result.get('error') is None and result.get('sql'):
-            return result  # AI worked fully — return directly
-        sql = result.get('sql')
-        explanation = result.get('explanation')
-    except Exception as e:
-        logger.warning(f'AI engine offline: {e}')
+    # ── Fast path: caller supplied the SQL directly (e.g. council mode) ──────
+    if req.sql_override and req.sql_override.strip():
+        sql = req.sql_override.strip()
+        explanation = f'SQL provided by AI Council for: "{req.question}"'
+    else:
+        # Try AI first (Ollama)
+        try:
+            from app.services.ai_service import AIService
+            ai = AIService()
+            result = await ai.generate_and_heal_sql(
+                question=req.question,
+                schema_context=schema_context,
+                connection_string=req.connection_string,
+                conversation_history=[],
+            )
+            if result.get('error') is None and result.get('sql'):
+                return result  # AI worked fully — return directly
+            sql = result.get('sql')
+            explanation = result.get('explanation')
+        except Exception as e:
+            logger.warning(f'AI engine offline: {e}')
 
-    # If AI failed or Ollama is offline → keyword fallback
-    if not sql:
-        sql = build_keyword_sql(req.question, schema_context)
-        used_fallback = True
-        explanation = f'AI is offline — executed keyword-based query for: "{req.question}"'
+        # If AI failed or Ollama is offline → keyword fallback
+        if not sql:
+            sql = build_keyword_sql(req.question, schema_context)
+            used_fallback = True
+            explanation = f'AI is offline — executed keyword-based query for: "{req.question}"'
 
     # Execute the SQL directly
     try:
@@ -257,3 +264,4 @@ async def voice_query(req: VoiceQueryRequest):
         }
     except Exception as db_err:
         raise HTTPException(status_code=500, detail=str(db_err))
+

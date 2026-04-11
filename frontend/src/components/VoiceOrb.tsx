@@ -62,6 +62,8 @@ function Waveform({ listening, volume }: { listening: boolean; volume: number })
   );
 }
 
+const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:8000/api';
+
 export default function VoiceOrb() {
   const { user } = useAuth();
   const [open, setOpen] = useState(false);
@@ -76,51 +78,50 @@ export default function VoiceOrb() {
   const [inlineConn, setInlineConn] = useState('');
   const [showConnInput, setShowConnInput] = useState(false);
   const [councilMode, setCouncilMode] = useState(false);
+  const councilModeRef = useRef(councilMode);       // ← fixes stale closure
   const recognitionRef = useRef<any>(null);
   const audioCtxRef = useRef<AudioContext | null>(null);
   const animFrameRef = useRef<number>(0);
   const streamRef = useRef<MediaStream | null>(null);
 
+  // Keep ref in sync so handleQuery always reads the latest value
+  useEffect(() => { councilModeRef.current = councilMode; }, [councilMode]);
+
   // Jarvis Voice Engine
   const speak = useCallback((text: string) => {
     if (!window.speechSynthesis) return;
-    window.speechSynthesis.cancel(); // Stop current speech
+    window.speechSynthesis.cancel();
     const utterance = new SpeechSynthesisUtterance(text);
-    
-    // Pick the best voice (prefer "Google UK English Male" or "Microsoft David" or "Arthur")
     const voices = window.speechSynthesis.getVoices();
-    const jarvisVoice = voices.find(v => 
+    const jarvisVoice = voices.find(v =>
       v.name.includes('UK') || v.name.includes('David') || v.name.includes('Arthur') || v.name.includes('Google UK English Male')
     );
     if (jarvisVoice) utterance.voice = jarvisVoice;
-    
-    utterance.rate = 1.05; // Slightly faster
-    utterance.pitch = 0.85; // Lower, more sophisticated pitch
+    utterance.rate = 1.05;
+    utterance.pitch = 0.85;
     window.speechSynthesis.speak(utterance);
   }, []);
 
   // Audio Effects
   const playSound = useCallback((type: 'start' | 'stop') => {
-    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    
-    if (type === 'start') {
-      osc.frequency.setValueAtTime(440, ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.1);
+    try {
+      const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      if (type === 'start') {
+        osc.frequency.setValueAtTime(440, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(880, ctx.currentTime + 0.1);
+      } else {
+        osc.frequency.setValueAtTime(880, ctx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + 0.1);
+      }
       gain.gain.setValueAtTime(0.1, ctx.currentTime);
       gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
-    } else {
-      osc.frequency.setValueAtTime(880, ctx.currentTime);
-      osc.frequency.exponentialRampToValueAtTime(440, ctx.currentTime + 0.1);
-      gain.gain.setValueAtTime(0.1, ctx.currentTime);
-      gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
-    }
-    
-    osc.start();
-    osc.stop(ctx.currentTime + 0.1);
+      osc.start();
+      osc.stop(ctx.currentTime + 0.1);
+    } catch { /* audio context errors are non-critical */ }
   }, []);
 
   /* ── Drag-to-reposition ─────────────────────────────────────────── */
@@ -175,9 +176,13 @@ export default function VoiceOrb() {
     if (dragRef.current.moved) { savePos(posRef.current); e.stopPropagation(); }
   };
 
+  // ── Read the active connection from localStorage and listen for changes ──
   useEffect(() => {
-    const cs = localStorage.getItem('db_connection_string');
-    if (cs) setConnectionString(cs);
+    const readConn = () => {
+      const cs = localStorage.getItem('db_connection_string');
+      setConnectionString(cs || null);
+    };
+    readConn();
 
     // Ensure voices are loaded
     if (window.speechSynthesis) {
@@ -196,15 +201,19 @@ export default function VoiceOrb() {
     };
     window.addEventListener('keydown', handleKeyDown);
 
-    const handler = () => {
-      const cs2 = localStorage.getItem('db_connection_string');
-      if (cs2) setConnectionString(cs2);
-    };
-    window.addEventListener('project-changed', handler);
-    
+    // FIX: listen for BOTH event names the sidebar can dispatch
+    // sidebar-component.tsx dispatches 'projects-updated' AND 'project-changed'
+    window.addEventListener('project-changed',  readConn);
+    window.addEventListener('projects-updated', readConn);
+
+    // Also poll every 2 s as a final safety net (catches programmatic localStorage writes)
+    const poll = setInterval(readConn, 2000);
+
     return () => {
-      window.removeEventListener('project-changed', handler);
+      window.removeEventListener('project-changed',  readConn);
+      window.removeEventListener('projects-updated', readConn);
       window.removeEventListener('keydown', handleKeyDown);
+      clearInterval(poll);
     };
   }, []);
 
@@ -244,69 +253,107 @@ export default function VoiceOrb() {
         animFrameRef.current = requestAnimationFrame(tick);
       };
       tick();
-    } catch {}
+    } catch { /* microphone permission denied — silently ignore */ }
   }, []);
 
-  const handleQuery = useCallback(async (text: string) => {
-    if (!text.trim() || !activeConn) return;
+  // ── Core query handler ───────────────────────────────────────────────────
+  const handleQuery = useCallback(async (text: string, connOverride?: string) => {
+    const conn = connOverride ?? activeConn;
+    if (!text.trim() || !conn) return;
+
+    const isCouncil = councilModeRef.current;   // read from ref — never stale
+
     setLoading(true);
     setResult(null);
-    
-    // Voice cue: Thinking
-    speak(councilMode ? "Convening the AI council, please wait." : "Analyzing data, please stand by.");
+    speak(isCouncil ? 'Convening the AI council, please wait.' : 'Analyzing data, please stand by.');
 
     try {
-      const endpoint = councilMode ? '/council/deliberate' : '/voice/query';
-      const payload = councilMode 
-        ? { connection_string: activeConn, request: text }
-        : { connection_string: activeConn, question: text };
+      if (isCouncil) {
+        // ── Council mode: deliberate → then execute the final SQL ────────
+        const councilRes = await fetch(`${API_BASE}/council/deliberate`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ connection_string: conn, request: text }),
+        });
+        const councilData = await councilRes.json();
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}${endpoint}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-      const data = await res.json();
-      
-      if (!res.ok) {
-        setResult({ sql: '', rows: [], columns: [], error: data.detail || `Error ${res.status}`, chart_type: null, explanation: null });
-        speak("I encountered an error accessing the database core.");
-        return;
-      }
+        if (!councilRes.ok) {
+          setResult({ sql: '', rows: [], columns: [], error: councilData.detail || `Error ${councilRes.status}`, chart_type: null, explanation: null });
+          speak('The Council encountered an error.');
+          return;
+        }
 
-      setResult({
-        sql: data.sql || data.final_sql || '',
-        rows: data.rows || [],
-        columns: data.columns || [],
-        error: data.error || null,
-        chart_type: data.chart_type || null,
-        explanation: data.explanation || null,
-        council_transcript: data.transcript || null,
-      });
+        const finalSql: string = councilData.final_sql || '';
+        const transcript: { agent: string; message: string }[] = councilData.transcript || [];
 
-      // Jarvis Voice Feedback
-      if (councilMode) {
-        speak("The Council has reached a consensus on your request.");
-      } else if (data.explanation) {
-        speak(data.explanation);
-      } else if (data.rows && data.rows.length > 0) {
-        speak(`Query complete. I've retrieved ${data.rows.length} relevant entries.`);
+        // Now execute the final SQL the council agreed on
+        let rows: any[][] = [];
+        let columns: string[] = [];
+        let execError: string | null = null;
+
+        if (finalSql.trim()) {
+          try {
+            const execRes = await fetch(`${API_BASE}/voice/query`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ connection_string: conn, question: text, sql_override: finalSql }),
+            });
+            const execData = await execRes.json();
+            rows    = execData.rows    ?? [];
+            columns = execData.columns ?? [];
+            execError = execData.error ?? null;
+          } catch (e: any) {
+            execError = `SQL execution failed: ${e?.message}`;
+          }
+        }
+
+        setResult({ sql: finalSql, rows, columns, error: execError, chart_type: columns.length === 2 && rows.length <= 20 ? 'bar' : null, explanation: null, council_transcript: transcript });
+        speak('The Council has reached a consensus on your request.');
       } else {
-        speak("The query returned no results.");
+        // ── Standard voice query ─────────────────────────────────────────
+        const res = await fetch(`${API_BASE}/voice/query`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ connection_string: conn, question: text }),
+        });
+        const data = await res.json();
+
+        if (!res.ok) {
+          setResult({ sql: '', rows: [], columns: [], error: data.detail || `Error ${res.status}`, chart_type: null, explanation: null });
+          speak('I encountered an error accessing the database core.');
+          return;
+        }
+
+        setResult({
+          sql: data.sql || '',
+          rows: data.rows || [],
+          columns: data.columns || [],
+          error: data.error || null,
+          chart_type: data.chart_type || null,
+          explanation: data.explanation || null,
+        });
+
+        if (data.explanation) {
+          speak(data.explanation);
+        } else if (data.rows && data.rows.length > 0) {
+          speak(`Query complete. I've retrieved ${data.rows.length} relevant entries.`);
+        } else {
+          speak('The query returned no results.');
+        }
       }
     } catch {
-      setResult({ sql: '', rows: [], columns: [], error: 'Could not reach Jarvis backend.', chart_type: null, explanation: null });
-      speak("Backend systems are unresponsive, Sir.");
+      setResult({ sql: '', rows: [], columns: [], error: 'Could not reach Jarvis backend. Is the server running?', chart_type: null, explanation: null });
+      speak('Backend systems are unresponsive, Sir.');
     } finally {
       setLoading(false);
     }
-  }, [activeConn, speak]);
+  }, [activeConn, speak]);   // councilMode intentionally excluded — read via ref
 
   const startListening = useCallback(() => {
     const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SR) { alert('Web Speech API not supported in this browser. Try Chrome.'); return; }
     const r = new SR();
-    r.continuous = true;       // Keep recording until user clicks Stop
+    r.continuous = true;
     r.interimResults = true;
     r.lang = 'en-US';
     recognitionRef.current = r;
@@ -316,7 +363,6 @@ export default function VoiceOrb() {
       setTranscript(t);
     };
 
-    // Auto-restart if browser cuts it off due to silence (only if still listening)
     r.onend = () => {
       if (recognitionRef.current?._shouldRestart) {
         try { r.start(); } catch {}
@@ -328,7 +374,6 @@ export default function VoiceOrb() {
 
     r.onerror = (e: any) => {
       if (e.error === 'no-speech') {
-        // Browser stopped for silence — restart silently
         try { r.start(); } catch {}
         return;
       }
@@ -344,22 +389,22 @@ export default function VoiceOrb() {
     setResult(null);
     setManualInput('');
     startVolumeMonitor();
-  }, [stopMic, startVolumeMonitor, handleQuery]);
+  }, [stopMic, startVolumeMonitor, playSound]);
 
-  const stopListening = useCallback(() => {
+  const stopListening = useCallback((shouldSubmit: boolean = true) => {
     if (recognitionRef.current) {
-      recognitionRef.current._shouldRestart = false; // prevent auto-restart
+      recognitionRef.current._shouldRestart = false;
       recognitionRef.current.stop();
     }
     setListening(false);
     playSound('stop');
     stopMic();
-    // Auto-submit whatever was captured
     setTranscript(prev => {
-      if (prev.trim()) setTimeout(() => handleQuery(prev), 100);
-      return prev;
+      // Don't auto-submit if user is just cancelling/closing the orb
+      if (shouldSubmit && prev.trim()) setTimeout(() => handleQuery(prev), 100);
+      return shouldSubmit ? prev : '';
     });
-  }, [stopMic, handleQuery]);
+  }, [stopMic, handleQuery, playSound]);
 
   const handleManualSubmit = () => {
     if (!manualInput.trim()) return;
@@ -373,7 +418,13 @@ export default function VoiceOrb() {
     localStorage.setItem('db_connection_string', inlineConn);
     setConnectionString(inlineConn);
     setShowConnInput(false);
+    window.dispatchEvent(new CustomEvent('project-changed'));
   };
+
+  // ── Status label shown inside the orb panel ─────────────────────────────
+  const connLabel = activeConn
+    ? (activeConn.includes('@') ? activeConn.split('@')[1] : activeConn.slice(0, 28) + '…')
+    : null;
 
   return (
     <>
@@ -392,9 +443,8 @@ export default function VoiceOrb() {
       {/* ── Slide-up panel — positioned relative to orb ── */}
       {open && pos.x > -100 && (() => {
         const PANEL_W = 440;
-        const PANEL_H = 500; // approx max height
+        const PANEL_H = 500;
         const GAP = 12;
-        // Decide which side to open: prefer above, fallback below
         const openAbove = pos.y > PANEL_H + GAP;
         const panelLeft = Math.min(Math.max(8, pos.x + ORB_SIZE / 2 - PANEL_W / 2), window.innerWidth - PANEL_W - 8);
         const panelTop  = openAbove ? pos.y - PANEL_H - GAP : pos.y + ORB_SIZE + GAP;
@@ -403,9 +453,9 @@ export default function VoiceOrb() {
             className="fixed z-[9999] w-[440px] max-w-[calc(100vw-2.5rem)] rounded-3xl shadow-2xl overflow-hidden flex flex-col"
             style={{
               left: panelLeft, top: panelTop,
-              background: 'rgba(8,8,18,0.98)', 
-              border: '1px solid rgba(139,92,246,0.3)', 
-              backdropFilter: 'blur(30px)', 
+              background: 'rgba(8,8,18,0.98)',
+              border: '1px solid rgba(139,92,246,0.3)',
+              backdropFilter: 'blur(30px)',
               maxHeight: '82vh',
               boxShadow: '0 20px 50px rgba(0,0,0,0.5), 0 0 20px rgba(139,92,246,0.1)'
             }}
@@ -419,21 +469,32 @@ export default function VoiceOrb() {
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setShowConnInput(s => !s)}
-                  title="Set database connection"
+                  title={activeConn ? `Connected: ${connLabel}` : 'No database connected — click to set connection'}
                   className={`p-1 rounded-md transition-colors ${activeConn ? 'text-emerald-400 hover:text-emerald-300' : 'text-amber-400 hover:text-amber-300 animate-pulse'}`}
                 >
                   <Database size={13} />
                 </button>
-                <button onClick={() => { setOpen(false); stopListening(); }} className="text-slate-600 hover:text-slate-300 transition-colors">
+                <button onClick={() => { setOpen(false); stopListening(false); }} className="text-slate-600 hover:text-slate-300 transition-colors">
                   <X size={15} />
                 </button>
               </div>
             </div>
 
+            {/* Active connection badge */}
+            {activeConn && !showConnInput && (
+              <div className="px-5 py-1.5 border-b border-white/[0.04] bg-emerald-500/5 flex items-center gap-2 shrink-0">
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                <span className="text-[10px] font-mono text-emerald-400 truncate">{connLabel}</span>
+              </div>
+            )}
+
             {/* Inline connection input */}
             {showConnInput && (
               <div className="px-4 py-3 border-b border-white/[0.06] bg-white/[0.02] shrink-0">
-                <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-2">PostgreSQL Connection String</p>
+                <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1">
+                  Connection String&nbsp;
+                  <span className="normal-case text-slate-600">(or select a project in the sidebar)</span>
+                </p>
                 <div className="flex gap-2">
                   <input
                     value={inlineConn}
@@ -447,7 +508,7 @@ export default function VoiceOrb() {
                   </button>
                 </div>
                 {connectionString && (
-                  <p className="text-[10px] text-emerald-500 mt-1.5 font-bold">✓ Connected: {connectionString.split('@')[1] || 'active'}</p>
+                  <p className="text-[10px] text-emerald-500 mt-1.5 font-bold">✓ Connected: {connLabel}</p>
                 )}
               </div>
             )}
@@ -459,7 +520,7 @@ export default function VoiceOrb() {
                 {!activeConn ? (
                   <div className="flex flex-col gap-2">
                     <p className="text-amber-400 text-[12px] font-bold">⚠️ No database connected.</p>
-                    <button onClick={() => setShowConnInput(true)} className="text-[10px] font-black uppercase tracking-widest text-violet-400 hover:text-violet-200 transition-colors text-left">+ Enter connection string →</button>
+                    <p className="text-slate-500 text-[11px]">Click a project in the sidebar, or tap the <span className="text-amber-400">⬛</span> database icon above to enter a connection string.</p>
                   </div>
                 ) : listening ? (
                   <p className="text-white text-[14px] font-medium leading-relaxed animate-pulse min-h-[20px]">{transcript || 'Listening… speak now'}</p>
@@ -537,11 +598,18 @@ export default function VoiceOrb() {
                 <button onClick={() => setCouncilMode(!councilMode)} className={`text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-md transition-colors flex items-center gap-1.5 ${councilMode ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' : 'text-slate-500 hover:text-slate-300'}`}><Sparkles size={10} /> {councilMode ? 'Council Active' : 'Enable Council'}</button>
               </div>
               <div className="flex gap-2">
-                <input value={manualInput} onChange={e => setManualInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleManualSubmit()} placeholder={activeConn ? 'Type a question...' : 'Connect DB first'} disabled={!activeConn || loading} className="flex-1 bg-slate-900/80 border border-slate-800 text-slate-200 text-[12px] rounded-xl px-3 py-2 outline-none focus:border-violet-500 placeholder-slate-700 disabled:opacity-40" />
+                <input
+                  value={manualInput}
+                  onChange={e => setManualInput(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && handleManualSubmit()}
+                  placeholder={activeConn ? 'Type a question about your database…' : 'Connect a DB first (see sidebar or DB icon above)'}
+                  disabled={!activeConn || loading}
+                  className="flex-1 bg-slate-900/80 border border-slate-800 text-slate-200 text-[12px] rounded-xl px-3 py-2 outline-none focus:border-violet-500 placeholder-slate-700 disabled:opacity-40"
+                />
                 <button onClick={handleManualSubmit} disabled={!manualInput.trim() || !activeConn || loading} className="w-9 h-9 rounded-xl bg-violet-600 hover:bg-violet-500 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center transition-colors"><Send size={14} className="text-white" /></button>
               </div>
               <div className="flex items-center justify-between">
-                <button onClick={listening ? stopListening : startListening} disabled={!activeConn || loading} className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-violet-400 hover:text-violet-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"><Mic size={11} /> {listening ? 'Stop' : 'Speak'}</button>
+                <button onClick={listening ? () => stopListening(true) : startListening} disabled={!activeConn || loading} className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-violet-400 hover:text-violet-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"><Mic size={11} /> {listening ? 'Stop' : 'Speak'}</button>
                 {(transcript || result) && !listening && <button onClick={() => { setTranscript(''); setResult(null); setManualInput(''); }} className="text-[10px] font-black text-slate-700 hover:text-rose-400 uppercase tracking-widest transition-colors">Clear</button>}
               </div>
             </div>
@@ -552,7 +620,7 @@ export default function VoiceOrb() {
       {/* ── Floating Orb — draggable ── */}
       {pos.x > -100 && (
         <div
-          className="fixed z-[9999] touch-none"
+          className="fixed z-[9999] touch-none group"
           style={{ left: pos.x, top: pos.y, width: ORB_SIZE, height: ORB_SIZE }}
           onPointerDown={onPointerDown}
           onPointerMove={onPointerMove}
@@ -560,9 +628,14 @@ export default function VoiceOrb() {
         >
           {/* Label tooltip */}
           {!open && (
-            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 pointer-events-none">
-              <div className="px-2.5 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest text-white whitespace-nowrap" style={{ background: 'rgba(8,8,18,0.9)', border: '1px solid rgba(139,92,246,0.3)' }}>
-                Ask your database anything
+            <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+              <div className="px-3 py-2 rounded-xl flex flex-col items-center gap-1 shadow-xl" style={{ background: 'rgba(8,8,18,0.95)', border: '1px solid rgba(139,92,246,0.4)', backdropFilter: 'blur(10px)' }}>
+                <span className="text-[10px] font-black uppercase tracking-widest text-white whitespace-nowrap">
+                  {activeConn ? 'Ask your database anything' : 'Connect a database first'}
+                </span>
+                <span className="text-[9px] font-bold text-violet-400 whitespace-nowrap uppercase tracking-wider">
+                  Press Ctrl + J to open
+                </span>
               </div>
             </div>
           )}
@@ -571,7 +644,7 @@ export default function VoiceOrb() {
             className={`relative w-14 h-14 ${!listening && !dragRef.current.moved ? 'orb-float' : ''}`}
             style={{ cursor: dragRef.current.dragging ? 'grabbing' : 'grab' }}
             onClick={() => {
-              if (dragRef.current.moved) return; // skip click if it was a drag
+              if (dragRef.current.moved) return;
               if (!open) setOpen(true);
               else if (listening) stopListening();
               else startListening();
@@ -584,11 +657,13 @@ export default function VoiceOrb() {
                 <Mic size={18} className="text-white/90 drop-shadow-lg" />
               </div>
             )}
+            {/* Red dot when no connection */}
+            {!activeConn && (
+              <div className="absolute top-0.5 right-0.5 w-2 h-2 rounded-full bg-amber-400 border border-slate-900" />
+            )}
           </div>
         </div>
       )}
     </>
   );
 }
-
-
