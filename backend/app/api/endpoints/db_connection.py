@@ -79,40 +79,21 @@ async def upload_sql(
                 sql_content = DialectConverter.convert(sql_content, dialect)
                 logger.info("Dialect conversion successful.")
             except Exception as conv_err:
-                logger.warning(f"Dialect conversion failed: {conv_err}. Attempting LLM-assisted repair...")
-                try:
-                    ai_service = AIService()
-                    sql_content = await ai_service.repair_dialect_sql(sql_content, dialect, str(conv_err))
-                    logger.info("LLM-assisted dialect repair succeeded.")
-                except Exception as llm_err:
-                    logger.error(f"LLM repair also failed: {llm_err}")
-                    raise HTTPException(
-                        status_code=422,
-                        detail=f"Dialect conversion failed and LLM repair was unable to fix it. "
-                               f"Conversion error: {str(conv_err)}. LLM error: {str(llm_err)}"
-                    )
+                logger.error(f"Dialect conversion failed: {conv_err}")
+                raise HTTPException(
+                    status_code=422,
+                    detail=f"Dialect conversion failed: {str(conv_err)}"
+                )
 
-        # Create dedicated isolated database; if execution fails, ask the LLM to
-        # repair the FULL SQL file and retry with the corrected version.
+        # Create dedicated isolated database
         try:
             new_db_url = DBService.create_dedicated_db_from_sql(sql_content, project_name)
         except Exception as exec_err:
-            logger.warning(f"SQL execution failed: {exec_err}. Attempting LLM repair of full file...")
-            try:
-                ai_service = AIService()
-                sql_content = await ai_service.repair_postgresql_sql(sql_content, str(exec_err))
-                logger.info("LLM repair succeeded. Retrying execution with fully corrected SQL...")
-                new_db_url = DBService.create_dedicated_db_from_sql(sql_content, project_name)
-            except Exception as llm_err:
-                logger.error(f"LLM repair also failed: {llm_err}")
-                raise HTTPException(
-                    status_code=422,
-                    detail=(
-                        f"SQL execution failed and LLM repair was unable to fix it. "
-                        f"Execution error: {str(exec_err)}. "
-                        f"LLM error: {str(llm_err)}"
-                    )
-                )
+            logger.error(f"SQL execution failed: {exec_err}")
+            raise HTTPException(
+                status_code=422,
+                detail=f"SQL execution failed: {str(exec_err)}"
+            )
 
         # Verify by getting table count from the new DB
         table_count = DBService.get_table_count(new_db_url)
@@ -301,26 +282,15 @@ async def import_from_github(request: GitHubImportRequest):
             f.write(sql_content)
         logger.info(f"Saved GitHub schema to: {file_path}")
 
-        # Create dedicated DB; retry with LLM repair if execution fails.
+        # Create dedicated DB
         try:
             new_db_url = DBService.create_dedicated_db_from_sql(sql_content, request.project_name)
         except Exception as exec_err:
-            logger.warning(f"GitHub SQL execution failed: {exec_err}. Attempting LLM repair...")
-            try:
-                ai_service = AIService()
-                sql_content = await ai_service.repair_postgresql_sql(sql_content, str(exec_err))
-                logger.info("LLM repair succeeded. Retrying execution with fully corrected SQL...")
-                new_db_url = DBService.create_dedicated_db_from_sql(sql_content, request.project_name)
-            except Exception as llm_err:
-                logger.error(f"LLM repair also failed: {llm_err}")
-                raise HTTPException(
-                    status_code=422,
-                    detail=(
-                        f"SQL execution failed and LLM repair was unable to fix it. "
-                        f"Execution error: {str(exec_err)}. "
-                        f"LLM error: {str(llm_err)}"
-                    )
-                )
+            logger.error(f"GitHub SQL execution failed: {exec_err}")
+            raise HTTPException(
+                status_code=422,
+                detail=f"SQL execution failed: {str(exec_err)}"
+            )
 
         table_count = DBService.get_table_count(new_db_url)
         project_id = str(uuid.uuid4())
