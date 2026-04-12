@@ -87,7 +87,49 @@ async def upload_sql(
 
         # Create dedicated isolated database
         try:
-            new_db_url = DBService.create_dedicated_db_from_sql(sql_content, project_name)
+            ai_service = AIService()
+            result_dict = await DBService.create_dedicated_db_from_sql(
+                sql_content=sql_content,
+                project_name=project_name,
+                llm_healer=ai_service.heal_oracle_statement
+            )
+            new_db_url = result_dict["connection_string"]
+            
+            if result_dict["healed_count"] > 0:
+                logger.info(f"Auto-healed {result_dict['healed_count']} statements during execution.")
+                
+                # Write the healed file back to disk so the user can see edits in their .sql file
+                # Write the healed file back to disk so the user can see edits in their .sql file
+                import os
+                import pathlib
+                
+                # Resolving base directory. E.g. if we are in backend/, go to parent.
+                base_dir = pathlib.Path(os.getcwd()).resolve()
+                if base_dir.name == "backend":
+                    base_dir = base_dir.parent
+                    
+                # Search for the exact filename within the overarching project directory
+                matches = list(base_dir.rglob(file.filename))
+                
+                if matches:
+                    # Write to the first matched file found
+                    for match in matches:
+                        try:
+                            with open(match, "w", encoding="utf-8") as fw:
+                                fw.write(result_dict["patched_sql"])
+                            logger.info(f"Successfully wrote patched SQL back to {match}")
+                        except Exception as write_err:
+                            logger.warning(f"Failed to write to {match}: {write_err}")
+                else:
+                    # Fallback if no exact file found by filename via glob
+                    project_root_file = os.path.join(base_dir, file.filename)
+                    try:
+                        with open(project_root_file, "w", encoding="utf-8") as fw:
+                            fw.write(result_dict["patched_sql"])
+                        logger.info(f"Successfully wrote patched SQL back to fallback {project_root_file}")
+                    except Exception as write_err:
+                        logger.warning(f"Failed to write patched SQL back to fallback disk: {write_err}")
+                
         except Exception as exec_err:
             logger.error(f"SQL execution failed: {exec_err}")
             raise HTTPException(

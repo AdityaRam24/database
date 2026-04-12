@@ -612,3 +612,54 @@ User Question: {question}"""
             logger.warning(f"AI error: {e}. Using offline fallback.")
             return f"The AI system ({self.ai_mode}) is having trouble responding: {str(e)[:100]}. Please check your model or connection."
 
+    async def heal_oracle_statement(self, oracle_sql: str, error_message: str, line_number: int) -> str:
+        """
+        Takes a failing SQL snippet (typically Oracle dialect that wasn't fully converted),
+        the exact database error, and its line number, and asks the LLM to fix it for PostgreSQL.
+        Logs the prompt and the raw LLM response as requested by the user.
+        """
+        try:
+            prompt = f"""You are a PostgreSQL expert debugging an SQL script. 
+The script failed on PostgreSQL. You are being provided with a context window of the file (10 lines above and 40 lines below the exact error line).
+It may contain Oracle-specific syntax inside PL/SQL procedures, or formatting errors.
+
+Error Message:
+{error_message}
+
+Failing Context Window (around line {line_number}):
+{oracle_sql}
+
+Rules:
+1. You must return the ENTIRE context window provided above, but with the specific lines causing the error FIXED so they will compile in PostgreSQL.
+2. DO NOT cut or truncate the surrounding code. Return the full chunk, because your output will directly drop-in replace this exact window in the original file.
+3. NO markdown formatting, NO code blocks (do NOT wrap it in ```sql ... ```).
+4. NO explanations whatsoever.
+"""
+            
+            print("========== LLM HEAL PROMPT ==========")
+            print(prompt)
+            print("=====================================")
+
+            messages = [
+                {"role": "system", "content": "You are a database transpilation expert. Output ONLY valid PostgreSQL SQL."},
+                {"role": "user", "content": prompt}
+            ]
+            
+            response_content = await self._call_ai(messages, max_tokens=1000, temperature=0.1)
+
+            print("========= LLM HEAL RESPONSE =========")
+            print(response_content)
+            print("=====================================")
+
+            # Clean output just in case
+            for tag in ["```sql", "```"]:
+                if response_content.startswith(tag): 
+                    response_content = response_content[len(tag):]
+            if response_content.endswith("```"): 
+                response_content = response_content[:-3]
+                
+            return response_content.strip()
+
+        except Exception as e:
+            logger.error(f"Failed to heal oracle statement: {e}")
+            raise e
