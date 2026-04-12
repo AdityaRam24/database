@@ -927,9 +927,49 @@
         "total_seq_scans": 206,
         "xact_rollback": 373
       }
+    },
+    {
+      "timestamp": "2026-04-12T18:42:12.739984",
+      "metrics": {
+        "queries": [],
+        "query_stats": {
+          "total_calls": 0,
+          "avg_mean_time": 0.0,
+          "max_mean_time": 0.0
+        },
+        "table_sizes": {
+          "artist": 57344,
+          "album": 81920,
+          "employee": 40960,
+          "customer": 73728,
+          "invoice": 122880,
+          "invoiceline": 344064,
+          "track": 663552,
+          "playlist": 24576,
+          "playlisttrack": 876544,
+          "genre": 24576,
+          "mediatype": 24576
+        },
+        "connection_count": 2,
+        "table_seq_scans": {
+          "customer": 77,
+          "employee": 77,
+          "invoice": 44,
+          "track": 22,
+          "genre": 11,
+          "playlist": 11,
+          "artist": 11,
+          "album": 11,
+          "mediatype": 11,
+          "invoiceline": 0,
+          "playlisttrack": 0
+        },
+        "total_seq_scans": 275,
+        "xact_rollback": 312
+      }
     }
   ],
-  "last_updated": "2026-04-12T18:23:37.818907",
+  "last_updated": "2026-04-12T18:42:12.739984",
   "incident_history": [
     {
       "id": "INC-1775479611-3409",
