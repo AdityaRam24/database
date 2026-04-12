@@ -277,16 +277,7 @@ Rules:
         except Exception as e:
             return f"Could not generate explanation: {e}"
 
-    async def generate_and_heal_sql(
-        self,
-        question: str,
-        schema_context: str,
-        connection_string: str,
-        conversation_history: list = None,
-        language: str = "english",
-        business_rules: str = "",
-        max_retries: int = 3
-    ) -> dict:
+    async def generate_and_heal_sql(self, question: str, schema_context: str, connection_string: str, conversation_history: list = None, language: str = "english", business_rules: str = "", max_retries: int = 3, initial_sql: str = None) -> dict:
         # Prompt firewall check
         from app.services.prompt_firewall import scan_prompt
         firewall_result = scan_prompt(question)
@@ -334,21 +325,22 @@ User's request: {question}
 Generate ONLY the PostgreSQL SELECT query (no markdown, no explanations):"""
         msgs.append({"role": "user", "content": sql_prompt})
 
-        sql = None
+        sql = initial_sql
         last_error = None
         attempts = 0
 
         for attempt in range(max_retries):
             attempts = attempt + 1
             try:
-                response = await self._call_ai(msgs, max_tokens=500, temperature=0.1)
-                
-                # Extract SQL from response
-                sql_match = re.search(r'(?:```sql\s*)?(SELECT\b.+?)(?:```|$)', response, re.IGNORECASE | re.DOTALL)
-                if sql_match:
-                    sql = sql_match.group(1).strip().rstrip(';') + ';'
-                else:
-                    sql = response.strip().rstrip(';') + ';'
+                if attempt > 0 or not sql:
+                    response = await self._call_ai(msgs, max_tokens=500, temperature=0.1)
+                    
+                    # Extract SQL from response
+                    sql_match = re.search(r'(?:```sql\s*)?(SELECT\b.+?)(?:```|$)', response, re.IGNORECASE | re.DOTALL)
+                    if sql_match:
+                        sql = sql_match.group(1).strip().rstrip(';') + ';'
+                    else:
+                        sql = response.strip().rstrip(';') + ';'
 
                 # Security guardrail
                 guard = safe_sql_check(sql)
@@ -563,9 +555,11 @@ Rules:
         try:
             system_msg = f"""You are a helpful PostgreSQL database assistant called Lumina.
 Always respond clearly and concisely. Always respond in English.
-{f"Business Rules defined by user: {business_rules}" if business_rules else ""}
+
+{business_rules if business_rules else ""}
 
 DATABASE SCHEMA PROVIDED BELOW — use it to write correct SQL.
+CRITICAL INSTRUCTION: If the user mentions a concept from the CRITICAL DOMAIN KNOWLEDGE, you MUST map their definition to the closest matching columns in the schema. DO NOT claim the term isn't explicitly defined in the schema. Do your best to interpret the definition using available columns.
 
 ## RULE 1 — DATA READS (SELECT queries)
 When the user asks to view, fetch, list, show, or analyze data:

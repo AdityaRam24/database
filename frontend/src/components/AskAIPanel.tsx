@@ -138,6 +138,37 @@ const AskAIPanel: React.FC<AskAIPanelProps> = ({ connectionString, businessRules
         bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages]);
 
+    const [semanticRules, setSemanticRules] = useState('');
+
+    useEffect(() => {
+        const fetchRules = async () => {
+            let localRules: any[] = [];
+            try {
+                const stored = localStorage.getItem('business_rules');
+                if (stored) localRules = JSON.parse(stored);
+            } catch (e) {}
+
+            try {
+                const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/semantic/rules`);
+                const data = await res.json();
+                const combined = [...localRules, ...(data.rules || [])];
+                
+                const uniqueRules = Array.from(new Map(combined.map(r => [r.name, r])).values());
+                
+                if (uniqueRules.length > 0) {
+                    const rulesStr = uniqueRules.map((r: any) => `TERM: "${r.name}" -> DEFINITION: ${r.definition}`).join('\n');
+                    setSemanticRules(`\n\nCRITICAL DOMAIN KNOWLEDGE (USE THESE DEFINITIONS):\n${rulesStr}`);
+                }
+            } catch (e) {
+                if (localRules.length > 0) {
+                    const rulesStr = localRules.map((r: any) => `TERM: "${r.name}" -> DEFINITION: ${r.definition}`).join('\n');
+                    setSemanticRules(`\n\nCRITICAL DOMAIN KNOWLEDGE (USE THESE DEFINITIONS):\n${rulesStr}`);
+                }
+            }
+        };
+        fetchRules();
+    }, []);
+
     const getConversationHistory = () => {
         return messages.map(m => ({
             role: m.role === 'ai' ? 'assistant' : 'user',
@@ -170,7 +201,7 @@ const AskAIPanel: React.FC<AskAIPanelProps> = ({ connectionString, businessRules
                     question,
                     language,
                     conversation_history: getConversationHistory(),
-                    business_rules: businessRules
+                    business_rules: (businessRules || '') + semanticRules
                 }),
                 signal: ctrl.signal
             });
@@ -205,7 +236,7 @@ const AskAIPanel: React.FC<AskAIPanelProps> = ({ connectionString, businessRules
                     question,
                     language,
                     conversation_history: getConversationHistory(),
-                    business_rules: businessRules
+                    business_rules: (businessRules || '') + semanticRules
                 }),
             });
             const data = await res.json();

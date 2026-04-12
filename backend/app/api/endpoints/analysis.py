@@ -137,52 +137,16 @@ async def ask_ai(request: AskRequest):
             sql = match_query.group(1).strip()
             answer = re.sub(r'\[QUERY:.*?\]', '', answer).strip()
             
-            # Execute the auto-generated query securely
-            try:
-                from sqlalchemy import create_engine, text
-                guard = safe_sql_check(sql)
-                if guard["is_safe"]:
-                    engine = create_engine(request.connection_string)
-                    with engine.connect() as conn:
-                        result = conn.execute(text(guard["sanitized_sql"]))
-                        columns = list(result.keys())
-                        rows = [list(row) for row in result.fetchall()]
-                    
-                    chart_type = None
-                    date_cols = [c for c in columns if any(x in c.lower() for x in ['date', 'time', 'created', 'updated', 'at', 'month', 'year'])]
-                    num_cols = [c for c in columns if c not in date_cols]
-                    if date_cols and num_cols and len(rows) > 1:
-                        chart_type = "line"
-                    elif len(columns) == 2 and len(rows) <= 20:
-                        chart_type = "bar"
-
-                    try:
-                        explanation = await ai_service.explain_sql(guard["sanitized_sql"])
-                    except:
-                        explanation = None
-
-                    query_result = {
-                        "sql": guard["sanitized_sql"],
-                        "rows": rows,
-                        "columns": columns,
-                        "error": None,
-                        "attempts": 1,
-                        "chart_type": chart_type,
-                        "explanation": explanation
-                    }
-                else:
-                    query_result = {
-                        "sql": sql, "rows": [], "columns": [],
-                        "error": guard["reason"], "attempts": 1,
-                        "chart_type": None, "explanation": None,
-                        "firewall_blocked": guard.get("requires_mfa", False)
-                    }
-            except Exception as e:
-                query_result = {
-                    "sql": sql, "rows": [], "columns": [],
-                    "error": str(e), "attempts": 1,
-                    "chart_type": None, "explanation": None
-                }
+            # Execute and heal the auto-generated query
+            query_result = await ai_service.generate_and_heal_sql(
+                question=request.question,
+                schema_context=schema_context,
+                connection_string=request.connection_string,
+                conversation_history=request.conversation_history,
+                language=request.language or "english",
+                business_rules=request.business_rules or "",
+                initial_sql=sql
+            )
 
         return {"answer": answer, "suggested_action": suggested_action, "query_result": query_result}
 

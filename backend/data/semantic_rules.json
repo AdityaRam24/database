@@ -13,5 +13,20 @@
     "id": "1774630017524",
     "name": "show",
     "definition": "show me active users"
+  },
+  {
+    "id": "1775997573849",
+    "name": "Churned Customer",
+    "definition": "A customer who has not placed an order in 90 days"
+  },
+  {
+    "id": "1775997582777",
+    "name": "Recent Signup",
+    "definition": "A user created within the last 30 days"
+  },
+  {
+    "id": "1776001795228",
+    "name": "name",
+    "definition": "artists whose name starts with 'A'"
   }
 ]
