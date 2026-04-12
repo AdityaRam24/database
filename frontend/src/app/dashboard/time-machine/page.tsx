@@ -53,31 +53,31 @@ export default function TimeMachinePage() {
 
   return (
     <DashboardShell>
-      <div className="flex flex-col h-full bg-slate-50 min-h-0 relative">
+      <div className="flex flex-col h-full bg-slate-50 dark:bg-transparent min-h-0 relative">
         <div className="absolute top-4 left-6 z-10 pointers-event-none">
-          <div className="bg-white/90 backdrop-blur border border-slate-200 p-4 rounded-2xl shadow-lg pointers-event-auto max-w-sm">
+          <div className="bg-white/90 dark:bg-slate-900/80 backdrop-blur-xl border border-slate-200 dark:border-white/[0.08] p-4 rounded-2xl shadow-lg pointers-event-auto max-w-sm">
              <div className="flex items-center gap-2 mb-2">
                  <History className="text-violet-500" size={18} />
-                 <h2 className="text-lg font-black text-slate-800">Schema Time Machine</h2>
+                 <h2 className="text-lg font-black text-slate-800 dark:text-slate-100">Schema Time Machine</h2>
              </div>
-             <p className="text-xs font-bold text-slate-500 mb-3 leading-snug">
+             <p className="text-xs font-bold text-slate-500 dark:text-slate-400 mb-3 leading-snug">
                  Scrub through history to see how your database structure evolved over time.
              </p>
-             <div className="p-3 bg-slate-100 rounded-xl border border-slate-200">
-                <span className="text-[10px] uppercase font-black tracking-widest text-slate-400 mb-1 block">Viewing Snapshot:</span>
-                <div className="text-lg font-black text-indigo-900">{currentEvent.date}</div>
-                <div className="text-sm font-bold text-slate-700 mt-1">{currentEvent.label}</div>
-                <div className="text-xs text-slate-500 mt-1">{currentEvent.desc}</div>
+             <div className="p-3 bg-slate-100 dark:bg-white/[0.03] rounded-xl border border-slate-200 dark:border-white/[0.05]">
+                <span className="text-[10px] uppercase font-black tracking-widest text-slate-400 dark:text-slate-500 mb-1 block">Viewing Snapshot:</span>
+                <div className="text-lg font-black text-indigo-900 dark:text-indigo-300">{currentEvent.date}</div>
+                <div className="text-sm font-bold text-slate-700 dark:text-slate-300 mt-1">{currentEvent.label}</div>
+                <div className="text-xs text-slate-500 dark:text-slate-400 mt-1">{currentEvent.desc}</div>
              </div>
           </div>
         </div>
 
         {/* Graph Area */}
-        <div className="flex-1 overflow-hidden relative bg-white pb-32">
+        <div className="flex-1 overflow-hidden relative bg-white dark:bg-transparent pb-32">
           {connectionString ? (
              <SchemaGraph key={graphKey} connectionString={connectionString} />
           ) : (
-             <div className="w-full h-full flex flex-col items-center justify-center text-slate-400">
+             <div className="w-full h-full flex flex-col items-center justify-center text-slate-400 dark:text-slate-600">
                <History size={48} className="mb-4 opacity-50" />
                <p className="font-bold">Connect a database to view timeline</p>
              </div>
@@ -85,16 +85,16 @@ export default function TimeMachinePage() {
         </div>
 
         {/* Bottom Timeline Control Bar */}
-        <div className="absolute bottom-0 left-0 right-0 h-32 bg-white border-t border-slate-200 shadow-[0_-10px_40px_rgba(0,0,0,0.05)] z-20 flex flex-col items-center justify-center px-10">
+        <div className="absolute bottom-0 left-0 right-0 h-32 bg-white/90 dark:bg-slate-900/80 backdrop-blur-xl border-t border-slate-200 dark:border-white/[0.08] shadow-[0_-10px_40px_rgba(0,0,0,0.05)] dark:shadow-[0_-10px_40px_rgba(0,0,0,0.2)] z-20 flex flex-col items-center justify-center px-10">
            
            <div className="w-full max-w-5xl flex items-center gap-6">
               
-              <button onClick={() => setIsPlaying(!isPlaying)} className="w-12 h-12 shrink-0 rounded-full bg-slate-900 text-white flex items-center justify-center hover:scale-105 transition-transform shadow-lg">
+              <button onClick={() => setIsPlaying(!isPlaying)} className="w-12 h-12 shrink-0 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 flex items-center justify-center hover:scale-105 transition-transform shadow-lg">
                  {isPlaying ? <Pause fill="currentColor" size={20} /> : <Play fill="currentColor" size={20} className="ml-1" />}
               </button>
 
               <div className="flex-1 relative flex items-center h-12">
-                 <div className="absolute left-0 right-0 h-1.5 bg-slate-100 rounded-full" />
+                 <div className="absolute left-0 right-0 h-1.5 bg-slate-100 dark:bg-slate-800 rounded-full" />
                  <div 
                     className="absolute left-0 h-1.5 rounded-full" 
                     style={{ 
@@ -112,11 +112,11 @@ export default function TimeMachinePage() {
                          <div key={ev.id} className="relative group cursor-pointer" onClick={() => handleStep(i)}>
                             <motion.div 
                               animate={{ scale: isActive ? 1.5 : 1 }}
-                              className={`w-4 h-4 rounded-full border-2 border-white shadow-sm transition-colors ${isActive ? 'bg-indigo-600' : isPast ? 'bg-indigo-400' : 'bg-slate-300'}`}
+                              className={`w-4 h-4 rounded-full border-2 border-white dark:border-slate-800 shadow-sm transition-colors ${isActive ? 'bg-indigo-600' : isPast ? 'bg-indigo-400' : 'bg-slate-300 dark:bg-slate-600'}`}
                             />
                             <div className={`absolute top-full left-1/2 -translate-x-1/2 mt-2 whitespace-nowrap flex flex-col items-center ${isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'} transition-opacity`}>
-                               <span className={`text-[10px] font-black ${isActive ? 'text-indigo-600' : 'text-slate-500'}`}>{ev.date}</span>
-                               <span className="text-[9px] font-bold text-slate-400">{ev.label}</span>
+                               <span className={`text-[10px] font-black ${isActive ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-500 dark:text-slate-400'}`}>{ev.date}</span>
+                               <span className="text-[9px] font-bold text-slate-400 dark:text-slate-500">{ev.label}</span>
                             </div>
                          </div>
                        )

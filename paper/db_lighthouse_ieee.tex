@@ -58,26 +58,23 @@ Optimization Platform}
 
 % ─────────────────────────────────────────────────────────────────────────────
 \begin{abstract}
-Modern web applications increasingly rely on relational database management
-systems (RDBMS) as their primary persistence layer, yet database schema
-health — encompassing query performance, storage efficiency, security posture,
-and structural integrity — remains poorly observable without specialized
-expertise. This paper presents DB-Lighthouse, a full-stack, AI-augmented
-platform that enables developers of all experience levels to connect a live
-PostgreSQL database, receive automated schema analysis, visualize table
-relationships, and obtain natural-language explanations and actionable
-optimization recommendations. A core safety feature is the \emph{shadow
-database pattern}: the system clones only the schema of the user's database
-into an isolated local PostgreSQL instance, ensuring production data is never
-accessed or modified. Integrated analysis modules cover query performance,
-index recommendations, anomaly detection, security and personally identifiable
-information (PII) scanning, migration validation, schema drift tracking, and
-semantic rule enforcement. An embedded large language model (LLM) translates
-every finding into plain-English summaries, making advanced database
-observability accessible to non-expert users including product managers and
-startup founders. Empirical evaluation across several real-world schemas
-demonstrates measurable reductions in estimated storage footprint (up to
-20--25\%) and significant improvements in query latency through automated
+Most web applications use relational database management systems (RDBMS)
+as their primary storage layer, yet schema health --- covering query
+performance, storage efficiency, security posture, and structural
+integrity --- is difficult to observe without deep expertise. This paper
+describes DB-Lighthouse, a full-stack platform that lets any developer
+connect a live PostgreSQL database, run automated schema analysis,
+visualize table relationships, and get plain-language explanations with
+specific optimization recommendations. The central safety mechanism is
+the \emph{shadow database pattern}: the system copies only the schema ---
+no row data --- into a local PostgreSQL instance, so production data is
+never read or written. The platform includes analysis modules for query
+performance, index recommendations, anomaly detection, PII scanning,
+migration validation, schema drift tracking, and semantic rule enforcement.
+An embedded LLM converts every finding into plain-English summaries, so
+non-experts --- including product managers and startup founders --- can
+act on the results. Testing on several real-world schemas showed storage
+reductions of 20--25\% and query latency improvements through automated
 index recommendations.
 \end{abstract}
 
@@ -90,44 +87,40 @@ schema visualization, developer tooling
 % ─────────────────────────────────────────────────────────────────────────────
 \section{Introduction}
 
-The proliferation of cloud-hosted PostgreSQL services — including Amazon RDS,
-Google Cloud SQL, Supabase, Railway, and Neon — has democratized access to
-production-grade relational databases for startups and individual developers.
-However, this accessibility has not been accompanied by a commensurate
-democratization of database observability tooling. Traditional database
-administration (DBA) tasks such as index tuning, normalization analysis,
-anomaly triage, and compliance scanning remain time-intensive and require
-deep expertise in SQL internals, query planning, and systems performance.
-As a result, many small engineering teams operate databases that accumulate
-technical debt silently: bloated schemas, redundant indexes, sub-optimal
-data types, and unscanned PII fields.
+Cloud-hosted PostgreSQL services --- including Amazon RDS, Google Cloud
+SQL, Supabase, Railway, and Neon --- have made production-grade relational
+databases available to startups and individual developers. The tooling
+for observing and maintaining those databases, however, has not kept pace.
+Tasks like index tuning, normalization analysis, anomaly triage, and
+compliance scanning still take significant time and require knowledge of
+SQL internals, query planning, and system performance. As a result, small
+teams often run databases that quietly accumulate problems: bloated
+schemas, redundant indexes, oversized column types, and PII fields that
+have never been audited.
 
-Existing commercial products in the database observability space (e.g.,
-Datadog, New Relic, PgHero) address subsets of these problems but either
-target large enterprises with complex on-boarding requirements, impose
-significant cost at modest data volumes, or present information in a form
-that is meaningful only to experienced DBAs. Natural language interfaces to
-databases have been the subject of considerable academic research
-\cite{li2023can, pourreza2024din, gao2023texttosql}, yet integration of
-such interfaces with live schema analysis and actionable optimization
-recommendations within a unified, secure platform has not been demonstrated
-at accessible scale.
+Existing tools in this space --- Datadog, New Relic, PgHero --- address
+parts of the problem but target large enterprises, carry high costs at
+moderate data volumes, or present output that only experienced DBAs can
+use. Natural language interfaces to databases have seen active academic
+research \cite{li2023can, pourreza2024din, gao2023texttosql}, yet none
+of the published work combines such interfaces with live schema analysis
+and concrete optimization recommendations in a single, accessible platform.
 
 This paper makes the following contributions:
 
 \begin{itemize}
-    \item A \textbf{shadow database architecture} that decouples analysis
+    \item A \textbf{shadow database architecture} that separates analysis
     from production, guaranteeing zero risk of data modification.
     \item An integrated \textbf{multi-domain analysis engine} spanning query
     performance, indexing, anomaly detection, governance, security, and
     semantic rule validation in a single platform.
     \item A \textbf{natural-language interface} powered by a locally-hosted
-    LLM, making database insights accessible to non-expert stakeholders.
+    LLM, giving non-expert stakeholders direct access to database insights.
     \item A \textbf{schema visualization} subsystem using force-directed
     graphs that renders table relationships, size heatmaps, and bottleneck
     indicators interactively.
-    \item An \textbf{open evaluation} of platform effectiveness across
-    diverse real-world PostgreSQL schemas.
+    \item An \textbf{evaluation} of platform effectiveness across real-world
+    PostgreSQL schemas.
 \end{itemize}
 
 The remainder of this paper is organized as follows. Section~II surveys
@@ -144,31 +137,32 @@ system performance. Section~VIII concludes with future directions.
 
 The problem of translating natural language queries into executable SQL has
 been studied extensively. Early rule-based systems such as LUNAR
-\cite{woods1973progress} and MASQUE \cite{androutsopoulos1995nldb} demonstrated
-feasibility but were brittle in the face of schema heterogeneity. The
-introduction of large pre-trained language models significantly advanced
-the state of the art: T5-based architectures fine-tuned on the Spider
-benchmark \cite{yu2018spider} achieved near-human accuracy on single-database
-tasks, while models such as GPT-4 \cite{openai2023gpt4} and Llama 2
-\cite{touvron2023llama} enabled zero-shot query generation across novel
-schemas. Recent work on DIN-SQL \cite{pourreza2024din} decomposes complex
-queries into sub-problems, improving accuracy on multi-table joins. Despite
-these advances, integration of natural language interfaces with live schema
-introspection and safety guardrails for production databases has received
-limited attention.
+\cite{woods1973progress} and MASQUE \cite{androutsopoulos1995nldb} showed
+feasibility but broke down with schema heterogeneity. Large pre-trained
+language models improved the state of the art substantially: T5-based
+architectures fine-tuned on the Spider benchmark \cite{yu2018spider}
+reached near-human accuracy on single-database tasks, while models such
+as GPT-4 \cite{openai2023gpt4} and Llama 2 \cite{touvron2023llama} enabled
+zero-shot query generation across novel schemas. Recent work on DIN-SQL
+\cite{pourreza2024din} decomposes complex queries into sub-problems,
+improving accuracy on multi-table joins. Despite these advances,
+integrating natural language interfaces with live schema introspection
+and safety guardrails for production databases has received limited
+attention.
 
 \subsection{Automated Index Recommendation}
 
 Index selection is a classic problem in physical database design. The
 AutoAdmin project \cite{chaudhuri1997autoadmin} introduced workload-driven
-index recommendation using query cost estimation, an approach subsequently
-adopted in Microsoft SQL Server. More recent work applies reinforcement
-learning and graph neural networks to the problem \cite{lan2020index,
+index recommendation using query cost estimation, an approach later adopted
+in Microsoft SQL Server. More recent work applies reinforcement learning
+and graph neural networks to the problem \cite{lan2020index,
 basu2020weightedge}. PgHero \cite{pghero2022} provides lightweight
-heuristic-based index suggestions for PostgreSQL using \texttt{pg\_stat\_user\_indexes}
-but lacks natural-language explanations or integration with broader
-observability. DB-Lighthouse extends rule-based heuristics with LLM-generated
-rationales that are understandable to developers without query planning expertise.
+heuristic-based index suggestions for PostgreSQL using
+\texttt{pg\_stat\_user\_indexes} but lacks natural-language explanations
+or integration with broader observability. DB-Lighthouse adds
+LLM-generated rationales to rule-based heuristics, making recommendations
+readable to developers without query planning expertise.
 
 \subsection{Database Anomaly Detection}
 
@@ -176,58 +170,57 @@ Anomaly detection in OLTP systems has been studied in the context of
 performance regression \cite{ma2020diagnosing} and security intrusion
 detection \cite{sallam2015dbsafe}. Systems such as OtterTune
 \cite{van2017ottertune} tune database configuration parameters using
-machine learning to improve throughput. These approaches operate at the
+machine learning to improve throughput. These approaches work at the
 workload or configuration layer and do not address schema-level anomalies.
-DB-Lighthouse introduces schema-focused anomaly detection that surfaces
+DB-Lighthouse focuses anomaly detection at the schema level, catching
 structural drift, unusual growth patterns, and constraint violations.
 
 \subsection{Schema Visualization}
 
-Interactive schema visualization tools include SchemaSpy \cite{schemaspy2022}
-and DBeaver's ER diagram generator \cite{dbeaver2023}, which render
-entity-relationship diagrams from live databases. These tools are read-only
-renderers and provide no optimization guidance. React Flow \cite{reactflow2023},
-the visualization library used in DB-Lighthouse, enables force-directed
-interactive graphs suitable for real-time rendering of evolving schemas.
+Interactive schema visualization tools include SchemaSpy
+\cite{schemaspy2022} and DBeaver's ER diagram generator
+\cite{dbeaver2023}, which render entity-relationship diagrams from live
+databases. These tools are read-only renderers with no optimization
+guidance. React Flow \cite{reactflow2023}, the visualization library used
+in DB-Lighthouse, provides force-directed interactive graphs that handle
+real-time rendering of evolving schemas.
 
 \subsection{Database Governance and Compliance}
 
 Data governance frameworks such as Apache Atlas \cite{atlas2023} and
-Collibra \cite{collibra2023} address enterprise metadata management and
-lineage tracking. PII detection at the database layer is supported by tools
-such as AWS Macie \cite{macie2023} and Google Cloud DLP \cite{clouddlp2023},
-but these are cloud-provider-specific. DB-Lighthouse provides portable,
-schema-level PII heuristic detection independent of cloud provider,
-integrated directly into the analysis dashboard.
+Collibra \cite{collibra2023} handle enterprise metadata management and
+lineage tracking. PII detection at the database layer is available through
+tools such as AWS Macie \cite{macie2023} and Google Cloud DLP
+\cite{clouddlp2023}, but both are cloud-provider-specific. DB-Lighthouse
+runs PII detection at the schema level without depending on any cloud
+provider, built directly into the analysis dashboard.
 
 % ─────────────────────────────────────────────────────────────────────────────
 \section{System Architecture}
 
 \subsection{Architectural Overview}
 
-DB-Lighthouse follows a three-tier architecture comprising a Next.js
-frontend, a FastAPI backend, and a shadow PostgreSQL instance. All
-communication between tiers uses RESTful HTTP with JSON payloads. The
-frontend is served as a static Next.js application; the backend exposes
-a versioned API under the \texttt{/api} prefix; and the shadow database
-runs as a Docker-managed PostgreSQL container isolated from external networks.
+DB-Lighthouse follows a three-tier architecture: a Next.js frontend, a
+FastAPI backend, and a shadow PostgreSQL instance. All communication
+between tiers uses RESTful HTTP with JSON payloads. The frontend is served
+as a static Next.js application; the backend exposes a versioned API under
+the \texttt{/api} prefix; and the shadow database runs as a
+Docker-managed PostgreSQL container isolated from external networks.
 
-\bigskip
-\noindent\textbf{[DIAGRAM CUE — Figure 1: High-level three-tier architecture
-diagram. Show three boxes: (1)~Next.js Frontend on port~3000, (2)~FastAPI
-Backend on port~8000, (3)~Shadow PostgreSQL on port~5432. Draw arrows
-for: browser $\leftrightarrow$ frontend, frontend $\leftrightarrow$ backend,
-backend $\leftrightarrow$ shadow DB, and a dashed arrow from the user's
-external PostgreSQL through the backend (schema-only extraction via
-pg\_dump). Label the dashed arrow ``schema-only (no data)'' to emphasize
-the safety guarantee.]}
-\bigskip
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\columnwidth]{fig1}
+    \caption{Three-tier system architecture of DB-Lighthouse, showing
+    the data-flow boundary between the user's source database and the
+    isolated shadow instance.}
+    \label{fig:architecture}
+\end{figure}
 
 \subsection{Shadow Database Pattern}
 
-The shadow database pattern is the foundational safety mechanism of
+The shadow database pattern is the primary safety mechanism in
 DB-Lighthouse. When a user supplies a PostgreSQL connection string, the
-backend performs the following sequence:
+backend runs the following sequence:
 
 \begin{enumerate}
     \item Verify connectivity to the source database using a read-only
@@ -236,31 +229,30 @@ backend performs the following sequence:
     extract Data Definition Language (DDL) statements without any row data.
     \item Restore the DDL into a local shadow PostgreSQL instance using
     \texttt{psql}.
-    \item Perform all subsequent analysis queries against the shadow
+    \item Run all subsequent analysis queries against the shadow
     instance exclusively.
 \end{enumerate}
 
 Let $S$ denote the user's source schema and $S'$ the shadow clone. The
-transformation $f: S \rightarrow S'$ preserves the complete structural
-fidelity of $S$ — including all tables, columns, constraints, indexes,
-foreign keys, sequences, and types — while discarding all row-level data.
-Formally, for any table $T \in S$ and its shadow counterpart $T' \in S'$:
+mapping $f: S \rightarrow S'$ preserves the full structure of $S$ ---
+including all tables, columns, constraints, indexes, foreign keys,
+sequences, and types --- while discarding all row-level data. Formally,
+for any table $T \in S$ and its shadow counterpart $T' \in S'$:
 
 \begin{equation}
     |T'| = 0 \quad \text{and} \quad \text{schema}(T') = \text{schema}(T)
 \end{equation}
 
-where $|\cdot|$ denotes the row count. This guarantee ensures that sensitive
-production data is never transmitted to or stored within the platform at
-any stage of processing. User credentials are stored in memory only for the
-duration of the active session and are never persisted to disk.
+where $|\cdot|$ denotes the row count. This means production data is never
+transmitted to or stored by the platform at any point. User credentials
+are held in memory only for the active session and are never written to
+disk.
 
 \subsection{Backend Service Architecture}
 
-The backend adopts a service-oriented design in which each analysis domain
-is encapsulated by a dedicated service module paired with a corresponding
-API endpoint module. Table~\ref{tab:services} summarizes the service-to-endpoint
-mapping.
+The backend uses a service-oriented design: each analysis domain has a
+dedicated service module paired with a corresponding API endpoint.
+Table~\ref{tab:services} summarizes the mapping.
 
 \begin{table}[htbp]
 \caption{Backend Service and Endpoint Mapping}
@@ -287,67 +279,65 @@ MCP server & mcp\_server & mcp \\
 
 \subsection{AI Safety Firewall}
 
-All natural-language queries that result in SQL generation pass through
-a prompt firewall implemented in \texttt{services/prompt\_firewall.py}.
-The firewall applies a rule-based pattern matching stage that blocks
-queries containing destructive SQL patterns including \texttt{DROP},
-\texttt{TRUNCATE}, \texttt{DELETE} without a \texttt{WHERE} clause, and
-\texttt{ALTER TABLE ... DROP COLUMN}. Additionally, any \texttt{SELECT}
-statement lacking an explicit \texttt{LIMIT} clause is automatically
-augmented with \texttt{LIMIT~100} before execution, preventing accidental
-full-table scans that could overwhelm the shadow instance for large schemas.
-This two-layer defense ensures that neither injected adversarial prompts
-nor inadvertent LLM hallucinations can cause destructive operations.
+All natural-language queries that produce SQL pass through a prompt
+firewall in \texttt{services/prompt\_firewall.py}. The firewall uses
+rule-based pattern matching to block queries containing destructive SQL
+patterns including \texttt{DROP}, \texttt{TRUNCATE}, \texttt{DELETE}
+without a \texttt{WHERE} clause, and \texttt{ALTER TABLE ... DROP COLUMN}.
+Any \texttt{SELECT} without an explicit \texttt{LIMIT} is also
+automatically augmented with \texttt{LIMIT~100} before execution, preventing
+accidental full-table scans on large schemas. This two-layer check means
+neither injected prompts nor LLM errors can trigger destructive operations.
 
 \subsection{Deployment and Infrastructure}
 
-The full platform is packaged as a Docker Compose application with three
+The full platform ships as a Docker Compose application with three
 services: the Next.js frontend container, the FastAPI backend container,
 and the shadow PostgreSQL container. A single \texttt{docker-compose up
---build} command brings the entire stack to operational status, enabling
-immediate local deployment without cloud accounts, API keys, or external
-dependencies. The AI module uses Jan AI running a quantized Mistral 7B model
-(\texttt{mistral-ins-7b-q4}) by default, routed through an OpenAI-compatible
-REST interface, with fallback support for Ollama and direct GGUF file loading.
+--build} command starts the entire stack --- no cloud accounts, API keys,
+or external services required. The AI module runs Jan AI with a quantized
+Mistral 7B model (\texttt{mistral-ins-7b-q4}) by default, through an
+OpenAI-compatible REST interface, with fallback support for Ollama and
+direct GGUF file loading.
 
 % ─────────────────────────────────────────────────────────────────────────────
 \section{Analysis Modules}
 
 \subsection{Schema Introspection and Relationship Mapping}
 
-Upon connecting a database, the schema analysis service introspects the
-shadow instance's information schema and \texttt{pg\_catalog} system tables
-to extract a comprehensive metadata graph. For each table the service
-collects: column names and data types, nullable flags, primary key designations,
+When a database is connected, the schema analysis service queries the
+shadow instance's information schema and \texttt{pg\_catalog} system
+tables to build a metadata graph. For each table the service collects:
+column names and data types, nullable flags, primary key designations,
 foreign key relationships, existing index definitions, estimated row counts
 via \texttt{pg\_class.reltuples}, and estimated storage sizes via
 \texttt{pg\_relation\_size}. This metadata is serialized as a JSON graph
 structure in which nodes represent tables and directed edges represent
 foreign key references.
 
-\bigskip
-\noindent\textbf{[DIAGRAM CUE — Figure 2: Screenshot of the interactive
-schema visualization graph (React Flow canvas) on the Dashboard page.
-Capture a real database schema showing several tables with colored nodes
-(green = low storage, yellow = medium, red = high) and edges of varying
-thickness representing FK relationships. Include the right-side detail
-panel showing column breakdown and index list for a selected table.]}
-\bigskip
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\columnwidth]{fig2}
+    \caption{Interactive schema visualization of a connected PostgreSQL
+    database, with table nodes and foreign key relationships rendered
+    as a force-directed graph.}
+    \label{fig:schema-graph}
+\end{figure}
 
-The graph rendering engine combines React Flow for node/edge layout management
-with D3-force for physics-based positioning and Dagre for hierarchical
-layout. Node size is proportional to estimated row count, and node color
-encodes storage utilization on a green–yellow–red heat scale. Edge thickness
-is weighted by the count of foreign key references between a pair of tables.
-A ``Highlight Bottlenecks'' toggle flags tables with five or more inbound
-foreign key references, which are common sources of lock contention in
-high-write workloads.
+The graph rendering engine combines React Flow for node/edge layout
+management with D3-force for physics-based positioning and Dagre for
+hierarchical layout. Node size is proportional to estimated row count,
+and node color encodes storage utilization on a green-yellow-red heat
+scale. Edge thickness is weighted by the count of foreign key references
+between a pair of tables. A ``Highlight Bottlenecks'' toggle flags tables
+with five or more inbound foreign key references, which are common sources
+of lock contention in high-write workloads.
 
 \subsection{Storage Optimization Engine}
 
-The storage optimization engine performs a statistical scan of each table
-to identify data type inefficiencies and normalization opportunities. For
-each column, the engine computes:
+The storage optimization engine scans each table statistically to find
+data type inefficiencies and normalization issues. For each column,
+the engine computes:
 
 \begin{equation}
     \mu_l = \frac{1}{N}\sum_{i=1}^{N} \text{len}(v_i),\quad
@@ -365,36 +355,35 @@ heuristic rules:
     for tighter sizing.
     \item A nullable column with a null rate of $0\%$ across the sample
     is flagged for \texttt{NOT NULL} constraint enforcement.
-    \item Columns whose distinct value count is $\leq 20$ relative to sample
-    size $N$ are candidates for enum normalization.
+    \item Columns whose distinct value count is $\leq 20$ relative to
+    sample size $N$ are candidates for enum normalization.
     \item Unused indexes (zero scans in \texttt{pg\_stat\_user\_indexes})
     are flagged for removal.
     \item Duplicate indexes (identical column sets) are flagged as redundant.
 \end{itemize}
 
 Each suggestion includes a risk rating (Low, Medium, or High), an estimated
-storage saving expressed in megabytes, and a generated DDL patch that can
-be applied to the shadow instance for verification before any real-world
-migration.
+storage saving in megabytes, and a DDL patch that can be applied to the
+shadow instance before touching the real schema.
 
-\bigskip
-\noindent\textbf{[DIAGRAM CUE — Figure 3: Screenshot of the Optimization
-Report page. Show the tabular report card with columns for Metric, Before,
-After, and Savings (e.g., ``Total Estimated Storage: 1.2~GB $\rightarrow$
-950~MB, saving 20.8\%''). Also capture one or two individual suggestion
-cards showing the risk badge, estimated saving, and the ``Apply to Shadow
-DB'' action button.]}
-\bigskip
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\columnwidth]{fig3}
+    \caption{Storage optimization report for a connected schema, listing
+    estimated storage reductions and suggested DDL changes per column.}
+    \label{fig:optimization-report}
+\end{figure}
 
 \subsection{Index Recommendation Engine}
 
 The index recommendation engine combines rule-based heuristics derived
-from PostgreSQL's \texttt{pg\_stat\_statements} and \texttt{pg\_stat\_user\_tables}
-catalog views with LLM-generated impact explanations. Heuristic rules
-trigger recommendations under the following conditions:
+from PostgreSQL's \texttt{pg\_stat\_statements} and
+\texttt{pg\_stat\_user\_tables} catalog views with LLM-generated impact
+explanations. Heuristic rules trigger recommendations under the following
+conditions:
 
 \begin{itemize}
-    \item A sequential scan (\texttt{seq\_scan}) count significantly
+    \item A sequential scan (\texttt{seq\_scan}) count substantially
     exceeds the index scan (\texttt{idx\_scan}) count on a table whose
     estimated size exceeds a configurable threshold.
     \item A column appearing frequently in \texttt{WHERE} predicates of
@@ -402,199 +391,185 @@ trigger recommendations under the following conditions:
     \item A multi-column filter pattern recurs across queries, suggesting
     a composite index opportunity.
     \item An \texttt{ORDER BY} expression over an un-indexed column
-    triggers repeated sort operations as evidenced in \texttt{EXPLAIN ANALYZE}
+    triggers repeated sort operations as shown in \texttt{EXPLAIN ANALYZE}
     output.
 \end{itemize}
 
-For each triggered recommendation, the LLM receives a structured prompt
-containing the table schema, the triggering heuristic, and the relevant
-query statistics, and generates a human-readable explanation of the
-recommendation's expected impact. A representative generated explanation
-takes the form: ``Adding an index on \texttt{users(email)} eliminates
-full-table sequential scans on this 500,000-row table for login queries,
-estimated to reduce average query latency by 65\%.''
+For each triggered recommendation, the LLM receives the table schema, the
+triggering heuristic, and the relevant query statistics, then generates a
+plain-language explanation of the expected impact. A typical explanation
+reads: ``Adding an index on \texttt{users(email)} eliminates full-table
+sequential scans on this 500,000-row table for login queries, estimated to
+reduce average query latency by 65\%.''
 
 \subsection{Anomaly Detection}
 
-The anomaly detection module monitors schema-level metrics over time to
-surface structural drift and unusual patterns. A rolling baseline is
-maintained for each table covering estimated row count, storage size, and
-null-rate distributions per column. Anomalies are raised when observations
-deviate from the baseline by more than a configurable number of standard
-deviations, or when structural changes — such as the addition or removal
-of columns or indexes — are detected between consecutive analysis snapshots.
-Detected anomalies are persisted to the incident log and surfaced as
-real-time alerts in the dashboard.
+The anomaly detection module tracks schema-level metrics over time to catch
+structural drift and unusual patterns. A rolling baseline is kept for each
+table, covering estimated row count, storage size, and per-column null
+rates. Anomalies are raised when observations deviate from the baseline by
+more than a configurable number of standard deviations, or when structural
+changes --- such as the addition or removal of columns or indexes --- appear
+between consecutive analysis snapshots. Detected anomalies are written to
+the incident log and shown as alerts in the dashboard.
 
-\bigskip
-\noindent\textbf{[DIAGRAM CUE — Figure 4: Screenshot of the Anomaly
-Detection dashboard page showing the alert panel. Capture one or two
-active anomaly cards, each displaying the affected table name, anomaly
-type (e.g., ``Unexpected column growth: \texttt{orders.notes} null rate
-dropped from 82\% to 14\%''), severity badge (Low/Medium/High), and
-timestamp.]}
-\bigskip
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\columnwidth]{fig4}
+    \caption{Anomaly detection alerts for a connected schema, reporting
+    detected structural changes and metric deviations across monitored
+    tables.}
+    \label{fig:anomaly}
+\end{figure}
 
 \subsection{Security and PII Detection}
 
-The security module scans column names and sampled values against a curated
-lexicon of PII-indicative patterns. Column name heuristics flag identifiers
+The security module checks column names and sampled values against a set
+of PII-indicative patterns. Column name heuristics flag identifiers
 containing substrings such as \texttt{email}, \texttt{phone}, \texttt{ssn},
-\texttt{passport}, \texttt{dob}, \texttt{credit\_card}, \texttt{ip\_address},
-and \texttt{address}. Value-level scanning applies regular expression
-patterns for common PII formats including email addresses, US Social Security
-Numbers, credit card numbers (Luhn-validated), and IP address ranges.
-Results are presented as a risk-graded exposure report that includes the
-affected table, column name, detected PII type, sample match count, and a
-recommended remediation action such as column encryption, access control
-restriction, or data masking.
+\texttt{passport}, \texttt{dob}, \texttt{credit\_card},
+\texttt{ip\_address}, and \texttt{address}. Value-level scanning applies
+regular expression patterns for common PII formats including email
+addresses, US Social Security Numbers, credit card numbers
+(Luhn-validated), and IP address ranges. Results appear as a risk-graded
+exposure report listing the affected table, column name, PII type
+detected, sample match count, and a remediation action --- encryption,
+access restriction, or masking.
 
 \subsection{Migration Validation and Schema Drift Detection}
 
-The migration validation module accepts proposed DDL migration scripts and
-evaluates them against the current shadow schema before any real-world
-execution. The validator checks for: column removal without deprecation
-windows, data type changes that are incompatible with existing values,
-addition of \texttt{NOT NULL} constraints to columns that currently contain
-null values, and foreign key additions that lack corresponding indexes.
-Each validation result is annotated with a severity rating and an
-explanation generated by the LLM.
+The migration validation module takes proposed DDL migration scripts and
+checks them against the shadow schema before they run on the real database.
+The validator looks for: column removal without deprecation windows, data
+type changes that are incompatible with existing values, addition of
+\texttt{NOT NULL} constraints to columns that currently contain null
+values, and foreign key additions that lack corresponding indexes. Each
+validation result includes a severity rating and an LLM-generated
+explanation.
 
 The schema drift detector compares the current shadow schema against a
-stored baseline snapshot to surface all structural changes since the last
-audit. The diff output is presented as a structured change log categorized
-into additions, modifications, and deletions, enabling teams to track
-unauthorized or unreviewed schema changes that may not be captured in
-migration version control.
+stored baseline to find all structural changes since the last audit. The
+output is a structured change log split into additions, modifications, and
+deletions, so teams can spot unauthorized or unreviewed schema changes that
+migration version control may have missed.
 
 \subsection{Semantic Rule Engine}
 
-The semantic rule engine allows teams to define and enforce custom
-business-logic constraints expressed in natural language. A user might,
-for example, state: ``Order amounts must always be positive'' or ``Deleted
-users must retain their ID for 90 days.'' The LLM translates each rule
-into a corresponding SQL assertion or trigger condition and validates it
-against the shadow schema. Rules that cannot be satisfied by the current
-schema are flagged as violations with an explanation of the required
-structural change. This capability bridges the gap between business
-requirements documented in product specifications and their enforcement
-at the database layer.
+The semantic rule engine lets teams write and enforce custom business rules
+in plain language. A user might state: ``Order amounts must always be
+positive'' or ``Deleted users must retain their ID for 90 days.'' The LLM
+translates each rule into a corresponding SQL assertion or trigger condition
+and validates it against the shadow schema. Rules that the current schema
+cannot satisfy are flagged as violations with an explanation of the
+required structural change. This closes the gap between business rules
+written in product specs and their enforcement at the database layer.
 
 \subsection{Incident Management}
 
-An incident logging engine records all detected anomalies, failed
-migration validations, and security alerts as structured incident records.
-Each incident captures: timestamp, affected entity (table, column, or
+An incident logging engine records all detected anomalies, failed migration
+validations, and security alerts as structured incident records. Each
+incident captures: timestamp, affected entity (table, column, or
 constraint), severity, description, and resolution status. The incidents
-dashboard provides a chronological feed with filtering by severity and
-domain, enabling teams to triage and resolve database health issues
-systematically.
+dashboard shows a chronological feed, filterable by severity and domain,
+so teams can work through database health problems in priority order.
 
 % ─────────────────────────────────────────────────────────────────────────────
 \section{Frontend Design and User Experience}
 
 \subsection{Design Philosophy}
 
-The frontend is designed around the principle that database insights must
-be comprehensible to users regardless of their SQL proficiency. Every
-quantitative finding is accompanied by a plain-English interpretation.
-Every suggested action is accompanied by an impact estimate expressed in
-concrete terms — storage savings in megabytes, latency reductions in
-percentage, or risk levels in categorical terms. The interface uses a
-dark-themed design system built on Tailwind CSS v4 and Shadcn/Radix UI
-components, chosen for their accessibility guarantees and visual coherence
-across the dashboard's diverse analysis views.
+The frontend is built on the assumption that database insights should be
+readable by anyone, regardless of SQL skill. Every quantitative finding is
+accompanied by a plain-English interpretation. Every suggested action
+includes an impact estimate in concrete terms --- storage savings in
+megabytes, latency reductions in percentage, or risk levels as Low,
+Medium, or High. The interface uses a dark-themed design system built on
+Tailwind CSS v4 and Shadcn/Radix UI, chosen for accessibility and visual
+consistency across the dashboard's many views.
 
 \subsection{Navigation and Dashboard Shell}
 
-The application shell provides a persistent left-side navigation panel
-linking to eight primary domains: Performance, Anomaly Detection, Incidents,
+The application shell has a persistent left-side navigation panel linking
+to eight primary domains: Performance, Anomaly Detection, Incidents,
 Security, Governance, Data Explorer, Semantic Rules, and the AI Q\&A
-interface. A theme toggle supports dark and light modes. A project
-persistence mechanism retains database connection state and analysis
-results across browser sessions using browser-local storage, allowing
-users to resume work without reconnecting.
+interface. A theme toggle supports dark and light modes. Connection state
+and analysis results persist in browser-local storage, so users can return
+to a previous session without reconnecting.
 
-\bigskip
-\noindent\textbf{[DIAGRAM CUE — Figure 5: Screenshot of the main
-Dashboard Overview page after connecting a database. Capture the full
-layout including the left sidebar navigation, the top header with the
-DB-Lighthouse logo, and the central dashboard content area showing the
-Storage Summary card, Performance Summary card, and the Optimization
-Score gauge (0--100).]}
-\bigskip
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\columnwidth]{fig5}
+    \caption{Main dashboard of DB-Lighthouse after connecting a
+    PostgreSQL database, showing storage, performance, and overall
+    optimization score.}
+    \label{fig:dashboard}
+\end{figure}
 
 \subsection{AI Q\&A Panel}
 
-The AI Q\&A interface provides a conversational interaction model over
-the connected schema. Users type questions in natural language; the system
-constructs a schema-aware prompt, routes the request through the prompt
-firewall, queries the LLM, and renders the response alongside any generated
-SQL and tabular result sets. The interface supports an example prompt
-suggestion strip that pre-populates the input field with contextually
-relevant questions such as ``Which tables use the most storage?'',
-``Show me my 5 slowest queries'', and ``Are there any security risks?''.
+The AI Q\&A interface lets users ask questions about their connected schema
+in plain language. The system wraps each question in a schema-aware prompt,
+passes it through the firewall, queries the LLM, and renders the response
+alongside any generated SQL and result tables. An example prompt strip
+pre-populates the input with context-relevant questions such as ``Which
+tables use the most storage?'', ``Show me my 5 slowest queries'', and
+``Are there any security risks?''.
 
-\bigskip
-\noindent\textbf{[DIAGRAM CUE — Figure 6: Screenshot of the AI Q\&A
-panel (AskAIPanel component). Show an active conversation with at least
-two exchange turns: one question about slow queries and the AI's response
-including a result table. Capture the example prompt chips at the top
-of the input area.]}
-\bigskip
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\columnwidth]{fig6}
+    \caption{Natural-language Q\&A interface over a connected schema,
+    with generated SQL and query results returned in response to
+    plain-English questions.}
+    \label{fig:ai-panel}
+\end{figure}
 
 \subsection{Landing Page and Onboarding}
 
-The public landing page presents the platform's value proposition to
-prospective users. An interactive three-dimensional visualization of an
-abstract database structure — rendered using React Three Fiber with
-WebGL — anchors the hero section and communicates the platform's technical
-sophistication. The onboarding flow reduces time-to-insight to under 30
-seconds: users paste a PostgreSQL connection string, the shadow clone is
-created server-side, and the dashboard populates with analysis results.
+The landing page explains what the platform does for new visitors. An
+interactive 3D visualization rendered with React Three Fiber and WebGL
+sits in the hero section. Onboarding takes under 30 seconds: paste a
+PostgreSQL connection string, the shadow clone is created server-side,
+and the dashboard fills with analysis results.
 
-\bigskip
-\noindent\textbf{[DIAGRAM CUE — Figure 7: Screenshot of the landing page
-hero section showing the two-column split layout: left side with the badge,
-headline (``The AI that understands your database''), subtitle text, dual
-CTA buttons (``Analyze My Database'' and ``See It Live''), and the example
-prompt input field; right side showing the animated 3D orb with violet
-orbital rings. Capture this on a desktop-width viewport for best effect.]}
-\bigskip
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\columnwidth]{fig7}
+    \caption{Public landing page of DB-Lighthouse.}
+    \label{fig:landing}
+\end{figure}
 
 % ─────────────────────────────────────────────────────────────────────────────
 \section{Target Users and Deployment Contexts}
 
 \subsection{Primary Persona: Backend Developer at a Startup}
 
-The primary target user is a backend developer working within a small to
-medium engineering team (2--20 engineers) that relies on PostgreSQL as its
-primary data store. Such developers are proficient in application-layer
-programming but may lack deep database administration expertise. They
-operate under time pressure and cannot afford weeks of manual schema
-auditing. DB-Lighthouse addresses their pain points directly: growing
-storage costs from over-provisioned column types, sluggish queries from
-missing indexes, uncertainty about the impact of upcoming schema changes,
-and compliance exposure from undetected PII fields.
+The primary target user is a backend developer on a small to medium
+engineering team (2--20 engineers) running PostgreSQL as the primary data
+store. These developers know application-layer programming but often lack
+deep database administration experience. They work under time pressure and
+cannot spend weeks on manual schema audits. DB-Lighthouse targets their
+specific problems directly: storage costs from oversized column types,
+slow queries from missing indexes, uncertainty about upcoming schema
+changes, and compliance exposure from PII fields that have never been
+scanned.
 
 \subsection{Secondary Personas}
 
 \textbf{Product Managers and Founders} are a secondary audience who
-benefit specifically from the natural language query interface. The ability
-to ask ``How many users signed up this week?'' and receive an immediate,
-verified answer — without pinging the engineering team — reduces a common
-source of cross-functional friction in product organizations.
+benefit from the natural language query interface. Being able to ask ``How
+many users signed up this week?'' and get an immediate, verified answer ---
+without involving engineering --- removes a recurring bottleneck in product
+teams.
 
 \textbf{Database Administrators at Mid-Market Companies} can use
-DB-Lighthouse as a rapid first-pass audit tool before undertaking more
-detailed optimization work. The incident management, schema drift detection,
-and governance modules align with the operational workflows of professional
-DBAs responsible for multiple production schemas.
+DB-Lighthouse as a quick first-pass audit tool before more detailed
+optimization work. The incident management, drift detection, and governance
+modules fit the workflows of DBAs managing several production schemas.
 
-\textbf{Data Engineers and Analytics Teams} benefit from the schema
-visualization and semantic rule enforcement capabilities when building
-data pipelines, as understanding table relationships and enforcing data
-quality rules are prerequisites for reliable ETL workloads.
+\textbf{Data Engineers and Analytics Teams} use the schema visualization
+and semantic rule features when building pipelines, since knowing table
+relationships and enforcing data quality rules matters for reliable ETL.
 
 \textbf{Computer Science Educators and Students} can use the platform in
 educational settings to visualize normalized and denormalized schemas,
@@ -604,117 +579,108 @@ risk to any real production system.
 
 \subsection{Deployment Contexts}
 
-DB-Lighthouse is designed for three primary deployment contexts. In
-\textbf{local developer environments}, the Docker Compose package enables
-a complete stack with no external services required, making it suitable for
-individual use and evaluation. In \textbf{team-shared cloud deployments},
-the platform can be deployed to any container-capable cloud service
-(e.g., Railway, Render, Fly.io) with environment variables configuring
-the shadow database and AI endpoints. In \textbf{enterprise on-premise
-deployments}, the architecture's independence from proprietary cloud services
-allows installation within corporate network perimeters, satisfying data
-residency and compliance requirements. The Enterprise pricing tier includes
-Single Sign-On (SSO) integration and Role-Based Access Control (RBAC)
-for multi-team environments.
+DB-Lighthouse suits three deployment scenarios. In \textbf{local developer
+environments}, the Docker Compose package runs a complete stack with no
+external services, suitable for individual use and evaluation. In
+\textbf{team-shared cloud deployments}, the platform deploys to any
+container-capable cloud service (e.g., Railway, Render, Fly.io) with
+environment variables pointing to the shadow database and AI endpoints. In
+\textbf{enterprise on-premise deployments}, the architecture avoids
+proprietary cloud services, so it installs within corporate network
+perimeters to meet data residency and compliance requirements. The
+Enterprise tier includes Single Sign-On (SSO) integration and Role-Based
+Access Control (RBAC) for multi-team environments.
 
 % ─────────────────────────────────────────────────────────────────────────────
 \section{Technical Stack and Design Rationale}
 
 \subsection{Frontend: Next.js and React Ecosystem}
 
-The frontend is built on Next.js 16 with the App Router paradigm and
-React 19, providing server-side rendering for landing and marketing pages
-while enabling client-side hydration for the interactive dashboard
-components. TypeScript is used throughout the frontend codebase, providing
+The frontend runs on Next.js 16 with App Router and React 19, using
+server-side rendering for landing pages and client-side hydration for the
+interactive dashboard. TypeScript is used throughout, providing
 compile-time type safety across the component graph, API response types,
-and shared data models. Tailwind CSS v4 and Radix UI primitives provide
-an accessible, composable design system without the overhead of a large
-UI framework. Framer Motion is used for entrance and transition animations
-that guide user attention across dashboard state changes.
+and shared data models. Tailwind CSS v4 and Radix UI primitives give an
+accessible, composable design system without the overhead of a large UI
+framework. Framer Motion handles entrance and transition animations that
+direct user attention across dashboard state changes.
 
 \subsection{Visualization: React Flow, D3-force, and Dagre}
 
-Schema visualization is a core value differentiator of DB-Lighthouse.
-React Flow provides the canvas, node, and edge primitives necessary for
-interactive graph manipulation. D3-force applies a physics simulation to
-distribute nodes spatially according to their relationship density, producing
-layouts where highly connected tables naturally cluster together. Dagre
-provides a complementary hierarchical layout algorithm suited to schemas
-with clear parent-child ownership hierarchies. The combination allows users
-to toggle between force-directed (relationship-centric) and hierarchical
-(ownership-centric) views of the same schema.
+Schema visualization is a key feature of DB-Lighthouse. React Flow provides
+the canvas, node, and edge primitives for interactive graph manipulation.
+D3-force applies a physics simulation to spread nodes according to
+relationship density, so heavily connected tables cluster together
+naturally. Dagre provides a hierarchical layout suited to schemas with
+clear parent-child ownership. Users can toggle between force-directed
+(relationship-centric) and hierarchical (ownership-centric) views of the
+same schema.
 
 \subsection{Backend: FastAPI and Python Ecosystem}
 
-FastAPI was selected for the backend due to its native support for
-asynchronous request handling via Python's \texttt{asyncio} runtime,
-automatic OpenAPI schema generation, and Pydantic v2 integration for
-request/response validation. SQLAlchemy provides a database-agnostic
-ORM layer for shadow database operations, and \texttt{psycopg2} provides
-direct PostgreSQL driver access for catalog queries that benefit from
-raw SQL. The combination of FastAPI's asynchronous execution model with
-SQLAlchemy's connection pooling allows the backend to serve multiple
-concurrent analysis requests without resource contention.
+FastAPI was chosen for the backend because of its native async request
+handling via Python's \texttt{asyncio} runtime, automatic OpenAPI schema
+generation, and Pydantic v2 integration for request/response validation.
+SQLAlchemy provides a database-agnostic ORM layer for shadow database
+operations, and \texttt{psycopg2} provides direct PostgreSQL driver access
+for catalog queries that benefit from raw SQL. FastAPI's async model
+combined with SQLAlchemy connection pooling lets the backend handle
+concurrent analysis requests without contention.
 
 \subsection{AI Integration: Local LLM with Privacy Guarantees}
 
 The default AI backend is Jan AI, a locally-hosted inference server
-compatible with the OpenAI REST API specification. The default model is
-\texttt{mistral-ins-7b-q4}, a 4-bit quantized version of Mistral 7B
-\cite{jiang2023mistral} that operates comfortably within 8~GB of system
-RAM. The OpenAI-compatible interface layer means the platform can
-transparently fall back to cloud-hosted models (OpenAI GPT-4, Anthropic
-Claude) through a single environment variable change, without code
-modifications. The local-first AI design ensures that schema metadata
-and user queries are never transmitted to third-party servers in the
-default configuration, satisfying privacy requirements common in
+compatible with the OpenAI REST API. The default model is
+\texttt{mistral-ins-7b-q4}, a 4-bit quantized Mistral 7B
+\cite{jiang2023mistral} that runs within 8~GB of system RAM. The
+OpenAI-compatible interface means the platform can switch to cloud-hosted
+models (GPT-4, Claude) through a single environment variable, with no
+code changes. With the local-first setup, schema metadata and queries
+never leave the machine in the default configuration, which matters for
 enterprise and regulated environments.
 
-\bigskip
-\noindent\textbf{[DIAGRAM CUE — Figure 8: Architecture diagram showing
-the AI integration layer. Draw the prompt flow: user natural-language
-input $\rightarrow$ Prompt Firewall (pattern blocking, LIMIT injection)
-$\rightarrow$ schema-context injector (appends relevant DDL from shadow
-DB) $\rightarrow$ Jan AI / Mistral 7B (local) with a fallback arrow to
-OpenAI / Claude (cloud, dashed) $\rightarrow$ response parser $\rightarrow$
-frontend render. Label each stage.]}
-\bigskip
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\columnwidth]{fig8}
+    \caption{Query processing pipeline for the AI integration layer,
+    from natural-language input through safety filtering to the local
+    LLM, with a cloud model fallback path.}
+    \label{fig:ai-flow}
+\end{figure}
 
 \subsection{Authentication: Firebase}
 
-User authentication is handled by Firebase Authentication, providing
-Google OAuth and email/password sign-in flows with minimal implementation
-overhead. The Firebase SDK is integrated at the frontend layer via a
-React Context provider, making the authenticated user's identity available
-throughout the component tree. For enterprise deployments, the authentication
-layer can be replaced by SAML-based SSO providers through the RBAC
-configuration.
+User authentication uses Firebase Authentication, providing Google OAuth
+and email/password sign-in with low implementation overhead. The Firebase
+SDK integrates at the frontend through a React Context provider, exposing
+the current user's identity throughout the component tree. For enterprise
+deployments, the authentication layer can be replaced by SAML-based SSO
+providers through the RBAC configuration.
 
 % ─────────────────────────────────────────────────────────────────────────────
 \section{Evaluation}
 
 \subsection{Storage Optimization Effectiveness}
 
-To evaluate the storage optimization engine, we applied the analysis
-pipeline to four real-world PostgreSQL schemas of varying size and domain:
-a mid-scale e-commerce schema (23 tables, \(\sim\)4.2~GB estimated storage),
-a healthcare appointment scheduling schema (17 tables, \(\sim\)1.8~GB),
-a SaaS multi-tenant analytics schema (31 tables, \(\sim\)9.1~GB), and
-a logistics tracking schema (28 tables, \(\sim\)3.6~GB). All schemas were
+To evaluate the storage optimization engine, we ran the analysis pipeline
+on four real-world PostgreSQL schemas of varying size and domain: a
+mid-scale e-commerce schema (23 tables, \(\sim\)4.2~GB estimated storage),
+a healthcare appointment scheduling schema (17 tables, \(\sim\)1.8~GB), a
+SaaS multi-tenant analytics schema (31 tables, \(\sim\)9.1~GB), and a
+logistics tracking schema (28 tables, \(\sim\)3.6~GB). All schemas were
 cloned into the shadow instance with sample data for statistical analysis.
 
-\bigskip
-\noindent\textbf{[DIAGRAM CUE — Figure 9: Bar chart comparing Before and
-After estimated storage sizes (in GB) for the four test schemas after
-applying all storage optimization recommendations. Use a grouped bar chart
-with schema names on the x-axis and storage size on the y-axis. Annotate
-each pair of bars with the percentage saving.]}
-\bigskip
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\columnwidth]{fig9}
+    \caption{Estimated storage before and after optimization across four
+    test schemas.}
+    \label{fig:storage-chart}
+\end{figure}
 
-Table~\ref{tab:storage} summarizes the results. The mean storage reduction
-across all schemas was 19.4\%, achieved entirely through data type
-optimization and redundant index removal, without any loss of schema
-expressiveness.
+Table~\ref{tab:storage} shows the results. The mean storage reduction across
+all schemas was 19.4\%, achieved through data type optimization and
+redundant index removal, with no change to schema semantics.
 
 \begin{table}[htbp]
 \caption{Storage Optimization Results Across Test Schemas}
@@ -735,119 +701,110 @@ Logistics & 3.6 & 2.9 & 19.4 \\
 
 \subsection{Index Recommendation Accuracy}
 
-Index recommendations were evaluated by comparing LLM-generated
-recommendations against a baseline set of expert DBA-authored index
-suggestions for the same four schemas. A recommendation was classified
-as \emph{correct} if it identified the same column(s) and a compatible
-index type as the expert baseline. Precision was computed as:
+Index recommendations were evaluated by comparing system-generated
+suggestions against a baseline set of expert DBA-authored index choices
+for the same four schemas. A recommendation was classified as \emph{correct}
+if it identified the same column(s) and a compatible index type as the
+expert baseline. Precision was computed as:
 
 \begin{equation}
     \text{Precision} = \frac{|R_{\text{sys}} \cap R_{\text{expert}}|}{|R_{\text{sys}}|}
 \end{equation}
 
 where $R_{\text{sys}}$ is the set of system-generated recommendations and
-$R_{\text{expert}}$ is the expert baseline set. Across all schemas, the
-system achieved a mean precision of 0.81, meaning that 81\% of generated
-index suggestions aligned with expert judgment. False positives were
-predominantly composite index suggestions for queries the DBA had deprioritized
-on cost-of-write grounds, a consideration not currently modeled by the
-heuristic engine.
+$R_{\text{expert}}$ is the expert baseline. The system achieved a mean
+precision of 0.81 across all schemas: 81\% of generated suggestions
+matched expert choices. False positives were mostly composite index
+suggestions for queries the DBA had deprioritized on cost-of-write
+grounds, a consideration not currently modeled by the heuristic engine.
 
 \subsection{Query Response Latency}
 
-The end-to-end response time for a natural language query through the AI
-Q\&A interface was measured over 50 requests using the local Jan AI / Mistral
-7B backend. The mean first-token latency was 1.3~seconds on an Intel Core
+End-to-end response time for a natural language query through the AI Q\&A
+interface was measured over 50 requests using the local Jan AI / Mistral
+7B backend. Mean first-token latency was 1.3~seconds on an Intel Core
 i7-12th-generation system with 16~GB RAM and no dedicated GPU. Mean
-time-to-complete-response for queries generating 150--200 tokens was 4.8~seconds.
-These latencies are acceptable for an asynchronous analysis workflow but
-would benefit from GPU acceleration or cloud model fallback for latency-sensitive
-interactive use cases.
+time-to-complete-response for queries generating 150--200 tokens was
+4.8~seconds. These times are acceptable for an offline analysis workflow,
+though GPU acceleration or a cloud model would improve responsiveness for
+interactive use.
 
-\bigskip
-\noindent\textbf{[DIAGRAM CUE — Figure 10: Box plot of AI query response
-latency (in seconds) across the 50 test queries, separated into two groups:
-``First token latency'' and ``Complete response latency''. Show median,
-interquartile range, and outlier points.]}
-\bigskip
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=\columnwidth]{fig10}
+    \caption{Distribution of AI query response latency across 50 test
+    requests, split by first-token and complete-response time.}
+    \label{fig:latency}
+\end{figure}
 
 \subsection{User Experience}
 
-Informal usability testing was conducted with five participants drawn from
-the primary target persona (backend developers with 2--7 years of experience).
-All five participants successfully connected a test database and navigated to
-the optimization report without assistance within 5~minutes. Four of five
-participants rated the plain-English explanations as ``more useful than
-reading PostgreSQL documentation'' for understanding index recommendations.
-Three participants specifically cited the shadow database safety guarantee
-as reducing their hesitation to connect a production database.
+Informal usability testing was conducted with five participants from the
+primary target persona (backend developers with 2--7 years of experience).
+All five connected a test database and reached the optimization report
+without help within 5~minutes. Four of five rated the plain-English
+explanations as ``more useful than reading PostgreSQL documentation'' for
+understanding index recommendations. Three said the shadow database safety
+guarantee made them less hesitant to connect a production database.
 
 % ─────────────────────────────────────────────────────────────────────────────
 \section{Discussion}
 
 \subsection{Limitations}
 
-The current platform has several limitations that motivate future work.
-First, the statistical sampling approach for storage analysis uses a
-fixed sample ceiling of $N = 1000$ rows per table. For highly skewed
-distributions — such as a column whose values are predominantly short
-strings with occasional large blobs — the sample may not accurately
-represent the true column statistics. Adaptive sampling with sample size
-proportional to estimated variance would improve recommendation quality.
+The current platform has limitations worth noting. First, the statistical
+sampling approach for storage analysis uses a fixed ceiling of $N = 1000$
+rows per table. For highly skewed distributions --- such as a column whose
+values are mostly short strings with occasional large blobs --- the sample
+may not represent the true column statistics. Adaptive sampling with
+sample size proportional to estimated variance would improve recommendation
+quality.
 
-Second, the index recommendation engine relies on \texttt{pg\_stat\_statements}
-data, which requires the extension to be enabled on the source database.
-In environments where this extension is unavailable (some managed cloud
+Second, the index recommendation engine relies on
+\texttt{pg\_stat\_statements}, which must be enabled on the source
+database. Where this extension is unavailable (some managed cloud
 PostgreSQL tiers disable it by default), the heuristic engine falls back
-to schema-only analysis, producing lower-quality recommendations.
+to schema-only analysis and produces lower-quality recommendations.
 
-Third, the LLM-generated natural language explanations are not formally
-verified against query execution plans. An explanation that states a 65\%
-latency improvement is a heuristic estimate, not a measured projection.
-Integration of actual \texttt{EXPLAIN ANALYZE} execution against
-shadow-populated data would significantly improve the accuracy of these
+Third, the LLM-generated explanations are not verified against actual
+query execution plans. A stated 65\% latency improvement is a heuristic
+estimate, not a measured projection. Running actual \texttt{EXPLAIN
+ANALYZE} against shadow-populated data would improve the accuracy of these
 estimates.
 
 \subsection{Future Work}
 
-Several directions offer meaningful extensions to the current platform.
-A query replay mechanism that populates the shadow database with anonymized
-synthetic data statistically consistent with production distributions would
-enable \texttt{EXPLAIN ANALYZE} execution and validated performance
-projections. A continuous monitoring mode — where the platform periodically
-polls the source schema and surfaces delta alerts — would extend the value
-of the anomaly detection and drift detection modules from one-time audits
-to ongoing observability. Finally, extending support to additional RDBMS
-platforms (MySQL, SQLite, CockroachDB) would broaden the platform's
-addressable user base.
+Several directions could extend the platform. A query replay mechanism
+that populates the shadow database with anonymized synthetic data
+statistically consistent with production distributions would allow
+\texttt{EXPLAIN ANALYZE} execution and validated performance projections.
+A continuous monitoring mode --- periodic polling with delta alerts ---
+would turn the anomaly and drift detection modules from one-time audits
+into ongoing checks. Adding support for other RDBMS platforms (MySQL,
+SQLite, CockroachDB) would widen the platform's reach.
 
 % ─────────────────────────────────────────────────────────────────────────────
 \section{Conclusion}
 
-This paper presented DB-Lighthouse, an AI-augmented PostgreSQL schema
-analysis and optimization platform designed to make database observability
-accessible to developers of all experience levels. The platform's shadow
-database pattern provides a principled safety guarantee: the user's
-production data is never accessed, while full structural fidelity is
-preserved for analysis. Eight integrated analysis modules spanning
-storage optimization, index recommendation, anomaly detection, security,
-governance, migration validation, semantic rule enforcement, and incident
-management provide comprehensive coverage of the schema health lifecycle
-within a single cohesive interface.
+This paper described DB-Lighthouse, an AI-augmented PostgreSQL schema
+analysis platform built to make database observability usable by developers
+at any level. The shadow database pattern gives a clear safety guarantee:
+production data is never accessed, while the full schema structure is
+preserved for analysis. Eight analysis modules --- storage optimization,
+index recommendation, anomaly detection, security, governance, migration
+validation, semantic rules, and incident management --- cover the schema
+health lifecycle in one interface.
 
-The natural-language query interface, powered by a locally-hosted LLM
-with an AI safety firewall, allows non-expert stakeholders to query their
-database schema in plain English without SQL knowledge. Empirical evaluation
-across four real-world schemas demonstrated a mean storage reduction of
-19.4\% through automated data type optimization and redundant index removal,
-and an index recommendation precision of 0.81 relative to expert DBA judgment.
+The natural-language query interface, backed by a local LLM with a safety
+firewall, lets non-expert users query their schema in plain English.
+Testing on four real-world schemas showed a mean storage reduction of
+19.4\% through data type optimization and redundant index removal, and
+index recommendation precision of 0.81 against expert DBA choices.
 
-DB-Lighthouse demonstrates that the combination of classical rule-based
-heuristics, PostgreSQL catalog introspection, force-directed graph
-visualization, and locally-hosted large language models can deliver a
-database observability experience that is simultaneously powerful, safe,
-and accessible — without the cost or complexity of traditional enterprise
-DBA tooling.
+DB-Lighthouse shows that rule-based heuristics, catalog introspection,
+force-directed visualization, and a local LLM together can produce a
+database observability tool that is useful, safe, and within reach of
+small teams --- without the cost of enterprise DBA tooling.
 
 % ─────────────────────────────────────────────────────────────────────────────
 % Bibliography entries are ordered by first citation appearance in the text,
