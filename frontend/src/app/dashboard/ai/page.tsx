@@ -6,7 +6,8 @@ import {
     Play, BarChart2, Lightbulb, Shield, ChevronDown, Trash2,
     DollarSign, Leaf, Sparkles, Database, Table2, Hash, GitMerge,
     Zap, HardDrive, Tag, RefreshCw, Mic, MicOff, Volume2, VolumeX,
-    MessageCircle, CheckCircle2, AlertCircle, Wand2, Stars, Info
+    MessageCircle, CheckCircle2, AlertCircle, Wand2, Stars, Info,
+    PanelLeft, Plus, Clock, MessageSquare
 } from 'lucide-react';
 import DashboardShell from '@/components/DashboardShell';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -32,6 +33,13 @@ interface Message {
         } | null;
     } | null;
     loading_query?: boolean;
+}
+
+interface ChatSession {
+    id: string;
+    title: string;
+    messages: Message[];
+    updatedAt: number;
 }
 
 /* ─── Constants ──────────────────────────────────────────────────── */
@@ -201,7 +209,122 @@ export default function AskAIPage() {
     const [useWhisperFallback, setUseWhisperFallback] = useState(false);
     const [isTranscribing, setIsTranscribing] = useState(false);
 
+    /* Session Management State */
+    const [sessions, setSessions] = useState<ChatSession[]>([]);
+    const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
+    const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+
     const genId = () => `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
+    /* Load Sessions from LocalStorage on mount */
+    useEffect(() => {
+        try {
+            const storedSessions = localStorage.getItem('ai_chat_sessions');
+            if (storedSessions) {
+                const parsed = JSON.parse(storedSessions) as ChatSession[];
+                setSessions(parsed);
+                // Optionally load the most recent session
+                // if (parsed.length > 0) {
+                //     setActiveSessionId(parsed[0].id);
+                //     setMessages(parsed[0].messages);
+                // }
+            }
+        } catch (e) {
+            console.error('Failed to parse sessions', e);
+        }
+    }, []);
+
+    /* Auto-save current session when messages change */
+    useEffect(() => {
+        // Don't save if there are no messages and it's a new empty session
+        if (messages.length === 0) return;
+
+        setSessions(prev => {
+            let nextSessions = [...prev];
+            const activeIdx = nextSessions.findIndex(s => s.id === activeSessionId);
+            
+            if (activeIdx >= 0) {
+                // Update existing session
+                nextSessions[activeIdx] = {
+                    ...nextSessions[activeIdx],
+                    messages: messages,
+                    updatedAt: Date.now()
+                };
+            } else {
+                // Create a new session
+                const newId = genId();
+                // Find first user message for title
+                const firstUserMsg = messages.find(m => m.role === 'user');
+                let title = 'New Chat';
+                if (firstUserMsg && firstUserMsg.content) {
+                    title = firstUserMsg.content.length > 30 ? firstUserMsg.content.substring(0, 30) + '...' : firstUserMsg.content;
+                }
+                
+                const newSession: ChatSession = {
+                    id: newId,
+                    title,
+                    messages: messages,
+                    updatedAt: Date.now()
+                };
+                // Make sure to update active session asynchronously or handled gracefully
+                // To avoid React state mismatch, we just add it to the top.
+                nextSessions = [newSession, ...nextSessions];
+                // Note: we can't safely call setActiveSessionId here without risking loops,
+                // but we CAN set a ref or ignore it since the hook runs *after* render.
+                // Best practice: The action that created the first message sets the activeSessionId. 
+                // We'll mutate it directly if null.
+            }
+            
+            // Sort by recent
+            nextSessions.sort((a, b) => b.updatedAt - a.updatedAt);
+            
+            try {
+                localStorage.setItem('ai_chat_sessions', JSON.stringify(nextSessions));
+            } catch (err) {}
+            
+            return nextSessions;
+        });
+        
+    }, [messages, activeSessionId]);
+
+    // Force sync activeSessionId when auto-creating first thread
+    useEffect(() => {
+        if (!activeSessionId && sessions.length > 0 && messages.length > 0) {
+            // Find the session that perfectly matches our messages
+            const match = sessions.find(s => s.messages === messages || (s.messages.length > 0 && s.messages[0].id === messages[0].id));
+            if (match) {
+                setActiveSessionId(match.id);
+            }
+        }
+    }, [sessions, activeSessionId, messages]);
+
+    const startNewChat = () => {
+        setMessages([]);
+        setActiveSessionId(null);
+        setInput('');
+        if (window.innerWidth < 1024) setIsSidebarOpen(false); // auto-close on mobile
+    };
+
+    const loadSession = (id: string) => {
+        const session = sessions.find(s => s.id === id);
+        if (session) {
+            setMessages(session.messages);
+            setActiveSessionId(id);
+            if (window.innerWidth < 1024) setIsSidebarOpen(false);
+        }
+    };
+
+    const deleteSession = (id: string, e: React.MouseEvent) => {
+        e.stopPropagation();
+        setSessions(prev => {
+            const next = prev.filter(s => s.id !== id);
+            localStorage.setItem('ai_chat_sessions', JSON.stringify(next));
+            return next;
+        });
+        if (activeSessionId === id) {
+            startNewChat();
+        }
+    };
 
     const addMessage = (msg: Omit<Message, 'id'>) =>
         setMessages(prev => [...prev, { ...msg, id: genId() }]);
@@ -567,16 +690,136 @@ export default function AskAIPage() {
     return (
         <DashboardShell>
             <div
-                className="flex flex-col mx-3 sm:mx-5 mb-4 rounded-3xl overflow-hidden bg-gradient-to-br from-[#fdfcff] to-[#f8f5ff] dark:bg-none dark:bg-white/[0.03] border border-[#ede9fe] dark:border-white/[0.06]"
+                className="flex mx-3 sm:mx-5 mb-4 rounded-3xl overflow-hidden"
                 style={{
                     height: 'calc(100vh - 108px)',
                     boxShadow: '0 8px 48px rgba(124,58,237,0.07), 0 2px 8px rgba(0,0,0,0.04)',
                 }}
             >
+                {/* ────────── History Sidebar ────────── */}
+                <AnimatePresence initial={false}>
+                    {isSidebarOpen && (
+                        <motion.aside
+                            key="sidebar"
+                            initial={{ width: 0, opacity: 0 }}
+                            animate={{ width: 280, opacity: 1 }}
+                            exit={{ width: 0, opacity: 0 }}
+                            transition={{ duration: 0.25, ease: [0.25, 0.1, 0.25, 1] }}
+                            className="shrink-0 flex flex-col border-r overflow-hidden"
+                            style={{
+                                background: 'linear-gradient(160deg, #f5f3ff 0%, #ede9fe 100%)',
+                                borderColor: 'rgba(139,92,246,0.15)',
+                            }}
+                        >
+                            {/* Sidebar header */}
+                            <div className="shrink-0 p-4 border-b" style={{ borderColor: 'rgba(139,92,246,0.15)' }}>
+                                <div className="flex items-center gap-2 mb-3">
+                                    <div className="w-7 h-7 rounded-xl flex items-center justify-center flex-shrink-0"
+                                        style={{ background: 'linear-gradient(135deg, #7c3aed, #4f46e5)' }}>
+                                        <Wand2 size={13} color="white" />
+                                    </div>
+                                    <span className="text-[13px] font-black tracking-tight" style={{ color: '#4c1d95' }}>Lumina AI</span>
+                                </div>
+                                <button
+                                    onClick={startNewChat}
+                                    className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-[12px] font-black text-white transition-all hover:opacity-90 active:scale-95"
+                                    style={{ background: 'linear-gradient(135deg, #7c3aed, #4f46e5)', boxShadow: '0 4px 14px rgba(124,58,237,0.4)' }}
+                                >
+                                    <Plus size={13} />
+                                    New Chat
+                                </button>
+                            </div>
 
-                {/* ────────── Header ────────── */}
+                            {/* Sessions list */}
+                            <div className="flex-1 overflow-y-auto py-2 px-2 space-y-1"
+                                style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(139,92,246,0.2) transparent' }}>
+                                {sessions.length === 0 ? (
+                                    <div className="flex flex-col items-center justify-center h-full py-12 gap-3 text-center px-4">
+                                        <div className="w-12 h-12 rounded-2xl flex items-center justify-center"
+                                            style={{ background: 'rgba(139,92,246,0.1)', border: '1px solid rgba(139,92,246,0.2)' }}>
+                                            <MessageSquare size={18} color="#7c3aed" />
+                                        </div>
+                                        <p className="text-[11px] font-bold" style={{ color: 'rgba(76,29,149,0.5)' }}>Your conversations will appear here</p>
+                                    </div>
+                                ) : (
+                                    <>  
+                                        {/* Group by Today / Yesterday / Older */}
+                                        {(() => {
+                                            const now = Date.now();
+                                            const todayStart = new Date(); todayStart.setHours(0,0,0,0);
+                                            const yesterdayStart = new Date(todayStart); yesterdayStart.setDate(yesterdayStart.getDate() - 1);
+                                            
+                                            const groups: { label: string; items: ChatSession[] }[] = [
+                                                { label: 'Today', items: sessions.filter(s => s.updatedAt >= todayStart.getTime()) },
+                                                { label: 'Yesterday', items: sessions.filter(s => s.updatedAt >= yesterdayStart.getTime() && s.updatedAt < todayStart.getTime()) },
+                                                { label: 'Older', items: sessions.filter(s => s.updatedAt < yesterdayStart.getTime()) },
+                                            ].filter(g => g.items.length > 0);
+                                            
+                                            return groups.map(group => (
+                                                <div key={group.label} className="mb-2">
+                                                    <p className="text-[9px] font-black uppercase tracking-widest px-3 py-1.5 mb-0.5"
+                                                        style={{ color: 'rgba(109,40,217,0.55)' }}>{group.label}</p>
+                                                    {group.items.map(session => (
+                                                        <motion.div
+                                                            key={session.id}
+                                                            onClick={() => loadSession(session.id)}
+                                                            whileHover={{ x: 2 }}
+                                                            role="button"
+                                                            tabIndex={0}
+                                                            onKeyDown={(e) => e.key === 'Enter' && loadSession(session.id)}
+                                                            className="group w-full text-left flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-all relative cursor-pointer"
+                                                            style={{
+                                                                background: activeSessionId === session.id
+                                                                    ? 'linear-gradient(90deg, rgba(124,58,237,0.12), rgba(79,70,229,0.08))'
+                                                                    : 'transparent',
+                                                                borderLeft: activeSessionId === session.id ? '2px solid #7c3aed' : '2px solid transparent',
+                                                            }}
+                                                        >
+                                                            <MessageCircle size={12} style={{ color: activeSessionId === session.id ? '#7c3aed' : 'rgba(109,40,217,0.4)', flexShrink: 0 }} />
+                                                            <span className="flex-1 text-[12px] font-bold truncate"
+                                                                style={{ color: activeSessionId === session.id ? '#4c1d95' : 'rgba(76,29,149,0.65)' }}>
+                                                                {session.title}
+                                                            </span>
+                                                            {/* Delete button */}
+                                                            <button
+                                                                onClick={(e) => deleteSession(session.id, e)}
+                                                                className="opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0 p-1 rounded-lg hover:bg-red-500/20"
+                                                                title="Delete chat"
+                                                            >
+                                                                <Trash2 size={11} style={{ color: 'rgba(109,40,217,0.4)' }} />
+                                                            </button>
+                                                        </motion.div>
+                                                    ))}
+                                                </div>
+                                            ));
+                                        })()}
+                                    </>
+                                )}
+                            </div>
+
+                            {/* Sidebar footer */}
+                            <div className="shrink-0 px-4 py-3 border-t text-center" style={{ borderColor: 'rgba(139,92,246,0.15)' }}>
+                                <p className="text-[9px] font-bold" style={{ color: 'rgba(76,29,149,0.35)' }}>Powered by Ollama · DB-Lighthouse</p>
+                            </div>
+                        </motion.aside>
+                    )}
+                </AnimatePresence>
+
+            {/* ────────── Main Chat Panel ────────── */}
+            <div
+                className="flex flex-col flex-1 min-w-0 bg-white dark:bg-white/[0.03]"
+            >
                 <div className="shrink-0 flex items-center justify-between px-5 py-3 border-b border-violet-100/80 dark:border-white/[0.06] bg-white/70 dark:bg-white/[0.03] backdrop-blur-xl">
                     <div className="flex items-center gap-3">
+                        {/* Sidebar Toggle */}
+                        <button
+                            onClick={() => setIsSidebarOpen(o => !o)}
+                            title={isSidebarOpen ? 'Close sidebar' : 'Open history'}
+                            className="p-2 rounded-xl text-slate-400 hover:text-violet-600 hover:bg-violet-50 dark:hover:bg-violet-500/10 transition-all"
+                        >
+                            <PanelLeft size={16} />
+                        </button>
+
                         {/* Avatar */}
                         <div className="relative">
                             <div className="w-10 h-10 rounded-2xl flex items-center justify-center shadow-lg"
@@ -943,10 +1186,11 @@ export default function AskAIPage() {
                                 ? '🎤 Voice-to-text ready  ·  Always review changes before approving  ·  Powered by Ollama'
                                 : 'Always review database changes before approving  ·  Powered by Ollama'}
                         </p>
-                    </div>
-                </div>
+                    </div>{/* end max-w-3xl */}
+                </div>{/* end input bar */}
 
-            </div>
+            </div>{/* end main chat panel */}
+            </div>{/* end outer flex row */}
         </DashboardShell>
     );
 }
