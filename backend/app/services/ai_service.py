@@ -724,3 +724,13 @@ User Question: {question}"""
             logger.warning(f"AI error: {e}. Using offline fallback.")
             return f"The AI system ({self.ai_mode}) is having trouble responding: {str(e)[:100]}. Please check your model or connection."
 
+{schema_context}
+
+User Question: {question}"""
+            msgs.append({"role": "user", "content": prompt})
+
+            return await self._call_ai(msgs, max_tokens=1000)
+        except Exception as e:
+            logger.warning(f"AI error: {e}. Using offline fallback.")
+            return f"The AI system ({self.ai_mode}) is having trouble responding: {str(e)[:100]}. Please check your model or connection."
+
