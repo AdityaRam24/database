@@ -863,9 +863,73 @@
         "total_seq_scans": 53,
         "xact_rollback": 98
       }
+    },
+    {
+      "timestamp": "2026-04-12T18:23:37.792984",
+      "metrics": {
+        "queries": [],
+        "query_stats": {
+          "total_calls": 0,
+          "avg_mean_time": 0.0,
+          "max_mean_time": 0.0
+        },
+        "table_sizes": {
+          "employee": 1482752,
+          "dept_manager": 32768,
+          "department": 49152,
+          "dept_emp": 991232,
+          "title": 1474560,
+          "salary": 8650752,
+          "audit": 40960
+        },
+        "connection_count": 2,
+        "table_seq_scans": {
+          "employee": 62,
+          "audit": 42,
+          "department": 40,
+          "title": 20,
+          "dept_emp": 20,
+          "dept_manager": 20,
+          "salary": 2
+        },
+        "total_seq_scans": 206,
+        "xact_rollback": 367
+      }
+    },
+    {
+      "timestamp": "2026-04-12T18:23:37.818907",
+      "metrics": {
+        "queries": [],
+        "query_stats": {
+          "total_calls": 0,
+          "avg_mean_time": 0.0,
+          "max_mean_time": 0.0
+        },
+        "table_sizes": {
+          "employee": 1482752,
+          "dept_manager": 32768,
+          "department": 49152,
+          "dept_emp": 991232,
+          "title": 1474560,
+          "salary": 8650752,
+          "audit": 40960
+        },
+        "connection_count": 1,
+        "table_seq_scans": {
+          "employee": 62,
+          "audit": 42,
+          "department": 40,
+          "title": 20,
+          "dept_emp": 20,
+          "dept_manager": 20,
+          "salary": 2
+        },
+        "total_seq_scans": 206,
+        "xact_rollback": 373
+      }
     }
   ],
-  "last_updated": "2026-04-12T13:46:30.631904",
+  "last_updated": "2026-04-12T18:23:37.818907",
   "incident_history": [
     {
       "id": "INC-1775479611-3409",

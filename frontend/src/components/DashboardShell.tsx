@@ -127,6 +127,10 @@ export default function DashboardShell({ children }: { children: React.ReactNode
         connectionType: connectionType || (localStorage.getItem('db_type'))
       } 
     }));
+
+    if (pathname !== '/dashboard') {
+      router.push('/dashboard');
+    }
   };
 
   if (authLoading) {
