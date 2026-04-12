@@ -499,11 +499,3 @@ class DialectConverter:
                 failed.append((len(converted) - 1, raw))
 
         return converted, failed
-                                node.args["quoted"] = False
-                    converted.append(stmt.sql(dialect="postgres"))
-            except Exception as e:
-                logger.warning(f"Statement-level conversion failed, queuing for LLM repair.")
-                converted.append(None)
-                failed.append((len(converted) - 1, raw))
-
-        return converted, failed
