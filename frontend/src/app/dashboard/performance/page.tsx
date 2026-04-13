@@ -116,11 +116,23 @@ export default function PerformancePage() {
     };
 
     useEffect(() => {
-        const cs = localStorage.getItem('db_connection_string');
-        if (!cs) { router.replace('/dashboard'); return; }
-        setConnectionString(cs);
-        setMounted(true);
-        runAnalysis(cs, false);
+        const init = (cs?: string) => {
+            const connStr = cs || localStorage.getItem('db_connection_string');
+            if (!connStr) { router.replace('/dashboard'); return; }
+            setConnectionString(connStr);
+            setMounted(true);
+            runAnalysis(connStr, false);
+        };
+
+        init();
+
+        const handler = (e: any) => {
+            const cs = e?.detail?.connStr || localStorage.getItem('db_connection_string');
+            console.log('[Performance] project-changed fired, switching to:', cs);
+            if (cs) init(cs);
+        };
+        window.addEventListener('project-changed', handler);
+        return () => window.removeEventListener('project-changed', handler);
     }, []);
 
     if (!mounted) return null;

@@ -217,75 +217,46 @@ export default function AskAIPage() {
     const genId = () => `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
     /* Load Sessions from LocalStorage on mount */
-    useEffect(() => {
-        try {
-            const storedSessions = localStorage.getItem('ai_chat_sessions');
-            if (storedSessions) {
-                const parsed = JSON.parse(storedSessions) as ChatSession[];
-                setSessions(parsed);
-                // Optionally load the most recent session
-                // if (parsed.length > 0) {
-                //     setActiveSessionId(parsed[0].id);
-                //     setMessages(parsed[0].messages);
-                // }
-            }
-        } catch (e) {
-            console.error('Failed to parse sessions', e);
-        }
-    }, []);
 
-    /* Auto-save current session when messages change */
+
+    /* Auto-save current session when messages change — scoped to the active DB */
     useEffect(() => {
-        // Don't save if there are no messages and it's a new empty session
-        if (messages.length === 0) return;
+        // Only save when the user has actually sent a message (not just the welcome screen)
+        const hasUserMsg = messages.some(m => m.role === 'user');
+        if (!hasUserMsg || !connectionString) return;
+
+        const key = sessionKey(connectionString);
 
         setSessions(prev => {
             let nextSessions = [...prev];
             const activeIdx = nextSessions.findIndex(s => s.id === activeSessionId);
-            
+
             if (activeIdx >= 0) {
-                // Update existing session
                 nextSessions[activeIdx] = {
                     ...nextSessions[activeIdx],
                     messages: messages,
                     updatedAt: Date.now()
                 };
             } else {
-                // Create a new session
                 const newId = genId();
-                // Find first user message for title
                 const firstUserMsg = messages.find(m => m.role === 'user');
                 let title = 'New Chat';
                 if (firstUserMsg && firstUserMsg.content) {
                     title = firstUserMsg.content.length > 30 ? firstUserMsg.content.substring(0, 30) + '...' : firstUserMsg.content;
                 }
-                
-                const newSession: ChatSession = {
-                    id: newId,
-                    title,
-                    messages: messages,
-                    updatedAt: Date.now()
-                };
-                // Make sure to update active session asynchronously or handled gracefully
-                // To avoid React state mismatch, we just add it to the top.
+                const newSession: ChatSession = { id: newId, title, messages, updatedAt: Date.now() };
                 nextSessions = [newSession, ...nextSessions];
-                // Note: we can't safely call setActiveSessionId here without risking loops,
-                // but we CAN set a ref or ignore it since the hook runs *after* render.
-                // Best practice: The action that created the first message sets the activeSessionId. 
-                // We'll mutate it directly if null.
             }
-            
-            // Sort by recent
+
             nextSessions.sort((a, b) => b.updatedAt - a.updatedAt);
-            
+
             try {
-                localStorage.setItem('ai_chat_sessions', JSON.stringify(nextSessions));
+                localStorage.setItem(key, JSON.stringify(nextSessions));
             } catch (err) {}
-            
+
             return nextSessions;
         });
-        
-    }, [messages, activeSessionId]);
+    }, [messages, activeSessionId, connectionString]);
 
     // Force sync activeSessionId when auto-creating first thread
     useEffect(() => {
@@ -318,7 +289,9 @@ export default function AskAIPage() {
         e.stopPropagation();
         setSessions(prev => {
             const next = prev.filter(s => s.id !== id);
-            localStorage.setItem('ai_chat_sessions', JSON.stringify(next));
+            if (connectionString) {
+                localStorage.setItem(sessionKey(connectionString), JSON.stringify(next));
+            }
             return next;
         });
         if (activeSessionId === id) {
@@ -337,6 +310,9 @@ export default function AskAIPage() {
     /* Init connection and Semantic Rules */
     const [semanticRules, setSemanticRules] = useState('');
 
+    /* Helper to derive a safe localStorage key from a connection string */
+    const sessionKey = (cs: string) => `ai_chat_sessions_${btoa(cs).replace(/=/g, '')}`;
+
     useEffect(() => {
         const fetchRules = async () => {
             let localRules: any[] = [];
@@ -349,10 +325,7 @@ export default function AskAIPage() {
                 const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/semantic/rules`);
                 const data = await res.json();
                 const combined = [...localRules, ...(data.rules || [])];
-                
-                // Deduplicate by name
                 const uniqueRules = Array.from(new Map(combined.map(r => [r.name, r])).values());
-                
                 if (uniqueRules.length > 0) {
                     const rulesStr = uniqueRules.map((r: any) => `TERM: "${r.name}" -> DEFINITION: ${r.definition}`).join('\n');
                     setSemanticRules(`\n\nCRITICAL DOMAIN KNOWLEDGE (USE THESE DEFINITIONS):\n${rulesStr}`);
@@ -365,10 +338,31 @@ export default function AskAIPage() {
             }
         };
         fetchRules();
-        
+
+        const initForDB = (cs: string) => {
+            setConnectionString(cs);
+            // Load sessions scoped to this specific DB
+            try {
+                const key = sessionKey(cs);
+                const stored = localStorage.getItem(key);
+                const parsed = stored ? (JSON.parse(stored) as ChatSession[]) : [];
+                setSessions(parsed);
+            } catch (e) {
+                setSessions([]);
+            }
+            // Reset chat window for the new DB
+            setMessages([]);
+            setActiveSessionId(null);
+        };
+
         const cs = localStorage.getItem('db_connection_string') || '';
-        setConnectionString(cs);
-        const handler = () => setConnectionString(localStorage.getItem('db_connection_string') || '');
+        if (cs) initForDB(cs);
+
+        const handler = (e: any) => {
+            const newCs = e?.detail?.connStr || localStorage.getItem('db_connection_string') || '';
+            console.log('[Ask AI] project-changed fired, switching to:', newCs);
+            if (newCs) initForDB(newCs);
+        };
         window.addEventListener('project-changed', handler);
         return () => window.removeEventListener('project-changed', handler);
     }, []);
@@ -385,12 +379,7 @@ export default function AskAIPage() {
     }, []);
 
 
-    useEffect(() => {
-        const s = sessionStorage.getItem("ai_input"); if(s) setInput(s);
-        const m = sessionStorage.getItem("ai_messages"); if(m) try { const parsed = JSON.parse(m); if(parsed.length) setMessages(parsed); } catch {}
-    }, []);
-    useEffect(() => { sessionStorage.setItem("ai_input", input); }, [input]);
-    useEffect(() => { if(messages.length) sessionStorage.setItem("ai_messages", JSON.stringify(messages)); else sessionStorage.removeItem("ai_messages"); }, [messages]);
+
 
     /* Welcome message */
     useEffect(() => {

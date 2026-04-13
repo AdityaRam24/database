@@ -37,6 +37,15 @@ export default function SemanticLayerPage() {
         setConnectionString(cs);
         setMounted(true);
         loadRules();
+
+        const handler = (e: any) => {
+            const newCs = e?.detail?.connStr || localStorage.getItem('db_connection_string');
+            console.log('[Knowledge] project-changed fired, switching to:', newCs);
+            setConnectionString(newCs);
+            loadRules();
+        };
+        window.addEventListener('project-changed', handler);
+        return () => window.removeEventListener('project-changed', handler);
     }, []);
 
     const loadRules = async () => {

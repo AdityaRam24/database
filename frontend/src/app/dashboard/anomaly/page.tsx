@@ -180,11 +180,25 @@ export default function AnomalyPage() {
     const API = process.env.NEXT_PUBLIC_API_URL;
 
     useEffect(() => {
+        const init = (cs: string) => {
+            setConnectionString(cs);
+            setMounted(true);
+            setAnomalyResult(null);
+            setHistory(null);
+            doDetect(cs);
+        };
+
         const cs = localStorage.getItem('db_connection_string');
         if (!cs) { router.replace('/dashboard'); return; }
-        setConnectionString(cs);
-        setMounted(true);
-        doDetect(cs);
+        init(cs);
+
+        const handler = (e: any) => {
+            const newCs = e?.detail?.connStr || localStorage.getItem('db_connection_string');
+            console.log('[Vitals] project-changed fired, switching to:', newCs);
+            if (newCs) init(newCs);
+        };
+        window.addEventListener('project-changed', handler);
+        return () => window.removeEventListener('project-changed', handler);
     }, []);
 
     const doCollect = async (cs: string) => {
