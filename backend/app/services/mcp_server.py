@@ -14,23 +14,32 @@ from sqlalchemy.pool import NullPool
 logger = logging.getLogger(__name__)
 
 DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "data")
-SEMANTIC_RULES_FILE = os.path.join(DATA_DIR, "semantic_rules.json")
+import base64
 
+def _get_semantic_file(conn_str: str = None) -> str:
+    """Return a unique file path for semantic rules per database connection."""
+    if not conn_str:
+        return os.path.join(DATA_DIR, "semantic_rules.json")
+    # Clean the connection string of passwords/sensitive info ideally, but for now hash it safely
+    b64 = base64.urlsafe_b64encode(conn_str.encode()).decode().rstrip("=")
+    return os.path.join(DATA_DIR, f"semantic_rules_{b64}.json")
 
-def load_semantic_rules() -> List[Dict]:
+def load_semantic_rules(conn_str: str = None) -> List[Dict]:
     os.makedirs(DATA_DIR, exist_ok=True)
-    if os.path.exists(SEMANTIC_RULES_FILE):
+    file_path = _get_semantic_file(conn_str)
+    if os.path.exists(file_path):
         try:
-            with open(SEMANTIC_RULES_FILE, "r") as f:
+            with open(file_path, "r") as f:
                 return json.load(f)
         except (json.JSONDecodeError, IOError):
             pass
     return []
 
 
-def save_semantic_rules(rules: List[Dict]):
+def save_semantic_rules(rules: List[Dict], conn_str: str = None):
     os.makedirs(DATA_DIR, exist_ok=True)
-    with open(SEMANTIC_RULES_FILE, "w") as f:
+    file_path = _get_semantic_file(conn_str)
+    with open(file_path, "w") as f:
         json.dump(rules, f, indent=2)
 
 

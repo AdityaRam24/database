@@ -1,10 +1,10 @@
 {
   "snapshots": [
     {
-      "timestamp": "2026-04-02T17:11:53.430400",
+      "timestamp": "2026-04-13T17:52:49.596372",
       "metrics": {
         "table_sizes": {
-          "artist": 57344,
+          "artist": 90112,
           "album": 81920,
           "employee": 40960,
           "customer": 73728,
@@ -12,79 +12,79 @@
           "invoiceline": 344064,
           "track": 663552,
           "playlist": 24576,
-          "playlisttrack": 958464,
+          "playlisttrack": 876544,
           "genre": 24576,
           "mediatype": 24576
         },
-        "total_size": 2416640,
-        "connection_count": 2,
+        "total_size": 2367488,
+        "connection_count": 1,
         "active_queries": 0,
         "table_latency": {
-          "employee": {
-            "seq_scans": 259,
-            "total_rows_read": 259,
-            "avg_rows_per_scan": 1.0
-          },
-          "customer": {
-            "seq_scans": 259,
-            "total_rows_read": 259,
-            "avg_rows_per_scan": 1.0
-          },
-          "invoice": {
-            "seq_scans": 148,
-            "total_rows_read": 148,
-            "avg_rows_per_scan": 1.0
+          "playlisttrack": {
+            "seq_scans": 6,
+            "total_rows_read": 8815,
+            "avg_rows_per_scan": 1469.0
           },
           "track": {
-            "seq_scans": 74,
-            "total_rows_read": 74,
+            "seq_scans": 420,
+            "total_rows_read": 7714,
+            "avg_rows_per_scan": 18.0
+          },
+          "artist": {
+            "seq_scans": 232,
+            "total_rows_read": 3954,
+            "avg_rows_per_scan": 17.0
+          },
+          "album": {
+            "seq_scans": 231,
+            "total_rows_read": 3345,
+            "avg_rows_per_scan": 14.0
+          },
+          "customer": {
+            "seq_scans": 1465,
+            "total_rows_read": 3171,
+            "avg_rows_per_scan": 2.0
+          },
+          "invoiceline": {
+            "seq_scans": 7,
+            "total_rows_read": 2340,
+            "avg_rows_per_scan": 334.0
+          },
+          "invoice": {
+            "seq_scans": 823,
+            "total_rows_read": 2152,
+            "avg_rows_per_scan": 2.0
+          },
+          "employee": {
+            "seq_scans": 1443,
+            "total_rows_read": 1524,
             "avg_rows_per_scan": 1.0
           },
           "genre": {
-            "seq_scans": 37,
-            "total_rows_read": 37,
-            "avg_rows_per_scan": 1.0
-          },
-          "artist": {
-            "seq_scans": 37,
-            "total_rows_read": 37,
-            "avg_rows_per_scan": 1.0
-          },
-          "mediatype": {
-            "seq_scans": 37,
-            "total_rows_read": 37,
-            "avg_rows_per_scan": 1.0
-          },
-          "album": {
-            "seq_scans": 37,
-            "total_rows_read": 37,
+            "seq_scans": 207,
+            "total_rows_read": 254,
             "avg_rows_per_scan": 1.0
           },
           "playlist": {
-            "seq_scans": 37,
-            "total_rows_read": 37,
+            "seq_scans": 207,
+            "total_rows_read": 240,
             "avg_rows_per_scan": 1.0
           },
-          "invoiceline": {
-            "seq_scans": 0,
-            "total_rows_read": 0,
-            "avg_rows_per_scan": 0.0
-          },
-          "playlisttrack": {
-            "seq_scans": 0,
-            "total_rows_read": 0,
-            "avg_rows_per_scan": 0.0
+          "mediatype": {
+            "seq_scans": 208,
+            "total_rows_read": 219,
+            "avg_rows_per_scan": 1.0
           }
         },
-        "total_seq_scans": 925,
-        "cache_hit_ratio": 0.9885367498314228
+        "total_seq_scans": 5249,
+        "cache_hit_ratio": 0.9991347413700752
       }
     },
     {
-      "timestamp": "2026-04-02T17:12:02.308243",
+      "timestamp": "2026-04-13T17:53:01.379579",
       "metrics": {
         "table_sizes": {
-          "artist": 57344,
+          "artist": 90112,
           "album": 81920,
           "employee": 40960,
           "customer": 73728,
@@ -92,79 +92,79 @@
           "invoiceline": 344064,
           "track": 663552,
           "playlist": 24576,
-          "playlisttrack": 958464,
+          "playlisttrack": 876544,
           "genre": 24576,
           "mediatype": 24576
         },
-        "total_size": 2416640,
-        "connection_count": 2,
+        "total_size": 2367488,
+        "connection_count": 1,
         "active_queries": 0,
         "table_latency": {
-          "employee": {
-            "seq_scans": 259,
-            "total_rows_read": 259,
-            "avg_rows_per_scan": 1.0
-          },
-          "customer": {
-            "seq_scans": 259,
-            "total_rows_read": 259,
-            "avg_rows_per_scan": 1.0
-          },
-          "invoice": {
-            "seq_scans": 148,
-            "total_rows_read": 148,
-            "avg_rows_per_scan": 1.0
+          "playlisttrack": {
+            "seq_scans": 6,
+            "total_rows_read": 8815,
+            "avg_rows_per_scan": 1469.0
           },
           "track": {
-            "seq_scans": 74,
-            "total_rows_read": 74,
+            "seq_scans": 420,
+            "total_rows_read": 7714,
+            "avg_rows_per_scan": 18.0
+          },
+          "artist": {
+            "seq_scans": 232,
+            "total_rows_read": 3954,
+            "avg_rows_per_scan": 17.0
+          },
+          "album": {
+            "seq_scans": 231,
+            "total_rows_read": 3345,
+            "avg_rows_per_scan": 14.0
+          },
+          "customer": {
+            "seq_scans": 1465,
+            "total_rows_read": 3171,
+            "avg_rows_per_scan": 2.0
+          },
+          "invoiceline": {
+            "seq_scans": 7,
+            "total_rows_read": 2340,
+            "avg_rows_per_scan": 334.0
+          },
+          "invoice": {
+            "seq_scans": 823,
+            "total_rows_read": 2152,
+            "avg_rows_per_scan": 2.0
+          },
+          "employee": {
+            "seq_scans": 1443,
+            "total_rows_read": 1524,
             "avg_rows_per_scan": 1.0
           },
           "genre": {
-            "seq_scans": 37,
-            "total_rows_read": 37,
-            "avg_rows_per_scan": 1.0
-          },
-          "artist": {
-            "seq_scans": 37,
-            "total_rows_read": 37,
-            "avg_rows_per_scan": 1.0
-          },
-          "mediatype": {
-            "seq_scans": 37,
-            "total_rows_read": 37,
-            "avg_rows_per_scan": 1.0
-          },
-          "album": {
-            "seq_scans": 37,
-            "total_rows_read": 37,
+            "seq_scans": 207,
+            "total_rows_read": 254,
             "avg_rows_per_scan": 1.0
           },
           "playlist": {
-            "seq_scans": 37,
-            "total_rows_read": 37,
+            "seq_scans": 207,
+            "total_rows_read": 240,
             "avg_rows_per_scan": 1.0
           },
-          "invoiceline": {
-            "seq_scans": 0,
-            "total_rows_read": 0,
-            "avg_rows_per_scan": 0.0
-          },
-          "playlisttrack": {
-            "seq_scans": 0,
-            "total_rows_read": 0,
-            "avg_rows_per_scan": 0.0
+          "mediatype": {
+            "seq_scans": 208,
+            "total_rows_read": 219,
+            "avg_rows_per_scan": 1.0
           }
         },
-        "total_seq_scans": 925,
-        "cache_hit_ratio": 0.9885367498314228
+        "total_seq_scans": 5249,
+        "cache_hit_ratio": 0.9991347413700752
       }
     },
     {
-      "timestamp": "2026-04-02T17:12:05.750726",
+      "timestamp": "2026-04-13T17:53:02.371722",
       "metrics": {
         "table_sizes": {
-          "artist": 57344,
+          "artist": 90112,
           "album": 81920,
           "employee": 40960,
           "customer": 73728,
@@ -172,79 +172,79 @@
           "invoiceline": 344064,
           "track": 663552,
           "playlist": 24576,
-          "playlisttrack": 958464,
+          "playlisttrack": 876544,
           "genre": 24576,
           "mediatype": 24576
         },
-        "total_size": 2416640,
-        "connection_count": 2,
+        "total_size": 2367488,
+        "connection_count": 1,
         "active_queries": 0,
         "table_latency": {
-          "employee": {
-            "seq_scans": 259,
-            "total_rows_read": 259,
-            "avg_rows_per_scan": 1.0
-          },
-          "customer": {
-            "seq_scans": 259,
-            "total_rows_read": 259,
-            "avg_rows_per_scan": 1.0
-          },
-          "invoice": {
-            "seq_scans": 148,
-            "total_rows_read": 148,
-            "avg_rows_per_scan": 1.0
+          "playlisttrack": {
+            "seq_scans": 6,
+            "total_rows_read": 8815,
+            "avg_rows_per_scan": 1469.0
           },
           "track": {
-            "seq_scans": 74,
-            "total_rows_read": 74,
+            "seq_scans": 420,
+            "total_rows_read": 7714,
+            "avg_rows_per_scan": 18.0
+          },
+          "artist": {
+            "seq_scans": 232,
+            "total_rows_read": 3954,
+            "avg_rows_per_scan": 17.0
+          },
+          "album": {
+            "seq_scans": 231,
+            "total_rows_read": 3345,
+            "avg_rows_per_scan": 14.0
+          },
+          "customer": {
+            "seq_scans": 1465,
+            "total_rows_read": 3171,
+            "avg_rows_per_scan": 2.0
+          },
+          "invoiceline": {
+            "seq_scans": 7,
+            "total_rows_read": 2340,
+            "avg_rows_per_scan": 334.0
+          },
+          "invoice": {
+            "seq_scans": 823,
+            "total_rows_read": 2152,
+            "avg_rows_per_scan": 2.0
+          },
+          "employee": {
+            "seq_scans": 1443,
+            "total_rows_read": 1524,
             "avg_rows_per_scan": 1.0
           },
           "genre": {
-            "seq_scans": 37,
-            "total_rows_read": 37,
-            "avg_rows_per_scan": 1.0
-          },
-          "artist": {
-            "seq_scans": 37,
-            "total_rows_read": 37,
-            "avg_rows_per_scan": 1.0
-          },
-          "mediatype": {
-            "seq_scans": 37,
-            "total_rows_read": 37,
-            "avg_rows_per_scan": 1.0
-          },
-          "album": {
-            "seq_scans": 37,
-            "total_rows_read": 37,
+            "seq_scans": 207,
+            "total_rows_read": 254,
             "avg_rows_per_scan": 1.0
           },
           "playlist": {
-            "seq_scans": 37,
-            "total_rows_read": 37,
+            "seq_scans": 207,
+            "total_rows_read": 240,
             "avg_rows_per_scan": 1.0
           },
-          "invoiceline": {
-            "seq_scans": 0,
-            "total_rows_read": 0,
-            "avg_rows_per_scan": 0.0
-          },
-          "playlisttrack": {
-            "seq_scans": 0,
-            "total_rows_read": 0,
-            "avg_rows_per_scan": 0.0
+          "mediatype": {
+            "seq_scans": 208,
+            "total_rows_read": 219,
+            "avg_rows_per_scan": 1.0
           }
         },
-        "total_seq_scans": 925,
-        "cache_hit_ratio": 0.9885367498314228
+        "total_seq_scans": 5249,
+        "cache_hit_ratio": 0.9991347413700752
       }
     },
     {
-      "timestamp": "2026-04-02T17:12:34.836635",
+      "timestamp": "2026-04-13T17:53:03.467650",
       "metrics": {
         "table_sizes": {
-          "artist": 57344,
+          "artist": 90112,
           "album": 81920,
           "employee": 40960,
           "customer": 73728,
@@ -252,79 +252,79 @@
           "invoiceline": 344064,
           "track": 663552,
           "playlist": 24576,
-          "playlisttrack": 958464,
+          "playlisttrack": 876544,
           "genre": 24576,
           "mediatype": 24576
         },
-        "total_size": 2416640,
-        "connection_count": 2,
+        "total_size": 2367488,
+        "connection_count": 1,
         "active_queries": 0,
         "table_latency": {
-          "employee": {
-            "seq_scans": 259,
-            "total_rows_read": 259,
-            "avg_rows_per_scan": 1.0
-          },
-          "customer": {
-            "seq_scans": 259,
-            "total_rows_read": 259,
-            "avg_rows_per_scan": 1.0
-          },
-          "invoice": {
-            "seq_scans": 148,
-            "total_rows_read": 148,
-            "avg_rows_per_scan": 1.0
+          "playlisttrack": {
+            "seq_scans": 6,
+            "total_rows_read": 8815,
+            "avg_rows_per_scan": 1469.0
           },
           "track": {
-            "seq_scans": 74,
-            "total_rows_read": 74,
+            "seq_scans": 420,
+            "total_rows_read": 7714,
+            "avg_rows_per_scan": 18.0
+          },
+          "artist": {
+            "seq_scans": 232,
+            "total_rows_read": 3954,
+            "avg_rows_per_scan": 17.0
+          },
+          "album": {
+            "seq_scans": 231,
+            "total_rows_read": 3345,
+            "avg_rows_per_scan": 14.0
+          },
+          "customer": {
+            "seq_scans": 1465,
+            "total_rows_read": 3171,
+            "avg_rows_per_scan": 2.0
+          },
+          "invoiceline": {
+            "seq_scans": 7,
+            "total_rows_read": 2340,
+            "avg_rows_per_scan": 334.0
+          },
+          "invoice": {
+            "seq_scans": 823,
+            "total_rows_read": 2152,
+            "avg_rows_per_scan": 2.0
+          },
+          "employee": {
+            "seq_scans": 1443,
+            "total_rows_read": 1524,
             "avg_rows_per_scan": 1.0
           },
           "genre": {
-            "seq_scans": 37,
-            "total_rows_read": 37,
-            "avg_rows_per_scan": 1.0
-          },
-          "artist": {
-            "seq_scans": 37,
-            "total_rows_read": 37,
-            "avg_rows_per_scan": 1.0
-          },
-          "mediatype": {
-            "seq_scans": 37,
-            "total_rows_read": 37,
-            "avg_rows_per_scan": 1.0
-          },
-          "album": {
-            "seq_scans": 37,
-            "total_rows_read": 37,
+            "seq_scans": 207,
+            "total_rows_read": 254,
             "avg_rows_per_scan": 1.0
           },
           "playlist": {
-            "seq_scans": 37,
-            "total_rows_read": 37,
+            "seq_scans": 207,
+            "total_rows_read": 240,
             "avg_rows_per_scan": 1.0
           },
-          "invoiceline": {
-            "seq_scans": 0,
-            "total_rows_read": 0,
-            "avg_rows_per_scan": 0.0
-          },
-          "playlisttrack": {
-            "seq_scans": 0,
-            "total_rows_read": 0,
-            "avg_rows_per_scan": 0.0
+          "mediatype": {
+            "seq_scans": 208,
+            "total_rows_read": 219,
+            "avg_rows_per_scan": 1.0
           }
         },
-        "total_seq_scans": 925,
-        "cache_hit_ratio": 0.9885367498314228
+        "total_seq_scans": 5249,
+        "cache_hit_ratio": 0.9991347413700752
       }
     },
     {
-      "timestamp": "2026-04-02T17:12:55.206851",
+      "timestamp": "2026-04-13T17:53:04.225479",
       "metrics": {
         "table_sizes": {
-          "artist": 57344,
+          "artist": 90112,
           "album": 81920,
           "employee": 40960,
           "customer": 73728,
@@ -332,74 +332,474 @@
           "invoiceline": 344064,
           "track": 663552,
           "playlist": 24576,
-          "playlisttrack": 958464,
+          "playlisttrack": 876544,
           "genre": 24576,
           "mediatype": 24576
         },
-        "total_size": 2416640,
-        "connection_count": 2,
+        "total_size": 2367488,
+        "connection_count": 1,
         "active_queries": 0,
         "table_latency": {
-          "employee": {
-            "seq_scans": 56,
-            "total_rows_read": 56,
-            "avg_rows_per_scan": 1.0
-          },
-          "customer": {
-            "seq_scans": 56,
-            "total_rows_read": 56,
-            "avg_rows_per_scan": 1.0
-          },
-          "invoice": {
-            "seq_scans": 32,
-            "total_rows_read": 32,
-            "avg_rows_per_scan": 1.0
+          "playlisttrack": {
+            "seq_scans": 6,
+            "total_rows_read": 8815,
+            "avg_rows_per_scan": 1469.0
           },
           "track": {
-            "seq_scans": 16,
-            "total_rows_read": 16,
-            "avg_rows_per_scan": 1.0
-          },
-          "mediatype": {
-            "seq_scans": 8,
-            "total_rows_read": 8,
-            "avg_rows_per_scan": 1.0
-          },
-          "playlist": {
-            "seq_scans": 8,
-            "total_rows_read": 8,
-            "avg_rows_per_scan": 1.0
-          },
-          "album": {
-            "seq_scans": 8,
-            "total_rows_read": 8,
-            "avg_rows_per_scan": 1.0
+            "seq_scans": 420,
+            "total_rows_read": 7714,
+            "avg_rows_per_scan": 18.0
           },
           "artist": {
-            "seq_scans": 8,
-            "total_rows_read": 8,
+            "seq_scans": 232,
+            "total_rows_read": 3954,
+            "avg_rows_per_scan": 17.0
+          },
+          "album": {
+            "seq_scans": 231,
+            "total_rows_read": 3345,
+            "avg_rows_per_scan": 14.0
+          },
+          "customer": {
+            "seq_scans": 1465,
+            "total_rows_read": 3171,
+            "avg_rows_per_scan": 2.0
+          },
+          "invoiceline": {
+            "seq_scans": 7,
+            "total_rows_read": 2340,
+            "avg_rows_per_scan": 334.0
+          },
+          "invoice": {
+            "seq_scans": 823,
+            "total_rows_read": 2152,
+            "avg_rows_per_scan": 2.0
+          },
+          "employee": {
+            "seq_scans": 1443,
+            "total_rows_read": 1524,
             "avg_rows_per_scan": 1.0
           },
           "genre": {
-            "seq_scans": 8,
-            "total_rows_read": 8,
+            "seq_scans": 207,
+            "total_rows_read": 254,
             "avg_rows_per_scan": 1.0
           },
-          "invoiceline": {
-            "seq_scans": 0,
-            "total_rows_read": 0,
-            "avg_rows_per_scan": 0.0
+          "playlist": {
+            "seq_scans": 207,
+            "total_rows_read": 240,
+            "avg_rows_per_scan": 1.0
           },
-          "playlisttrack": {
-            "seq_scans": 0,
-            "total_rows_read": 0,
-            "avg_rows_per_scan": 0.0
+          "mediatype": {
+            "seq_scans": 208,
+            "total_rows_read": 219,
+            "avg_rows_per_scan": 1.0
           }
         },
-        "total_seq_scans": 200,
-        "cache_hit_ratio": 0.9473684210526315
+        "total_seq_scans": 5249,
+        "cache_hit_ratio": 0.9991347413700752
+      }
+    },
+    {
+      "timestamp": "2026-04-13T17:53:05.138868",
+      "metrics": {
+        "table_sizes": {
+          "artist": 90112,
+          "album": 81920,
+          "employee": 40960,
+          "customer": 73728,
+          "invoice": 122880,
+          "invoiceline": 344064,
+          "track": 663552,
+          "playlist": 24576,
+          "playlisttrack": 876544,
+          "genre": 24576,
+          "mediatype": 24576
+        },
+        "total_size": 2367488,
+        "connection_count": 1,
+        "active_queries": 0,
+        "table_latency": {
+          "playlisttrack": {
+            "seq_scans": 6,
+            "total_rows_read": 8815,
+            "avg_rows_per_scan": 1469.0
+          },
+          "track": {
+            "seq_scans": 420,
+            "total_rows_read": 7714,
+            "avg_rows_per_scan": 18.0
+          },
+          "artist": {
+            "seq_scans": 232,
+            "total_rows_read": 3954,
+            "avg_rows_per_scan": 17.0
+          },
+          "album": {
+            "seq_scans": 231,
+            "total_rows_read": 3345,
+            "avg_rows_per_scan": 14.0
+          },
+          "customer": {
+            "seq_scans": 1465,
+            "total_rows_read": 3171,
+            "avg_rows_per_scan": 2.0
+          },
+          "invoiceline": {
+            "seq_scans": 7,
+            "total_rows_read": 2340,
+            "avg_rows_per_scan": 334.0
+          },
+          "invoice": {
+            "seq_scans": 823,
+            "total_rows_read": 2152,
+            "avg_rows_per_scan": 2.0
+          },
+          "employee": {
+            "seq_scans": 1443,
+            "total_rows_read": 1524,
+            "avg_rows_per_scan": 1.0
+          },
+          "genre": {
+            "seq_scans": 207,
+            "total_rows_read": 254,
+            "avg_rows_per_scan": 1.0
+          },
+          "playlist": {
+            "seq_scans": 207,
+            "total_rows_read": 240,
+            "avg_rows_per_scan": 1.0
+          },
+          "mediatype": {
+            "seq_scans": 208,
+            "total_rows_read": 219,
+            "avg_rows_per_scan": 1.0
+          }
+        },
+        "total_seq_scans": 5249,
+        "cache_hit_ratio": 0.9991347413700752
+      }
+    },
+    {
+      "timestamp": "2026-04-13T17:53:06.679576",
+      "metrics": {
+        "table_sizes": {
+          "artist": 90112,
+          "album": 81920,
+          "employee": 40960,
+          "customer": 73728,
+          "invoice": 122880,
+          "invoiceline": 344064,
+          "track": 663552,
+          "playlist": 24576,
+          "playlisttrack": 876544,
+          "genre": 24576,
+          "mediatype": 24576
+        },
+        "total_size": 2367488,
+        "connection_count": 1,
+        "active_queries": 0,
+        "table_latency": {
+          "playlisttrack": {
+            "seq_scans": 6,
+            "total_rows_read": 8815,
+            "avg_rows_per_scan": 1469.0
+          },
+          "track": {
+            "seq_scans": 420,
+            "total_rows_read": 7714,
+            "avg_rows_per_scan": 18.0
+          },
+          "artist": {
+            "seq_scans": 232,
+            "total_rows_read": 3954,
+            "avg_rows_per_scan": 17.0
+          },
+          "album": {
+            "seq_scans": 231,
+            "total_rows_read": 3345,
+            "avg_rows_per_scan": 14.0
+          },
+          "customer": {
+            "seq_scans": 1465,
+            "total_rows_read": 3171,
+            "avg_rows_per_scan": 2.0
+          },
+          "invoiceline": {
+            "seq_scans": 7,
+            "total_rows_read": 2340,
+            "avg_rows_per_scan": 334.0
+          },
+          "invoice": {
+            "seq_scans": 823,
+            "total_rows_read": 2152,
+            "avg_rows_per_scan": 2.0
+          },
+          "employee": {
+            "seq_scans": 1443,
+            "total_rows_read": 1524,
+            "avg_rows_per_scan": 1.0
+          },
+          "genre": {
+            "seq_scans": 207,
+            "total_rows_read": 254,
+            "avg_rows_per_scan": 1.0
+          },
+          "playlist": {
+            "seq_scans": 207,
+            "total_rows_read": 240,
+            "avg_rows_per_scan": 1.0
+          },
+          "mediatype": {
+            "seq_scans": 208,
+            "total_rows_read": 219,
+            "avg_rows_per_scan": 1.0
+          }
+        },
+        "total_seq_scans": 5249,
+        "cache_hit_ratio": 0.9991347413700752
+      }
+    },
+    {
+      "timestamp": "2026-04-13T17:53:08.513120",
+      "metrics": {
+        "table_sizes": {
+          "artist": 90112,
+          "album": 81920,
+          "employee": 40960,
+          "customer": 73728,
+          "invoice": 122880,
+          "invoiceline": 344064,
+          "track": 663552,
+          "playlist": 24576,
+          "playlisttrack": 876544,
+          "genre": 24576,
+          "mediatype": 24576
+        },
+        "total_size": 2367488,
+        "connection_count": 1,
+        "active_queries": 0,
+        "table_latency": {
+          "playlisttrack": {
+            "seq_scans": 6,
+            "total_rows_read": 8815,
+            "avg_rows_per_scan": 1469.0
+          },
+          "track": {
+            "seq_scans": 420,
+            "total_rows_read": 7714,
+            "avg_rows_per_scan": 18.0
+          },
+          "artist": {
+            "seq_scans": 232,
+            "total_rows_read": 3954,
+            "avg_rows_per_scan": 17.0
+          },
+          "album": {
+            "seq_scans": 231,
+            "total_rows_read": 3345,
+            "avg_rows_per_scan": 14.0
+          },
+          "customer": {
+            "seq_scans": 1465,
+            "total_rows_read": 3171,
+            "avg_rows_per_scan": 2.0
+          },
+          "invoiceline": {
+            "seq_scans": 7,
+            "total_rows_read": 2340,
+            "avg_rows_per_scan": 334.0
+          },
+          "invoice": {
+            "seq_scans": 823,
+            "total_rows_read": 2152,
+            "avg_rows_per_scan": 2.0
+          },
+          "employee": {
+            "seq_scans": 1443,
+            "total_rows_read": 1524,
+            "avg_rows_per_scan": 1.0
+          },
+          "genre": {
+            "seq_scans": 207,
+            "total_rows_read": 254,
+            "avg_rows_per_scan": 1.0
+          },
+          "playlist": {
+            "seq_scans": 207,
+            "total_rows_read": 240,
+            "avg_rows_per_scan": 1.0
+          },
+          "mediatype": {
+            "seq_scans": 208,
+            "total_rows_read": 219,
+            "avg_rows_per_scan": 1.0
+          }
+        },
+        "total_seq_scans": 5249,
+        "cache_hit_ratio": 0.9991347413700752
+      }
+    },
+    {
+      "timestamp": "2026-04-13T17:53:08.942017",
+      "metrics": {
+        "table_sizes": {
+          "artist": 90112,
+          "album": 81920,
+          "employee": 40960,
+          "customer": 73728,
+          "invoice": 122880,
+          "invoiceline": 344064,
+          "track": 663552,
+          "playlist": 24576,
+          "playlisttrack": 876544,
+          "genre": 24576,
+          "mediatype": 24576
+        },
+        "total_size": 2367488,
+        "connection_count": 1,
+        "active_queries": 0,
+        "table_latency": {
+          "playlisttrack": {
+            "seq_scans": 6,
+            "total_rows_read": 8815,
+            "avg_rows_per_scan": 1469.0
+          },
+          "track": {
+            "seq_scans": 420,
+            "total_rows_read": 7714,
+            "avg_rows_per_scan": 18.0
+          },
+          "artist": {
+            "seq_scans": 232,
+            "total_rows_read": 3954,
+            "avg_rows_per_scan": 17.0
+          },
+          "album": {
+            "seq_scans": 231,
+            "total_rows_read": 3345,
+            "avg_rows_per_scan": 14.0
+          },
+          "customer": {
+            "seq_scans": 1465,
+            "total_rows_read": 3171,
+            "avg_rows_per_scan": 2.0
+          },
+          "invoiceline": {
+            "seq_scans": 7,
+            "total_rows_read": 2340,
+            "avg_rows_per_scan": 334.0
+          },
+          "invoice": {
+            "seq_scans": 823,
+            "total_rows_read": 2152,
+            "avg_rows_per_scan": 2.0
+          },
+          "employee": {
+            "seq_scans": 1443,
+            "total_rows_read": 1524,
+            "avg_rows_per_scan": 1.0
+          },
+          "genre": {
+            "seq_scans": 207,
+            "total_rows_read": 254,
+            "avg_rows_per_scan": 1.0
+          },
+          "playlist": {
+            "seq_scans": 207,
+            "total_rows_read": 240,
+            "avg_rows_per_scan": 1.0
+          },
+          "mediatype": {
+            "seq_scans": 208,
+            "total_rows_read": 219,
+            "avg_rows_per_scan": 1.0
+          }
+        },
+        "total_seq_scans": 5249,
+        "cache_hit_ratio": 0.9991347413700752
+      }
+    },
+    {
+      "timestamp": "2026-04-13T17:53:29.542313",
+      "metrics": {
+        "table_sizes": {
+          "artist": 90112,
+          "album": 81920,
+          "employee": 40960,
+          "customer": 73728,
+          "invoice": 122880,
+          "invoiceline": 344064,
+          "track": 663552,
+          "playlist": 24576,
+          "playlisttrack": 876544,
+          "genre": 24576,
+          "mediatype": 24576
+        },
+        "total_size": 2367488,
+        "connection_count": 1,
+        "active_queries": 0,
+        "table_latency": {
+          "playlisttrack": {
+            "seq_scans": 6,
+            "total_rows_read": 8815,
+            "avg_rows_per_scan": 1469.0
+          },
+          "track": {
+            "seq_scans": 420,
+            "total_rows_read": 7714,
+            "avg_rows_per_scan": 18.0
+          },
+          "artist": {
+            "seq_scans": 232,
+            "total_rows_read": 3954,
+            "avg_rows_per_scan": 17.0
+          },
+          "album": {
+            "seq_scans": 231,
+            "total_rows_read": 3345,
+            "avg_rows_per_scan": 14.0
+          },
+          "customer": {
+            "seq_scans": 1465,
+            "total_rows_read": 3171,
+            "avg_rows_per_scan": 2.0
+          },
+          "invoiceline": {
+            "seq_scans": 7,
+            "total_rows_read": 2340,
+            "avg_rows_per_scan": 334.0
+          },
+          "invoice": {
+            "seq_scans": 823,
+            "total_rows_read": 2152,
+            "avg_rows_per_scan": 2.0
+          },
+          "employee": {
+            "seq_scans": 1443,
+            "total_rows_read": 1524,
+            "avg_rows_per_scan": 1.0
+          },
+          "genre": {
+            "seq_scans": 207,
+            "total_rows_read": 254,
+            "avg_rows_per_scan": 1.0
+          },
+          "playlist": {
+            "seq_scans": 207,
+            "total_rows_read": 240,
+            "avg_rows_per_scan": 1.0
+          },
+          "mediatype": {
+            "seq_scans": 208,
+            "total_rows_read": 219,
+            "avg_rows_per_scan": 1.0
+          }
+        },
+        "total_seq_scans": 5249,
+        "cache_hit_ratio": 0.9991347413700752
       }
     }
   ],
-  "last_updated": "2026-04-02T17:12:55.206851"
+  "last_updated": "2026-04-13T17:53:29.542313"
 }
