@@ -3,8 +3,8 @@
 import { useEffect, useState, useMemo } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
-import { 
-    Database, Table, Zap, Network, ChevronRight, TerminalSquare, 
+import {
+    Database, Table, Zap, Network, ChevronRight, TerminalSquare,
     Box, ServerCrash, Loader2, GaugeCircle, Target, DatabaseZap,
     Search, Filter, ArrowDownToLine, Eye, X, Cpu, Globe, Layers, Activity,
     RefreshCw
@@ -87,7 +87,7 @@ export default function DataExplorerPage() {
         const name = localStorage.getItem("project_name") || "Dashboard";
         const savedType = localStorage.getItem("db_type") || "sql";
         if (!connStr) { setTablesLoading(false); return; }
-        
+
         setConnectionString(connStr);
         setProjectName(name);
         setDbType(savedType);
@@ -96,7 +96,7 @@ export default function DataExplorerPage() {
         // Session Persistence: Restore previous state for this DB
         const savedTable = localStorage.getItem(`last_table_${connStr}`);
         const savedSearch = localStorage.getItem(`last_search_${connStr}`);
-        
+
         if (savedTable) {
             setSelectedTable(savedTable);
             fetchTableData(connStr, savedTable);
@@ -111,7 +111,7 @@ export default function DataExplorerPage() {
         const handleProjectChanged = (e: any) => {
             const newConn = e.detail.connStr;
             const newName = e.detail.name || "Dashboard";
-            
+
             setConnectionString(newConn);
             setProjectName(newName);
             fetchTablesList(newConn);
@@ -119,7 +119,7 @@ export default function DataExplorerPage() {
             // Restore state for the new DB
             const savedTable = localStorage.getItem(`last_table_${newConn}`);
             const savedSearch = localStorage.getItem(`last_search_${newConn}`);
-            
+
             if (savedTable) {
                 setSelectedTable(savedTable);
                 fetchTableData(newConn, savedTable);
@@ -157,7 +157,7 @@ export default function DataExplorerPage() {
     const filteredRows = useMemo(() => {
         if (!tableData || !rowSearch) return tableData?.rows || [];
         const lowSearch = rowSearch.toLowerCase();
-        return tableData.rows.filter(row => 
+        return tableData.rows.filter(row =>
             Object.values(row).some(val => String(val).toLowerCase().includes(lowSearch))
         );
     }, [tableData, rowSearch]);
@@ -165,7 +165,7 @@ export default function DataExplorerPage() {
     const exportToCSV = () => {
         if (!tableData || !selectedTable) return;
         const headers = tableData.columns.join(",");
-        const rows = tableData.rows.map(r => 
+        const rows = tableData.rows.map(r =>
             tableData.columns.map(col => `"${String(r[col]).replace(/"/g, '""')}"`).join(",")
         ).join("\n");
         const csv = `${headers}\n${rows}`;
@@ -182,13 +182,13 @@ export default function DataExplorerPage() {
 
     const renderDataBadge = (val: any) => {
         if (val === null || val === undefined) {
-             return <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-black uppercase tracking-widest bg-slate-100 text-slate-400 border border-slate-200">NULL</span>;
+            return <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-black uppercase tracking-widest bg-slate-100 text-slate-400 border border-slate-200">NULL</span>;
         }
         if (typeof val === 'number') {
-             return <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-mono font-black bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm">{val}</span>;
+            return <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-mono font-black bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm">{val}</span>;
         }
         if (typeof val === 'boolean') {
-             return <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-widest bg-violet-50 text-violet-700 border border-violet-200 shadow-sm">{val ? 'TRUE' : 'FALSE'}</span>;
+            return <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-widest bg-violet-50 text-violet-700 border border-violet-200 shadow-sm">{val ? 'TRUE' : 'FALSE'}</span>;
         }
         const strVal = String(val);
         if (strVal.length > 10 && /^\d{4}-\d{2}-\d{2}T/.test(strVal)) {
@@ -214,13 +214,13 @@ export default function DataExplorerPage() {
                                 Telemetry Data Matrix
                             </h1>
                             <p className="text-[13px] text-slate-500 font-bold mt-0.5 uppercase tracking-widest flex items-center gap-1.5">
-                                <Network size={12}/> Live Event Stream & Node Registry
+                                <Network size={12} /> Live Event Stream & Node Registry
                             </p>
                         </div>
                     </div>
 
                     {selectedTable && (
-                         <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-3">
                             <div className="relative group">
                                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                                     <Search size={14} className="text-slate-400" />
@@ -237,24 +237,24 @@ export default function DataExplorerPage() {
                                     </button>
                                 )}
                             </div>
-                            <button 
+                            <button
                                 onClick={exportToCSV}
                                 className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white border border-slate-200 text-slate-700 text-xs font-black uppercase tracking-widest transition-all hover:bg-slate-50 shadow-sm active:scale-95"
                             >
                                 <ArrowDownToLine size={13} /> Export
                             </button>
-                         </div>
+                        </div>
                     )}
                 </div>
 
                 {/* ── Main Layout Split ── */}
                 <div className="flex-1 flex flex-col lg:flex-row overflow-hidden w-full relative">
-                    
+
                     {/* Inner Sidebar: Entity Node Registry */}
                     <div className="w-full lg:w-[320px] shrink-0 border-r border-slate-200 bg-white flex flex-col z-10 relative shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
                         <div className="px-6 py-5 border-b border-slate-100 bg-slate-50/80 backdrop-blur-md">
                             <h2 className="text-[11px] font-black text-slate-800 uppercase tracking-widest flex items-center gap-2">
-                                <DatabaseZap size={15} className="text-violet-500" /> 
+                                <DatabaseZap size={15} className="text-violet-500" />
                                 Node Registry
                             </h2>
                             <div className="mt-3 relative">
@@ -269,7 +269,7 @@ export default function DataExplorerPage() {
                                 />
                             </div>
                         </div>
-                        
+
                         <div className="flex-1 overflow-y-auto custom-scrollbar bg-white/50 px-3 py-4 space-y-1.5">
                             {tablesLoading ? (
                                 <div className="flex flex-col items-center justify-center py-12 gap-3 text-violet-500 opacity-60">
@@ -278,7 +278,7 @@ export default function DataExplorerPage() {
                                 </div>
                             ) : filteredTables.length === 0 ? (
                                 <div className="p-6 text-center">
-                                    <ServerCrash size={32} className="mx-auto text-slate-300 mb-2"/>
+                                    <ServerCrash size={32} className="mx-auto text-slate-300 mb-2" />
                                     <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">Zero Nodes Detected</p>
                                 </div>
                             ) : (
@@ -290,16 +290,16 @@ export default function DataExplorerPage() {
                                                 <button
                                                     onClick={() => handleTableClick(node.data.label)}
                                                     className={`w-full text-left px-4 py-3 rounded-xl transition-all border flex items-center justify-between overflow-hidden relative outline-none
-                                                        ${active 
-                                                            ? 'bg-violet-50 border-violet-200 shadow-[0_2px_10px_rgba(139,92,246,0.1)]' 
+                                                        ${active
+                                                            ? 'bg-violet-50 border-violet-200 shadow-[0_2px_10px_rgba(139,92,246,0.1)]'
                                                             : 'bg-white border-transparent hover:border-slate-200 hover:bg-slate-50 shadow-sm'
                                                         }`}
                                                 >
                                                     {active && <div className="absolute left-0 top-0 bottom-0 w-1 bg-violet-500 rounded-r shadow-[0_0_8px_rgba(139,92,246,0.5)]"></div>}
-                                                    
+
                                                     <div className="flex flex-col min-w-0 pr-3 z-10">
                                                         <div className="flex items-center gap-2">
-                                                            <TerminalSquare size={13} className={active ? 'text-violet-600' : 'text-slate-400'} /> 
+                                                            <TerminalSquare size={13} className={active ? 'text-violet-600' : 'text-slate-400'} />
                                                             <span className={`font-black text-[13px] truncate tracking-tight ${active ? 'text-violet-900' : 'text-slate-700'}`}>
                                                                 {node.data.label}
                                                             </span>
@@ -321,7 +321,7 @@ export default function DataExplorerPage() {
 
                     {/* Main Area: Telemetry Matrix Grid */}
                     <div className="flex-1 flex flex-col min-w-0 relative bg-slate-50 overflow-hidden">
-                        
+
                         {/* Header Output Log */}
                         <div className="h-14 shrink-0 border-b border-slate-200 bg-white flex items-center justify-between px-6 z-20 shadow-sm">
                             <div className="flex items-center gap-3">
@@ -342,7 +342,7 @@ export default function DataExplorerPage() {
 
                             {selectedTable && tableData?.rows && (
                                 <div className="flex items-center gap-3">
-                                     <div className="bg-white border border-slate-200 shadow-sm rounded-lg flex items-center overflow-hidden">
+                                    <div className="bg-white border border-slate-200 shadow-sm rounded-lg flex items-center overflow-hidden">
                                         <div className="px-3 py-1 bg-slate-50 border-r border-slate-200 text-[9px] font-black uppercase tracking-widest text-slate-500">Payload</div>
                                         <div className="px-3 py-1 text-xs font-black font-mono text-violet-700">{filteredRows.length} Active</div>
                                     </div>
@@ -352,7 +352,7 @@ export default function DataExplorerPage() {
 
                         {/* Telemetry Grid Container */}
                         <div className="flex-1 overflow-auto custom-scrollbar relative p-4 md:p-6 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]">
-                            
+
                             {!selectedTable ? (
                                 <div className="h-full flex flex-col items-center justify-center pointer-events-none opacity-40">
                                     <div className="w-20 h-20 rounded-2xl bg-white border border-slate-200 shadow-sm flex items-center justify-center text-slate-200 mb-6">
@@ -371,18 +371,18 @@ export default function DataExplorerPage() {
                                 </div>
                             ) : error ? (
                                 <div className="p-6 bg-rose-50 border border-rose-200 rounded-2xl max-w-xl mx-auto mt-10 shadow-sm flex items-start gap-4">
-                                     <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-rose-500 shadow-sm shrink-0"><ServerCrash size={18}/></div>
-                                     <div>
+                                    <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-rose-500 shadow-sm shrink-0"><ServerCrash size={18} /></div>
+                                    <div>
                                         <h3 className="text-sm font-black text-rose-800">Stream Connection Failed</h3>
                                         <p className="text-xs font-bold text-rose-600 mt-1 uppercase tracking-widest">{error}</p>
-                                     </div>
+                                    </div>
                                 </div>
                             ) : tableData && tableData.columns.length > 0 ? (
                                 <div className="min-w-max pb-32">
-                                    
+
                                     {/* Sub-header Vectors */}
                                     <div className="grid gap-4 mb-3 sticky top-0 z-20 backdrop-blur-xl bg-white/80 py-3 px-6 rounded-xl shadow-sm border border-slate-200/50"
-                                         style={{ gridTemplateColumns: `repeat(${tableData.columns.length}, minmax(180px, 1fr))` }}>
+                                        style={{ gridTemplateColumns: `repeat(${tableData.columns.length}, minmax(180px, 1fr))` }}>
                                         {tableData.columns.map(col => (
                                             <div key={col} className="flex items-center gap-2 group">
                                                 <div className="w-1.5 h-1.5 rounded-full bg-slate-300 group-hover:bg-violet-400 transition-colors"></div>
@@ -404,7 +404,7 @@ export default function DataExplorerPage() {
                                                     onClick={() => setInspectedRow(row)}
                                                     className="bg-white border border-slate-200 hover:border-violet-300 hover:shadow-md rounded-xl p-3 px-6 transition-all cursor-pointer group flex flex-col"
                                                 >
-                                                    <div 
+                                                    <div
                                                         className="grid gap-4 items-center"
                                                         style={{ gridTemplateColumns: `repeat(${tableData.columns.length}, minmax(180px, 1fr))` }}
                                                     >
@@ -420,8 +420,8 @@ export default function DataExplorerPage() {
 
                                         {filteredRows.length === 0 && (
                                             <div className="text-center py-24">
-                                                 <Search size={32} className="mx-auto text-slate-300 mb-4" />
-                                                 <p className="text-[11px] font-black uppercase tracking-widest text-slate-500">Zero object vectors matched.</p>
+                                                <Search size={32} className="mx-auto text-slate-300 mb-4" />
+                                                <p className="text-[11px] font-black uppercase tracking-widest text-slate-500">Zero object vectors matched.</p>
                                             </div>
                                         )}
                                     </div>
@@ -436,7 +436,7 @@ export default function DataExplorerPage() {
                 <AnimatePresence>
                     {inspectedRow && (
                         <>
-                            <motion.div 
+                            <motion.div
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
                                 exit={{ opacity: 0 }}
@@ -461,14 +461,14 @@ export default function DataExplorerPage() {
                                                 <p className="text-[9px] font-black text-slate-400 tracking-[0.2em] uppercase mt-0.5">{selectedTable} Node</p>
                                             </div>
                                         </div>
-                                        <button 
+                                        <button
                                             onClick={() => { setInspectedRow(null); setInspectorSearch(""); }}
                                             className="w-10 h-10 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-500 transition-all"
                                         >
                                             <X size={18} />
                                         </button>
                                     </div>
-                                    
+
                                     <div className="relative">
                                         <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
                                             <Search size={14} className="text-slate-400" />
@@ -487,31 +487,31 @@ export default function DataExplorerPage() {
                                         {tableData?.columns
                                             .filter(col => col.toLowerCase().includes(inspectorSearch.toLowerCase()))
                                             .map(col => (
-                                            <motion.div 
-                                                key={col}
-                                                layout
-                                                className="bg-slate-50 rounded-xl p-4 border border-slate-200 shadow-sm flex flex-col gap-2 hover:border-violet-300 transition-colors"
-                                            >
-                                                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                                                    <TerminalSquare size={10} className="text-violet-500" /> {col}
-                                                </span>
-                                                <div className="text-[12px] font-medium text-slate-700 break-words line-clamp-3">
-                                                    {renderDataBadge(inspectedRow[col])}
-                                                </div>
-                                            </motion.div>
-                                        ))}
+                                                <motion.div
+                                                    key={col}
+                                                    layout
+                                                    className="bg-slate-50 rounded-xl p-4 border border-slate-200 shadow-sm flex flex-col gap-2 hover:border-violet-300 transition-colors"
+                                                >
+                                                    <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                                                        <TerminalSquare size={10} className="text-violet-500" /> {col}
+                                                    </span>
+                                                    <div className="text-[12px] font-medium text-slate-700 break-words line-clamp-3">
+                                                        {renderDataBadge(inspectedRow[col])}
+                                                    </div>
+                                                </motion.div>
+                                            ))}
                                     </div>
-                                    
+
                                     {tableData?.columns.filter(col => col.toLowerCase().includes(inspectorSearch.toLowerCase())).length === 0 && (
                                         <div className="py-20 text-center">
                                             <Search size={32} className="mx-auto text-slate-200 mb-4" />
-                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-relaxed">No matching metadata vectors<br/>found in current tuple.</p>
+                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-relaxed">No matching metadata vectors<br />found in current tuple.</p>
                                         </div>
                                     )}
                                 </div>
-                                
+
                                 <div className="p-6 border-t border-slate-100 bg-slate-50">
-                                    <button 
+                                    <button
                                         onClick={() => { setInspectedRow(null); setInspectorSearch(""); }}
                                         className="w-full py-3.5 rounded-xl bg-slate-900 text-white text-[11px] font-black uppercase tracking-widest hover:bg-slate-800 transition-all shadow-md active:scale-[0.98]"
                                     >
