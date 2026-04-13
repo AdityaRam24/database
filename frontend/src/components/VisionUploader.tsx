@@ -125,14 +125,14 @@ export default function VisionUploader() {
             <AlertCircle className="w-4 h-4 text-amber-400 mt-0.5 shrink-0" />
             <div className="flex-1">
               <p className="text-sm font-black text-amber-200">Running in Demo Mode</p>
-              <p className="text-[11px] text-amber-200/70 mt-1 uppercase font-bold tracking-wider">Your Local AI server is offline. This is a sample result.</p>
+              <p className="text-[11px] text-amber-200/70 mt-1 uppercase font-bold tracking-wider">Your system ran out of video memory (OOM). Showing a sample result.</p>
             </div>
           </div>
           <div className="bg-indigo-950/60 p-3 rounded-lg border border-indigo-900/50">
              <p className="text-[10px] font-black text-indigo-400 uppercase mb-2">How to fix this:</p>
              <ol className="text-[11px] text-indigo-200 space-y-2 list-decimal list-inside font-bold">
                 <li>Download Ollama from <a href="https://ollama.com" className="text-violet-400 underline">ollama.com</a></li>
-                <li>Open PowerShell and run: <code className="text-violet-400 bg-indigo-900 px-1 rounded">ollama run llava</code></li>
+                <li>Open PowerShell and run: <code className="text-violet-400 bg-indigo-900 px-1 rounded">ollama run moondream</code></li>
                 <li>Make sure Ollama is open in your system tray.</li>
              </ol>
           </div>
