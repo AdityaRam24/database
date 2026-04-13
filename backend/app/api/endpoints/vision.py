@@ -30,9 +30,15 @@ async def upload_schema_vision(file: UploadFile = File(...)):
         # Resize image to prevent massive VRAM spikes in Ollama
         try:
             img = Image.open(io.BytesIO(contents))
-            # Convert to RGB to avoid alpha channel issues with some models
-            if img.mode != 'RGB':
+            # If the image has an alpha channel (transparent PNG), we MUST composite it over a white background!
+            if img.mode in ('RGBA', 'LA') or (img.mode == 'P' and 'transparency' in img.info):
+                alpha = img.convert('RGBA')
+                bg = Image.new('RGB', alpha.size, (255, 255, 255))
+                bg.paste(alpha, mask=alpha.split()[3])
+                img = bg
+            elif img.mode != 'RGB':
                 img = img.convert('RGB')
+                
             img.thumbnail((1024, 1024))
             buf = io.BytesIO()
             img.save(buf, format='JPEG')

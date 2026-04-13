@@ -169,7 +169,7 @@ class AIService:
         and uses a Vision-capable AI model to generate PostgreSQL DDL.
         """
         try:
-            prompt_text = "You are an expert PostgreSQL database architect with perfect computer vision. Look at this database diagram (ERD or whiteboard sketch). Extract every table, column, data type, primary key, and foreign key relationship you can see. Return ONLY the valid PostgreSQL CREATE TABLE statements (DDL). No markdown formatting, no explanations, no text before or after the SQL. IF IT IS NOT A DIAGRAM, throw an error. IF THE TEXT IS TOO SMALL OR ILLEGIBLE TO READ PERFECTLY, output EXACTLY the phrase: ERROR: IMAGE_UNREADABLE"
+            prompt_text = "You are an expert PostgreSQL database architect with perfect computer vision. Look at this database diagram (ERD or whiteboard sketch). Extract every table, column, data type, primary key, and foreign key relationship you can see. Return ONLY the valid PostgreSQL CREATE TABLE statements (DDL). No markdown formatting, no explanations, no text before or after the SQL. IF IT IS NOT A DIAGRAM, throw an error."
             # Use the currently configured model, but if it's Ollama and the model isn't vision-capable, auto-fallback to 'moondream'
             vision_model = self.model
             if self.ai_mode == "OLLAMA" and not any(v in vision_model.lower() for v in ["llava", "vision", "moondream"]):
