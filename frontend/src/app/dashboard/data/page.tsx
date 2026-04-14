@@ -182,38 +182,38 @@ export default function DataExplorerPage() {
 
     const renderDataBadge = (val: any) => {
         if (val === null || val === undefined) {
-            return <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-black uppercase tracking-widest bg-slate-100 text-slate-400 border border-slate-200">NULL</span>;
+            return <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-black uppercase tracking-widest bg-slate-100 dark:bg-white/[0.05] text-slate-400 dark:text-slate-500 border border-slate-200 dark:border-white/10">NULL</span>;
         }
         if (typeof val === 'number') {
-            return <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-mono font-black bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm">{val}</span>;
+            return <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-mono font-black bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-500/20 shadow-sm">{val}</span>;
         }
         if (typeof val === 'boolean') {
-            return <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-widest bg-violet-50 text-violet-700 border border-violet-200 shadow-sm">{val ? 'TRUE' : 'FALSE'}</span>;
+            return <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-black uppercase tracking-widest bg-violet-50 dark:bg-violet-500/10 text-violet-700 dark:text-violet-400 border border-violet-200 dark:border-violet-500/20 shadow-sm">{val ? 'TRUE' : 'FALSE'}</span>;
         }
         const strVal = String(val);
         if (strVal.length > 10 && /^\d{4}-\d{2}-\d{2}T/.test(strVal)) {
             return <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-mono tracking-widest bg-slate-800 text-emerald-400 border border-slate-700 shadow-sm">{strVal.split('T')[0]}</span>;
         }
-        return <span className="text-[13px] text-slate-700 font-medium whitespace-nowrap overflow-hidden text-ellipsis">{strVal}</span>;
+        return <span className="text-[13px] text-slate-700 dark:text-slate-300 font-medium whitespace-nowrap overflow-hidden text-ellipsis">{strVal}</span>;
     };
 
-    if (authLoading) return <div className="flex h-screen items-center justify-center bg-slate-50"><Loader2 className="animate-spin text-violet-500" size={32} /></div>;
+    if (authLoading) return <div className="flex h-screen items-center justify-center bg-slate-50 dark:bg-[#0B0A0F]"><Loader2 className="animate-spin text-violet-500" size={32} /></div>;
 
     return (
         <DashboardShell>
-            <div className="flex flex-col h-full w-full max-w-[1600px] mx-auto bg-slate-50/50">
+            <div className="flex flex-col h-full w-full max-w-[1600px] mx-auto bg-slate-50/50 dark:bg-transparent">
                 {/* ── Page Header ── */}
-                <div className="px-6 py-5 flex items-center justify-between flex-wrap gap-3 border-b border-gray-100 bg-white shadow-sm z-10 relative">
+                <div className="px-6 py-5 flex items-center justify-between flex-wrap gap-3 border-b border-gray-100 dark:border-white/[0.05] bg-white dark:bg-white/[0.02] shadow-sm z-10 relative backdrop-blur-xl">
                     <div className="flex items-center gap-4">
-                        <div className="w-10 h-10 rounded-xl bg-violet-100 flex items-center justify-center relative shadow-inner ring-1 ring-violet-200">
+                        <div className="w-10 h-10 rounded-xl bg-violet-100 dark:bg-violet-500/10 flex items-center justify-center relative shadow-inner ring-1 ring-violet-200 dark:ring-violet-500/20">
                             <GaugeCircle size={22} className="text-violet-600" />
                             <div className="absolute top-0 right-0 -mr-1 -mt-1 w-3 h-3 bg-emerald-500 rounded-full animate-pulse border-2 border-white shadow-[0_0_8px_rgba(16,185,129,0.8)]"></div>
                         </div>
                         <div>
-                            <h1 className="text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+                            <h1 className="text-xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
                                 Telemetry Data Matrix
                             </h1>
-                            <p className="text-[13px] text-slate-500 font-bold mt-0.5 uppercase tracking-widest flex items-center gap-1.5">
+                            <p className="text-[13px] text-slate-500 dark:text-slate-400 font-bold mt-0.5 uppercase tracking-widest flex items-center gap-1.5">
                                 <Network size={12} /> Live Event Stream & Node Registry
                             </p>
                         </div>
@@ -223,23 +223,23 @@ export default function DataExplorerPage() {
                         <div className="flex items-center gap-3">
                             <div className="relative group">
                                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                                    <Search size={14} className="text-slate-400" />
+                                    <Search size={14} className="text-slate-400 dark:text-slate-500" />
                                 </div>
                                 <input
                                     value={rowSearch}
                                     onChange={e => setRowSearch(e.target.value)}
                                     placeholder={`Search in ${selectedTable}...`}
-                                    className="bg-slate-50 border border-slate-200 rounded-xl pl-10 pr-4 py-2 text-xs font-bold text-slate-700 w-64 outline-none focus:border-violet-500 focus:bg-white transition-all placeholder:text-slate-400 shadow-sm"
+                                    className="bg-slate-50 dark:bg-white/[0.05] border border-slate-200 dark:border-white/[0.1] rounded-xl pl-10 pr-4 py-2 text-xs font-bold text-slate-700 dark:text-slate-200 w-64 outline-none focus:border-violet-500 focus:bg-white transition-all placeholder:text-slate-400 shadow-sm"
                                 />
                                 {rowSearch && (
-                                    <button onClick={() => setRowSearch("")} className="absolute inset-y-0 right-3 flex items-center text-slate-400 hover:text-slate-600">
+                                    <button onClick={() => setRowSearch("")} className="absolute inset-y-0 right-3 flex items-center text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300">
                                         <X size={14} />
                                     </button>
                                 )}
                             </div>
                             <button
                                 onClick={exportToCSV}
-                                className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white border border-slate-200 text-slate-700 text-xs font-black uppercase tracking-widest transition-all hover:bg-slate-50 shadow-sm active:scale-95"
+                                className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white dark:bg-white/[0.05] border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-200 text-xs font-black uppercase tracking-widest transition-all hover:bg-slate-50 dark:hover:bg-white/[0.08] shadow-sm active:scale-95"
                             >
                                 <ArrowDownToLine size={13} /> Export
                             </button>
@@ -251,26 +251,26 @@ export default function DataExplorerPage() {
                 <div className="flex-1 flex flex-col lg:flex-row overflow-hidden w-full relative">
 
                     {/* Inner Sidebar: Entity Node Registry */}
-                    <div className="w-full lg:w-[320px] shrink-0 border-r border-slate-200 bg-white flex flex-col z-10 relative shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
-                        <div className="px-6 py-5 border-b border-slate-100 bg-slate-50/80 backdrop-blur-md">
-                            <h2 className="text-[11px] font-black text-slate-800 uppercase tracking-widest flex items-center gap-2">
+                    <div className="w-full lg:w-[320px] shrink-0 border-r border-slate-200 dark:border-white/[0.05] bg-white dark:bg-[#0B0A0F]/40 flex flex-col z-10 relative shadow-[4px_0_24px_rgba(0,0,0,0.02)]">
+                        <div className="px-6 py-5 border-b border-slate-100 dark:border-white/[0.05] bg-slate-50/80 dark:bg-white/[0.02] backdrop-blur-md">
+                            <h2 className="text-[11px] font-black text-slate-800 dark:text-slate-200 uppercase tracking-widest flex items-center gap-2">
                                 <DatabaseZap size={15} className="text-violet-500" />
                                 Node Registry
                             </h2>
                             <div className="mt-3 relative">
                                 <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-                                    <Filter size={12} className="text-slate-400" />
+                                    <Filter size={12} className="text-slate-400 dark:text-slate-500" />
                                 </div>
                                 <input
                                     value={tableSearch}
                                     onChange={e => setTableSearch(e.target.value)}
                                     placeholder="Filter nodes..."
-                                    className="w-full bg-slate-100 border-none rounded-lg pl-9 pr-3 py-2 text-[10px] font-bold text-slate-700 outline-none focus:ring-2 focus:ring-violet-500/20 transition-all uppercase tracking-widest"
+                                    className="w-full bg-slate-100 dark:bg-white/[0.05] border-none rounded-lg pl-9 pr-3 py-2 text-[10px] font-bold text-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-violet-500/20 transition-all uppercase tracking-widest"
                                 />
                             </div>
                         </div>
 
-                        <div className="flex-1 overflow-y-auto custom-scrollbar bg-white/50 px-3 py-4 space-y-1.5">
+                        <div className="flex-1 overflow-y-auto custom-scrollbar bg-white/50 dark:bg-transparent px-3 py-4 space-y-1.5">
                             {tablesLoading ? (
                                 <div className="flex flex-col items-center justify-center py-12 gap-3 text-violet-500 opacity-60">
                                     <Loader2 className="animate-spin" size={24} />
@@ -279,7 +279,7 @@ export default function DataExplorerPage() {
                             ) : filteredTables.length === 0 ? (
                                 <div className="p-6 text-center">
                                     <ServerCrash size={32} className="mx-auto text-slate-300 mb-2" />
-                                    <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">Zero Nodes Detected</p>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest">Zero Nodes Detected</p>
                                 </div>
                             ) : (
                                 <motion.ul 
@@ -306,7 +306,7 @@ export default function DataExplorerPage() {
                                                     className={`w-full text-left px-4 py-3 rounded-xl transition-all border flex items-center justify-between overflow-hidden relative outline-none
                                                         ${active
                                                             ? 'bg-violet-50 border-violet-200 shadow-[0_2px_10px_rgba(139,92,246,0.1)]'
-                                                            : 'bg-white border-transparent hover:border-slate-200 hover:bg-slate-50 shadow-sm'
+                                                            : 'bg-white dark:bg-white/[0.02] border-transparent hover:border-slate-200 dark:hover:border-white/10 hover:bg-slate-50 dark:hover:bg-white/[0.05] shadow-sm'
                                                         }`}
                                                 >
                                                     {active && <div className="absolute left-0 top-0 bottom-0 w-1 bg-violet-500 rounded-r shadow-[0_0_8px_rgba(139,92,246,0.5)]"></div>}
@@ -314,11 +314,11 @@ export default function DataExplorerPage() {
                                                     <div className="flex flex-col min-w-0 pr-3 z-10">
                                                         <div className="flex items-center gap-2">
                                                             <TerminalSquare size={13} className={active ? 'text-violet-600' : 'text-slate-400'} />
-                                                            <span className={`font-black text-[13px] truncate tracking-tight ${active ? 'text-violet-900' : 'text-slate-700'}`}>
+                                                            <span className={`font-black text-[13px] truncate tracking-tight ${active ? 'text-violet-900 dark:text-violet-200' : 'text-slate-700 dark:text-slate-300'}`}>
                                                                 {node.data.label}
                                                             </span>
                                                         </div>
-                                                        <span className="flex items-center gap-1 mt-1 text-[9px] font-black uppercase tracking-widest text-slate-400 pl-5">
+                                                        <span className="flex items-center gap-1 mt-1 text-[9px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500 pl-5">
                                                             <Box size={10} /> {node.data.rows} blocks
                                                         </span>
                                                     </div>
@@ -334,10 +334,10 @@ export default function DataExplorerPage() {
                     </div>
 
                     {/* Main Area: Telemetry Matrix Grid */}
-                    <div className="flex-1 flex flex-col min-w-0 relative bg-slate-50 overflow-hidden">
+                    <div className="flex-1 flex flex-col min-w-0 relative bg-slate-50 dark:bg-transparent overflow-hidden">
 
                         {/* Header Output Log */}
-                        <div className="h-14 shrink-0 border-b border-slate-200 bg-white flex items-center justify-between px-6 z-20 shadow-sm">
+                        <div className="h-14 shrink-0 border-b border-slate-200 dark:border-white/[0.05] bg-white dark:bg-[#0B0A0F]/60 flex items-center justify-between px-6 z-20 shadow-sm backdrop-blur-xl">
                             <div className="flex items-center gap-3">
                                 {selectedTable ? (
                                     <>
@@ -346,7 +346,7 @@ export default function DataExplorerPage() {
                                         </div>
                                         <div className="flex items-baseline gap-2">
                                             <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Active Stream:</span>
-                                            <span className="text-sm font-black text-slate-800">{selectedTable}</span>
+                                            <span className="text-sm font-black text-slate-800 dark:text-white">{selectedTable}</span>
                                         </div>
                                     </>
                                 ) : (
@@ -356,8 +356,8 @@ export default function DataExplorerPage() {
 
                             {selectedTable && tableData?.rows && (
                                 <div className="flex items-center gap-3">
-                                    <div className="bg-white border border-slate-200 shadow-sm rounded-lg flex items-center overflow-hidden">
-                                        <div className="px-3 py-1 bg-slate-50 border-r border-slate-200 text-[9px] font-black uppercase tracking-widest text-slate-500">Payload</div>
+                                    <div className="bg-white dark:bg-white/[0.05] border border-slate-200 dark:border-white/10 shadow-sm rounded-lg flex items-center overflow-hidden">
+                                        <div className="px-3 py-1 bg-slate-50 dark:bg-white/[0.05] border-r border-slate-200 dark:border-white/10 text-[9px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">Payload</div>
                                         <div className="px-3 py-1 text-xs font-black font-mono text-violet-700">{filteredRows.length} Active</div>
                                     </div>
                                 </div>
@@ -369,10 +369,10 @@ export default function DataExplorerPage() {
 
                             {!selectedTable ? (
                                 <div className="h-full flex flex-col items-center justify-center pointer-events-none opacity-40">
-                                    <div className="w-20 h-20 rounded-2xl bg-white border border-slate-200 shadow-sm flex items-center justify-center text-slate-200 mb-6">
+                                    <div className="w-20 h-20 rounded-2xl bg-white dark:bg-white/[0.05] border border-slate-200 dark:border-white/10 shadow-sm flex items-center justify-center text-slate-200 dark:text-slate-700 mb-6">
                                         <Database size={32} />
                                     </div>
-                                    <p className="text-[13px] font-bold text-slate-600 tracking-tight text-center">Neural Substrate: Idle</p>
+                                    <p className="text-[13px] font-bold text-slate-600 dark:text-slate-400 tracking-tight text-center">Neural Substrate: Idle</p>
                                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1 text-center">Initiate node synchronization to bridge data streams.</p>
                                 </div>
                             ) : dataLoading ? (
@@ -381,13 +381,13 @@ export default function DataExplorerPage() {
                                         <div className="absolute inset-0 bg-violet-400 blur-xl opacity-20 rounded-full"></div>
                                         <Loader2 size={32} className="relative text-violet-600 animate-spin" />
                                     </div>
-                                    <p className="text-[10px] font-black uppercase tracking-widest text-violet-600 mt-4 animate-pulse">Decrypting Telemetry Vectors...</p>
+                                    <p className="text-[10px] font-black uppercase tracking-widest text-violet-600 dark:text-violet-400 mt-4 animate-pulse">Decrypting Telemetry Vectors...</p>
                                 </div>
                             ) : error ? (
-                                <div className="p-6 bg-rose-50 border border-rose-200 rounded-2xl max-w-xl mx-auto mt-10 shadow-sm flex items-start gap-4">
-                                    <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-rose-500 shadow-sm shrink-0"><ServerCrash size={18} /></div>
+                                <div className="p-6 bg-rose-50 dark:bg-rose-500/10 border border-rose-200 dark:border-rose-500/20 rounded-2xl max-w-xl mx-auto mt-10 shadow-sm flex items-start gap-4">
+                                    <div className="w-10 h-10 rounded-xl bg-white dark:bg-white/[0.05] flex items-center justify-center text-rose-500 shadow-sm shrink-0"><ServerCrash size={18} /></div>
                                     <div>
-                                        <h3 className="text-sm font-black text-rose-800">Stream Connection Failed</h3>
+                                        <h3 className="text-sm font-black text-rose-800 dark:text-rose-400">Stream Connection Failed</h3>
                                         <p className="text-xs font-bold text-rose-600 mt-1 uppercase tracking-widest">{error}</p>
                                     </div>
                                 </div>
@@ -395,12 +395,12 @@ export default function DataExplorerPage() {
                                 <div className="min-w-max pb-32">
 
                                     {/* Sub-header Vectors */}
-                                    <div className="grid gap-4 mb-3 sticky top-0 z-20 backdrop-blur-xl bg-white/80 py-3 px-6 rounded-xl shadow-sm border border-slate-200/50"
+                                    <div className="grid gap-4 mb-3 sticky top-0 z-20 backdrop-blur-xl bg-white/80 dark:bg-slate-900/80 py-3 px-6 rounded-xl shadow-sm border border-slate-200/50 dark:border-white/10"
                                         style={{ gridTemplateColumns: `repeat(${tableData.columns.length}, minmax(180px, 1fr))` }}>
                                         {tableData.columns.map(col => (
                                             <div key={col} className="flex items-center gap-2 group">
-                                                <div className="w-1.5 h-1.5 rounded-full bg-slate-300 group-hover:bg-violet-400 transition-colors"></div>
-                                                <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 truncate" title={col}>{col}</span>
+                                                <div className="w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-700 group-hover:bg-violet-400 transition-colors"></div>
+                                                <span className="text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 truncate" title={col}>{col}</span>
                                             </div>
                                         ))}
                                     </div>
@@ -418,7 +418,7 @@ export default function DataExplorerPage() {
                                                     whileTap={{ scale: 0.99 }}
                                                     transition={{ duration: 0.2, delay: i < 30 ? i * 0.02 : 0 }}
                                                     onClick={() => setInspectedRow(row)}
-                                                    className="bg-white border border-slate-200 hover:border-violet-300 hover:shadow-lg rounded-xl p-3 px-6 transition-all cursor-pointer group flex flex-col relative"
+                                                    className="bg-white dark:bg-white/[0.03] border border-slate-200 dark:border-white/10 hover:border-violet-300 dark:hover:border-violet-500/50 hover:shadow-lg rounded-xl p-3 px-6 transition-all cursor-pointer group flex flex-col relative"
                                                 >
                                                     <div
                                                         className="grid gap-4 items-center"
@@ -437,7 +437,7 @@ export default function DataExplorerPage() {
                                         {filteredRows.length === 0 && (
                                             <div className="text-center py-24">
                                                 <Search size={32} className="mx-auto text-slate-300 mb-4" />
-                                                <p className="text-[11px] font-black uppercase tracking-widest text-slate-500">Zero object vectors matched.</p>
+                                                <p className="text-[11px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400">Zero object vectors matched.</p>
                                             </div>
                                         )}
                                     </div>
@@ -464,22 +464,22 @@ export default function DataExplorerPage() {
                                 animate={{ x: 0 }}
                                 exit={{ x: '100%' }}
                                 transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                                className="absolute top-0 right-0 w-[600px] h-full bg-white border-l border-slate-200 shadow-[-20px_0_50px_rgba(0,0,0,0.08)] z-50 flex flex-col overflow-hidden"
+                                className="absolute top-0 right-0 w-[600px] h-full bg-white dark:bg-[#0B0A0F] border-l border-slate-200 dark:border-white/10 shadow-[-20px_0_50px_rgba(0,0,0,0.08)] z-50 flex flex-col overflow-hidden"
                             >
-                                <div className="p-6 border-b border-slate-100 bg-white sticky top-0 z-10">
+                                <div className="p-6 border-b border-slate-100 dark:border-white/10 bg-white dark:bg-transparent sticky top-0 z-10">
                                     <div className="flex items-center justify-between mb-4">
                                         <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-xl bg-violet-100 flex items-center justify-center border border-violet-200 text-violet-600 shadow-inner">
+                                            <div className="w-10 h-10 rounded-xl bg-violet-100 dark:bg-violet-500/10 flex items-center justify-center border border-violet-200 dark:border-violet-500/20 text-violet-600 shadow-inner">
                                                 <Eye size={18} />
                                             </div>
                                             <div>
-                                                <h3 className="text-sm font-black text-slate-800 tracking-tight uppercase">Tuple Inspector</h3>
+                                                <h3 className="text-sm font-black text-slate-800 dark:text-white tracking-tight uppercase">Tuple Inspector</h3>
                                                 <p className="text-[9px] font-black text-slate-400 tracking-[0.2em] uppercase mt-0.5">{selectedTable} Node</p>
                                             </div>
                                         </div>
                                         <button
                                             onClick={() => { setInspectedRow(null); setInspectorSearch(""); }}
-                                            className="w-10 h-10 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-500 transition-all"
+                                            className="w-10 h-10 rounded-xl bg-slate-50 dark:bg-white/[0.05] hover:bg-slate-100 dark:hover:bg-white/[0.1] border border-slate-200 dark:border-white/10 flex items-center justify-center text-slate-500 dark:text-slate-400 transition-all"
                                         >
                                             <X size={18} />
                                         </button>
@@ -487,13 +487,13 @@ export default function DataExplorerPage() {
 
                                     <div className="relative">
                                         <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
-                                            <Search size={14} className="text-slate-400" />
+                                            <Search size={14} className="text-slate-400 dark:text-slate-500" />
                                         </div>
                                         <input
                                             value={inspectorSearch}
                                             onChange={e => setInspectorSearch(e.target.value)}
                                             placeholder="Find field in tuple..."
-                                            className="w-full bg-slate-50 border border-slate-100 rounded-lg pl-9 pr-3 py-2 text-[11px] font-bold text-slate-700 outline-none focus:ring-2 focus:ring-violet-500/20 transition-all uppercase tracking-widest placeholder:text-slate-400"
+                                            className="w-full bg-slate-50 dark:bg-white/[0.05] border border-slate-100 dark:border-white/10 rounded-lg pl-9 pr-3 py-2 text-[11px] font-bold text-slate-700 dark:text-slate-200 outline-none focus:ring-2 focus:ring-violet-500/20 transition-all uppercase tracking-widest placeholder:text-slate-400"
                                         />
                                     </div>
                                 </div>
@@ -506,12 +506,12 @@ export default function DataExplorerPage() {
                                                 <motion.div
                                                     key={col}
                                                     layout
-                                                    className="bg-slate-50 rounded-xl p-4 border border-slate-200 shadow-sm flex flex-col gap-2 hover:border-violet-300 transition-colors"
+                                                    className="bg-slate-50 dark:bg-white/[0.03] rounded-xl p-4 border border-slate-200 dark:border-white/10 shadow-sm flex flex-col gap-2 hover:border-violet-300 dark:hover:border-violet-500/50 transition-colors"
                                                 >
                                                     <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
                                                         <TerminalSquare size={10} className="text-violet-500" /> {col}
                                                     </span>
-                                                    <div className="text-[12px] font-medium text-slate-700 break-words line-clamp-3">
+                                                    <div className="text-[12px] font-medium text-slate-700 dark:text-slate-300 break-words line-clamp-3">
                                                         {renderDataBadge(inspectedRow[col])}
                                                     </div>
                                                 </motion.div>
@@ -526,10 +526,10 @@ export default function DataExplorerPage() {
                                     )}
                                 </div>
 
-                                <div className="p-6 border-t border-slate-100 bg-slate-50">
+                                <div className="p-6 border-t border-slate-100 dark:border-white/10 bg-slate-50 dark:bg-white/[0.02]">
                                     <button
                                         onClick={() => { setInspectedRow(null); setInspectorSearch(""); }}
-                                        className="w-full py-3.5 rounded-xl bg-slate-900 text-white text-[11px] font-black uppercase tracking-widest hover:bg-slate-800 transition-all shadow-md active:scale-[0.98]"
+                                        className="w-full py-3.5 rounded-xl bg-slate-900 dark:bg-violet-600 text-white text-[11px] font-black uppercase tracking-widest hover:bg-slate-800 dark:hover:bg-violet-500 transition-all shadow-md active:scale-[0.98]"
                                     >
                                         Terminate Analysis
                                     </button>

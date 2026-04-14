@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import DashboardShell from "@/components/DashboardShell";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTheme } from "next-themes";
 
 /* ─── Quick Actions ────────────────────────────────────────── */
 const QUICK_ACTIONS = [
@@ -222,6 +223,7 @@ function HealthHero({ score }: { score: number }) {
 
 /* ─── Quick Action Card ─────────────────────────────────────── */
 function ActionCard({ action, onClick, index }: { action: typeof QUICK_ACTIONS[0]; onClick: () => void; index: number }) {
+  const { resolvedTheme } = useTheme();
   const Icon = action.icon;
   return (
     <motion.button
@@ -242,7 +244,7 @@ function ActionCard({ action, onClick, index }: { action: typeof QUICK_ACTIONS[0
       whileTap={{ scale: 0.98, transition: { duration: 0.1 } }}
       onClick={onClick}
       className="group text-left rounded-2xl p-4 border transition-all duration-700 ease-in-out cursor-pointer relative overflow-hidden"
-      style={{ background: action.bg, borderColor: action.border }}
+      style={{ background: resolvedTheme === 'dark' ? 'rgba(255,255,255,0.03)' : action.bg, borderColor: resolvedTheme === 'dark' ? 'rgba(255,255,255,0.1)' : action.border }}
     >
       <div className="absolute inset-0 bg-white/0 group-hover:bg-white/20 transition-colors duration-1000" />
       
@@ -252,7 +254,7 @@ function ActionCard({ action, onClick, index }: { action: typeof QUICK_ACTIONS[0
         </div>
         <ChevronRight size={14} className="mt-1 transition-all duration-700 group-hover:translate-x-1" style={{ color: action.color }} />
       </div>
-      <p className="relative z-10 text-[13px] font-black text-slate-900 leading-tight mb-1 transition-all duration-700">{action.label}</p>
+      <p className="relative z-10 text-[13px] font-black text-slate-900 dark:text-white leading-tight mb-1 transition-all duration-700">{action.label}</p>
       <p className="relative z-10 text-[11px] font-bold leading-snug transition-all duration-700" style={{ color: `${action.color}cc` }}>{action.whatItDoes}</p>
       
       <div className="relative z-10 overflow-hidden transition-all duration-1000 max-h-0 group-hover:max-h-20 opacity-0 group-hover:opacity-100 mt-0 group-hover:mt-2">
@@ -270,7 +272,7 @@ function EmptyState({ onConnect }: { onConnect: () => void }) {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="flex flex-col items-center justify-center gap-8 rounded-3xl border-2 border-dashed border-violet-200 bg-gradient-to-br from-violet-50 via-white to-indigo-50 p-16 mt-4 text-center"
+      className="flex flex-col items-center justify-center gap-8 rounded-3xl border-2 border-dashed border-violet-200 dark:border-violet-500/20 bg-gradient-to-br from-violet-50 dark:from-violet-500/5 via-white dark:via-transparent to-indigo-50 dark:to-indigo-500/5 p-16 mt-4 text-center"
       style={{ boxShadow: "0 4px 32px rgba(124,58,237,0.06)" }}
     >
       {/* Animated icon */}
@@ -286,7 +288,7 @@ function EmptyState({ onConnect }: { onConnect: () => void }) {
       </div>
 
       <div className="max-w-md">
-        <h2 className="text-2xl font-black text-slate-900 mb-3">No Database Connected Yet</h2>
+        <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-3">No Database Connected Yet</h2>
         <p className="text-slate-500 font-bold text-sm leading-relaxed mb-2">
           Think of this dashboard as your database's control room.
         </p>
@@ -305,9 +307,9 @@ function EmptyState({ onConnect }: { onConnect: () => void }) {
           { emoji: "🛡️", label: "Security Check", desc: "Protect sensitive data" },
           { emoji: "🎤", label: "Ask AI Anything", desc: "Chat about your data" },
         ].map(f => (
-          <div key={f.label} className="bg-white rounded-2xl p-3 border border-slate-100 text-left shadow-sm">
+          <div key={f.label} className="bg-white dark:bg-white/[0.03] rounded-2xl p-3 border border-slate-100 dark:border-white/10 text-left shadow-sm">
             <div className="text-xl mb-1">{f.emoji}</div>
-            <p className="text-[12px] font-black text-slate-800">{f.label}</p>
+            <p className="text-[12px] font-black text-slate-800 dark:text-slate-200">{f.label}</p>
             <p className="text-[10px] text-slate-400 font-medium">{f.desc}</p>
           </div>
         ))}
@@ -333,13 +335,13 @@ function ErrorState({ message, onRetry, onConnect }: { message: string; onRetry:
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="flex flex-col items-center justify-center gap-5 rounded-3xl border border-rose-200 bg-gradient-to-br from-rose-50 to-white p-12 mt-4 text-center">
+      className="flex flex-col items-center justify-center gap-5 rounded-3xl border border-rose-200 dark:border-rose-500/20 bg-gradient-to-br from-rose-50 dark:from-rose-500/5 to-white dark:to-transparent p-12 mt-4 text-center">
       <div className="w-16 h-16 rounded-2xl bg-rose-100 flex items-center justify-center" style={{ boxShadow: "0 4px 16px rgba(239,68,68,0.2)" }}>
         <AlertCircle size={28} className="text-rose-500" />
       </div>
       <div className="max-w-md">
-        <h3 className="text-lg font-black text-slate-900 mb-2">Connection Failed</h3>
-        <p className="text-sm font-bold text-slate-600 bg-rose-50 border border-rose-100 rounded-xl px-4 py-2.5 mb-2">{message}</p>
+        <h3 className="text-lg font-black text-slate-900 dark:text-white mb-2">Connection Failed</h3>
+        <p className="text-sm font-bold text-slate-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-500/10 border border-rose-100 dark:border-rose-500/20 rounded-xl px-4 py-2.5 mb-2">{message}</p>
         <p className="text-[12px] text-slate-400 font-medium">The database may be unavailable or the connection details may need updating.</p>
       </div>
       <div className="flex gap-3">
@@ -349,7 +351,7 @@ function ErrorState({ message, onRetry, onConnect }: { message: string; onRetry:
           <Plus size={14} /> New Connection
         </motion.button>
         <motion.button whileTap={{ scale: 0.97 }} onClick={onRetry}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-black border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 transition-all cursor-pointer">
+          className="flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-black border border-slate-200 dark:border-white/10 bg-white dark:bg-white/[0.05] text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/[0.08] transition-all cursor-pointer">
           <RefreshCw size={14} /> Try Again
         </motion.button>
       </div>
@@ -476,10 +478,10 @@ export default function DashboardPage() {
         {/* ── Page header ── */}
         <div className="flex items-center justify-between py-4 md:py-5">
           <div>
-            <h1 className="text-2xl font-black tracking-tight text-slate-900">
+            <h1 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
               {dbName ? `${dbName}` : "Your Database Dashboard"}
             </h1>
-            <p className="text-sm mt-0.5 font-bold text-slate-500">
+            <p className="text-sm mt-0.5 font-bold text-slate-500 dark:text-slate-400">
               {stats
                 ? "Everything your database is doing, at a glance"
                 : connectionString
@@ -497,7 +499,7 @@ export default function DashboardPage() {
             </motion.button>
             <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
               onClick={() => router.push("/connect")}
-              className="hidden sm:flex items-center gap-2 px-4 py-2.5 rounded-xl text-[12px] font-black text-slate-600 border border-slate-200 bg-white hover:bg-slate-50 transition-all cursor-pointer"
+              className="hidden sm:flex items-center gap-2 px-4 py-2.5 rounded-xl text-[12px] font-black text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-white/10 bg-white dark:bg-white/[0.05] hover:bg-slate-50 dark:hover:bg-white/[0.08] transition-all cursor-pointer"
             >
               <Plus size={13} /> Connect Another
             </motion.button>
@@ -520,7 +522,7 @@ export default function DashboardPage() {
                 initial={{ opacity: 0, y: -8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4 }}
-                className="flex items-center gap-3 px-5 py-3 rounded-2xl border"
+                className="flex items-center gap-3 px-5 py-3 rounded-2xl border dark:bg-opacity-10 dark:backdrop-blur-xl"
                 style={{
                   background: stats.optimization_score >= 95 ? "#f0fdf4" : stats.optimization_score >= 80 ? "#eff6ff" : "#fefce8",
                   borderColor: stats.optimization_score >= 95 ? "#bbf7d0" : stats.optimization_score >= 80 ? "#bfdbfe" : "#fde68a",
@@ -528,7 +530,7 @@ export default function DashboardPage() {
               >
                 <span className="text-lg">{stats.optimization_score >= 95 ? "🚀" : stats.optimization_score >= 80 ? "✅" : "⚠️"}</span>
                 <div>
-                  <p className="text-[13px] font-black text-slate-800">
+                  <p className="text-[13px] font-black text-slate-800 dark:text-slate-200">
                     {stats.optimization_score >= 95
                       ? "All systems running perfectly!"
                       : stats.optimization_score >= 80
@@ -536,8 +538,8 @@ export default function DashboardPage() {
                       : "Some improvements recommended — check AI suggestions below"}
                   </p>
                   <p className="text-[11px] font-bold text-slate-500">
-                    Database: <span className="font-black text-slate-700">{dbName || connectionString?.split("@")[1]?.split("/")[0] || "Connected"}</span>
-                    {dbType && <span> · Type: <span className="font-black text-slate-700">{dbType.toUpperCase()}</span></span>}
+                    Database: <span className="font-black text-slate-700 dark:text-slate-300">{dbName || connectionString?.split("@")[1]?.split("/")[0] || "Connected"}</span>
+                    {dbType && <span> · Type: <span className="font-black text-slate-700 dark:text-slate-300">{dbType.toUpperCase()}</span></span>}
                   </p>
                 </div>
                 <motion.button
@@ -563,7 +565,7 @@ export default function DashboardPage() {
             <section>
               <div className="flex items-center gap-2 mb-3">
                 <Sparkles size={13} className="text-violet-500" />
-                <h2 className="text-[11px] font-black text-slate-400 uppercase tracking-widest">What would you like to do?</h2>
+                <h2 className="text-[11px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">What would you like to do?</h2>
               </div>
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
                 {QUICK_ACTIONS.map((action, i) => (
@@ -577,7 +579,7 @@ export default function DashboardPage() {
               <section>
                 <div className="flex items-center gap-2 mb-3">
                   <Bot size={13} className="text-violet-500" />
-                  <h2 className="text-[11px] font-black text-slate-400 uppercase tracking-widest">AI Recommendations</h2>
+                  <h2 className="text-[11px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">AI Recommendations</h2>
                   <span className="text-[9px] font-black px-2 py-0.5 rounded-full bg-violet-100 text-violet-600 uppercase tracking-widest">Auto-detected</span>
                 </div>
                 <OptimizationReport connectionString={connectionString} onApplied={handleFixApplied} />
@@ -589,7 +591,7 @@ export default function DashboardPage() {
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
                   <Table2 size={13} className="text-violet-500" />
-                  <h2 className="text-[11px] font-black text-slate-400 uppercase tracking-widest">Schema Map</h2>
+                  <h2 className="text-[11px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest">Schema Map</h2>
                   <span className="text-[10px] font-bold text-slate-400">— a visual map of all your tables and how they connect</span>
                 </div>
                 <div className="flex gap-3 items-center text-[10px] text-slate-400 font-bold">
@@ -602,7 +604,7 @@ export default function DashboardPage() {
                   <span className="hidden sm:inline text-slate-300">· Scroll to zoom · Drag to pan</span>
                   <motion.button whileTap={{ scale: 0.96 }}
                     onClick={() => setIsSchemaFullscreen(true)}
-                    className="flex items-center gap-1.5 px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-slate-600 font-black shadow-sm hover:bg-slate-50 transition-all cursor-pointer text-[11px]">
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-white dark:bg-white/[0.05] border border-slate-200 dark:border-white/10 rounded-xl text-slate-600 dark:text-slate-300 font-black shadow-sm hover:bg-slate-50 dark:hover:bg-white/[0.08] transition-all cursor-pointer text-[11px]">
                     <Maximize2 size={12} /> Expand
                   </motion.button>
                 </div>
@@ -615,19 +617,19 @@ export default function DashboardPage() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
-                    className="fixed inset-0 z-[100] bg-slate-50 flex flex-col p-5"
+                    className="fixed inset-0 z-[100] bg-slate-50 dark:bg-[#0B0A0F] flex flex-col p-5"
                   >
                     <div className="flex items-center justify-between mb-4">
-                      <h2 className="text-xl font-black text-slate-900 flex items-center gap-2">
+                      <h2 className="text-xl font-black text-slate-900 dark:text-white flex items-center gap-2">
                         <Database size={20} className="text-violet-500" /> Full Schema Map
                       </h2>
                       <motion.button whileTap={{ scale: 0.96 }}
                         onClick={() => setIsSchemaFullscreen(false)}
-                        className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white border border-slate-200 text-slate-700 font-black shadow-sm hover:bg-slate-50 transition-all cursor-pointer text-sm">
+                        className="flex items-center gap-2 px-4 py-2 rounded-xl bg-white dark:bg-white/[0.05] border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-200 font-black shadow-sm hover:bg-slate-50 dark:hover:bg-white/[0.08] transition-all cursor-pointer text-sm">
                         <X size={15} /> Close
                       </motion.button>
                     </div>
-                    <div className="flex-1 relative rounded-2xl overflow-hidden border border-slate-200 shadow-inner bg-white">
+                    <div className="flex-1 relative rounded-2xl overflow-hidden border border-slate-200 dark:border-white/10 shadow-inner bg-white dark:bg-transparent">
                       {connectionString && <SchemaGraph key={graphKey} connectionString={connectionString} />}
                     </div>
                   </motion.div>
@@ -635,7 +637,7 @@ export default function DashboardPage() {
               </AnimatePresence>
 
               {/* Inline map */}
-              <div className="flex-1 rounded-2xl border border-slate-200 bg-white overflow-hidden min-h-[420px] relative shadow-sm">
+              <div className="flex-1 rounded-2xl border border-slate-200 dark:border-white/10 bg-white dark:bg-white/[0.02] overflow-hidden min-h-[420px] relative shadow-sm">
                 {connectionString ? (
                   <SchemaGraph key={graphKey} connectionString={connectionString} />
                 ) : (
