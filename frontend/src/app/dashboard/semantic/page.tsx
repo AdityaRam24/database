@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { ArrowRight, Plus, Trash2, BrainCircuit, Lightbulb, Save, CheckCircle, Loader2, Link2, Globe, Cpu, Database, Blocks, Binary, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import DashboardShell from '@/components/DashboardShell';
+import { motion } from 'framer-motion';
 
 interface BusinessRule {
     id: string;
@@ -147,8 +148,15 @@ export default function SemanticLayerPage() {
             <div className="flex flex-col h-full w-full max-w-[1200px] mx-auto pb-16">
                 
                 {/* ── Page Header ── */}
-                <div className="px-6 py-5 flex items-center justify-between flex-wrap gap-3 border-b border-gray-100 bg-white shadow-sm z-10 relative">
-                    <div className="flex items-center gap-4">
+                <div className="px-6 py-5 flex items-center justify-between flex-wrap gap-3 border-b border-gray-100 dark:border-white/[0.05] bg-white dark:bg-slate-900/80 shadow-sm z-10 relative overflow-hidden backdrop-blur-xl">
+                    {/* 3D Knowledge Core Shape */}
+                    <motion.div 
+                        animate={{ rotateY: [0, 180, 360], scale: [1, 1.1, 1] }} 
+                        transition={{ repeat: Infinity, duration: 20, ease: "linear" }}
+                        className="absolute right-10 -top-10 w-48 h-48 border-4 border-violet-500/10 dark:border-violet-500/20 shadow-lg pointer-events-none" 
+                        style={{ transformStyle: 'preserve-3d', transform: 'rotateX(50deg) rotateZ(-20deg)' }}
+                    />
+                    <div className="relative z-10 flex items-center gap-4">
                         <div className="w-10 h-10 rounded-xl bg-violet-100 flex items-center justify-center relative shadow-inner ring-1 ring-violet-200">
                             <BrainCircuit size={22} className="text-violet-600" />
                             <div className="absolute top-0 right-0 -mr-1 -mt-1 w-3 h-3 bg-violet-500 rounded-full animate-pulse border-2 border-white shadow-[0_0_8px_rgba(139,92,246,0.8)]"></div>

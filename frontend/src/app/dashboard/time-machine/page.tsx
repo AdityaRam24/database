@@ -54,16 +54,25 @@ export default function TimeMachinePage() {
   return (
     <DashboardShell>
       <div className="flex flex-col h-full bg-slate-50 dark:bg-transparent min-h-0 relative">
-        <div className="absolute top-4 left-6 z-10 pointers-event-none">
-          <div className="bg-white/90 dark:bg-slate-900/80 backdrop-blur-xl border border-slate-200 dark:border-white/[0.08] p-4 rounded-2xl shadow-lg pointers-event-auto max-w-sm">
-             <div className="flex items-center gap-2 mb-2">
+        <div className="absolute top-4 left-6 z-10 pointer-events-none">
+          <div className="bg-white/90 dark:bg-slate-900/80 backdrop-blur-xl border border-slate-200 dark:border-white/[0.08] p-4 rounded-2xl shadow-lg pointer-events-auto max-w-sm relative overflow-hidden group">
+             {/* 3D Time Machine Core Shape */}
+             <motion.div 
+                 animate={{ rotateZ: 360, rotateX: [20, 60, 20], scale: [1, 1.2, 1] }} 
+                 transition={{ repeat: Infinity, duration: 15, ease: "linear" }}
+                 className="absolute -right-10 -bottom-10 w-40 h-40 border-[8px] border-indigo-500/10 dark:border-indigo-500/20 rounded-full shadow-lg pointer-events-none" 
+                 style={{ transformStyle: 'preserve-3d', transform: 'rotateX(50deg) rotateY(10deg)' }}
+             >
+                  <div className="absolute inset-4 rounded-full border-[2px] border-violet-500/10 dark:border-violet-500/20" style={{ transform: 'rotateY(90deg)' }} />
+             </motion.div>
+             <div className="relative z-10 flex items-center gap-2 mb-2">
                  <History className="text-violet-500" size={18} />
                  <h2 className="text-lg font-black text-slate-800 dark:text-slate-100">Schema Time Machine</h2>
              </div>
-             <p className="text-xs font-bold text-slate-500 dark:text-slate-400 mb-3 leading-snug">
+             <p className="relative z-10 text-xs font-bold text-slate-500 dark:text-slate-400 mb-3 leading-snug">
                  Scrub through history to see how your database structure evolved over time.
              </p>
-             <div className="p-3 bg-slate-100 dark:bg-white/[0.03] rounded-xl border border-slate-200 dark:border-white/[0.05]">
+             <div className="relative z-10 p-3 bg-slate-100 dark:bg-white/[0.03] rounded-xl border border-slate-200 dark:border-white/[0.05]">
                 <span className="text-[10px] uppercase font-black tracking-widest text-slate-400 dark:text-slate-500 mb-1 block">Viewing Snapshot:</span>
                 <div className="text-lg font-black text-indigo-900 dark:text-indigo-300">{currentEvent.date}</div>
                 <div className="text-sm font-bold text-slate-700 dark:text-slate-300 mt-1">{currentEvent.label}</div>

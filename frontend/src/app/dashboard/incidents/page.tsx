@@ -142,8 +142,17 @@ export default function IncidentsPage() {
             <div className="flex flex-col h-full w-full max-w-[1400px] mx-auto pb-16">
                 
                 {/* ── Page Header ── */}
-                <div className="px-6 py-5 flex items-center justify-between flex-wrap gap-3 border-b border-slate-100 bg-white shadow-sm z-10 relative">
-                    <div className="flex items-center gap-4">
+                <div className="px-6 py-5 flex items-center justify-between flex-wrap gap-3 border-b border-slate-100 dark:border-white/[0.05] bg-white dark:bg-slate-900/80 shadow-sm z-10 relative overflow-hidden backdrop-blur-xl">
+                    {/* 3D Alerts Core Shape */}
+                    <motion.div 
+                        animate={{ rotateZ: 360, rotateY: [0, 60, 0], scale: [0.9, 1.2, 0.9] }} 
+                        transition={{ repeat: Infinity, duration: 25, ease: "linear" }}
+                        className="absolute right-[20%] -top-20 w-64 h-64 border-[4px] border-amber-500/10 dark:border-amber-500/20 shadow-lg pointer-events-none rounded-full" 
+                        style={{ transformStyle: 'preserve-3d', transform: 'rotateX(70deg)' }}
+                    >
+                         <div className="absolute inset-8 rounded-full border-[8px] border-rose-500/5 dark:border-rose-500/10" />
+                    </motion.div>
+                    <div className="relative z-10 flex items-center gap-4">
                         <div className={`w-10 h-10 rounded-xl flex items-center justify-center relative shadow-inner ring-1 ${isCrisis ? 'bg-rose-50 ring-rose-300' : 'bg-slate-50 ring-slate-200'}`}>
                             <Crosshair size={22} className={isCrisis ? 'text-rose-600' : 'text-slate-500'} />
                             {isCrisis && <div className="absolute top-0 right-0 -mr-1 -mt-1 w-3 h-3 bg-rose-500 rounded-full animate-ping border border-rose-300"></div>}
@@ -167,7 +176,7 @@ export default function IncidentsPage() {
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-3">
+                    <div className="relative z-10 flex items-center gap-3">
                         <Button
                             size="sm"
                             disabled={!connectionString || scanning}

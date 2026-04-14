@@ -801,8 +801,19 @@ export default function AskAIPage() {
                 <div
                     className="flex flex-col flex-1 min-w-0 bg-white dark:bg-white/[0.03]"
                 >
-                    <div className="shrink-0 flex items-center justify-between px-5 py-3 border-b border-violet-100/80 dark:border-white/[0.06] bg-white/70 dark:bg-white/[0.03] backdrop-blur-xl">
-                        <div className="flex items-center gap-3">
+                    <div className="shrink-0 flex items-center justify-between px-5 py-3 border-b border-violet-100/80 dark:border-white/[0.06] bg-white/70 dark:bg-white/[0.03] backdrop-blur-xl overflow-hidden relative">
+                        {/* 3D Neural Core Shape */}
+                        <motion.div 
+                            animate={{ rotateX: [0, 360], rotateY: [0, 360] }} 
+                            transition={{ repeat: Infinity, duration: 40, ease: "linear" }}
+                            className="absolute right-1/4 -top-20 w-64 h-64 border-[2px] border-violet-400/10 dark:border-violet-500/20 rounded-full border-dashed pointer-events-none" 
+                            style={{ transformStyle: 'preserve-3d' }}
+                        >
+                            <div className="absolute inset-4 rounded-full border border-indigo-400/10 dark:border-indigo-400/20" style={{ transform: 'rotateX(90deg)' }} />
+                            <div className="absolute inset-4 rounded-full border border-purple-400/10 dark:border-purple-400/20" style={{ transform: 'rotateY(90deg)' }} />
+                        </motion.div>
+                        
+                        <div className="relative z-10 flex items-center gap-3">
                             {/* Sidebar Toggle */}
                             <button
                                 onClick={() => setIsSidebarOpen(o => !o)}
@@ -845,7 +856,7 @@ export default function AskAIPage() {
                             </div>
                         </div>
 
-                        <div className="flex items-center gap-2">
+                        <div className="relative z-10 flex items-center gap-2">
                             {/* TTS toggle */}
                             <button onClick={() => { setTtsEnabled(t => !t); if (ttsEnabled) window.speechSynthesis?.cancel(); }}
                                 title={ttsEnabled ? 'Disable voice' : 'Enable AI voice'}
