@@ -40,6 +40,12 @@ export default function DataExplorerPage() {
 
     // ... inside the return, the Inspector block ...
 
+    // Insert Row State
+    const [showInsertModal, setShowInsertModal] = useState(false);
+    const [insertFormData, setInsertFormData] = useState<Record<string, any>>({});
+    const [isInserting, setIsInserting] = useState(false);
+    const [insertError, setInsertError] = useState<string | null>(null);
+
     const fetchTablesList = async (connStr: string) => {
         setTablesLoading(true);
         try {
@@ -180,6 +186,34 @@ export default function DataExplorerPage() {
         document.body.removeChild(a);
     };
 
+    const handleInsertSubmit = async () => {
+        if (!selectedTable || !connectionString) return;
+        setIsInserting(true);
+        setInsertError(null);
+        try {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/analysis/insert-row`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    connection_string: connectionString,
+                    table_name: selectedTable,
+                    row_data: insertFormData
+                })
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.detail || "Failed to insert row");
+            
+            // Refresh table data
+            await fetchTableData(connectionString, selectedTable);
+            setShowInsertModal(false);
+            setInsertFormData({});
+        } catch (e: any) {
+            setInsertError(e.message);
+        } finally {
+            setIsInserting(false);
+        }
+    };
+
     const renderDataBadge = (val: any) => {
         if (val === null || val === undefined) {
             return <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-black uppercase tracking-widest bg-slate-100 dark:bg-white/[0.05] text-slate-400 dark:text-slate-500 border border-slate-200 dark:border-white/10">NULL</span>;
@@ -237,6 +271,16 @@ export default function DataExplorerPage() {
                                     </button>
                                 )}
                             </div>
+                            <button
+                                onClick={() => {
+                                    setInsertFormData({});
+                                    setInsertError(null);
+                                    setShowInsertModal(true);
+                                }}
+                                className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-violet-600 border border-violet-500 text-white text-xs font-black uppercase tracking-widest transition-all hover:bg-violet-700 shadow-sm active:scale-95"
+                            >
+                                <DatabaseZap size={13} /> Insert Row
+                            </button>
                             <button
                                 onClick={exportToCSV}
                                 className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white dark:bg-white/[0.05] border border-slate-200 dark:border-white/10 text-slate-700 dark:text-slate-200 text-xs font-black uppercase tracking-widest transition-all hover:bg-slate-50 dark:hover:bg-white/[0.08] shadow-sm active:scale-95"
@@ -532,6 +576,80 @@ export default function DataExplorerPage() {
                                         className="w-full py-3.5 rounded-xl bg-slate-900 dark:bg-violet-600 text-white text-[11px] font-black uppercase tracking-widest hover:bg-slate-800 dark:hover:bg-violet-500 transition-all shadow-md active:scale-[0.98]"
                                     >
                                         Terminate Analysis
+                                    </button>
+                                </div>
+                            </motion.div>
+                        </>
+                    )}
+                </AnimatePresence>
+
+                {/* ── Insert Row Modal ── */}
+                <AnimatePresence>
+                    {showInsertModal && (
+                        <>
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                onClick={() => setShowInsertModal(false)}
+                                className="fixed inset-0 bg-slate-900/30 backdrop-blur-sm z-[60] cursor-pointer"
+                            />
+                            <motion.div
+                                initial={{ y: '100%' }}
+                                animate={{ y: 0 }}
+                                exit={{ y: '100%' }}
+                                transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                                className="fixed bottom-0 left-0 right-0 h-[60vh] max-h-[600px] bg-white rounded-t-3xl shadow-[0_-20px_50px_rgba(0,0,0,0.15)] z-[70] flex flex-col overflow-hidden"
+                            >
+                                <div className="p-6 border-b border-slate-100 bg-white sticky top-0 z-10 flex items-center justify-between">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-xl bg-violet-100 flex items-center justify-center border border-violet-200 text-violet-600 shadow-inner">
+                                            <DatabaseZap size={18} />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-sm font-black text-slate-800 tracking-tight uppercase">Insert New Tuple</h3>
+                                            <p className="text-[9px] font-black text-slate-400 tracking-[0.2em] uppercase mt-0.5">{selectedTable} target</p>
+                                        </div>
+                                    </div>
+                                    <button
+                                        onClick={() => setShowInsertModal(false)}
+                                        className="w-10 h-10 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-500 transition-all font-bold"
+                                    >
+                                        <X size={18} />
+                                    </button>
+                                </div>
+
+                                <div className="flex-1 overflow-y-auto custom-scrollbar p-6">
+                                    {insertError && (
+                                        <div className="mb-6 p-4 bg-rose-50 border border-rose-200 rounded-xl text-rose-700 text-xs font-bold leading-relaxed">
+                                            {insertError}
+                                        </div>
+                                    )}
+                                    <div className="grid grid-cols-2 gap-4">
+                                        {tableData?.columns.map(col => (
+                                            <div key={col} className="flex flex-col gap-1.5">
+                                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest pl-1">{col}</label>
+                                                <input
+                                                    type="text"
+                                                    disabled={isInserting}
+                                                    placeholder="NULL (Default)"
+                                                    value={insertFormData[col] || ''}
+                                                    onChange={e => setInsertFormData({ ...insertFormData, [col]: e.target.value })}
+                                                    className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-xs font-bold text-slate-800 outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-400 focus:bg-white transition-all shadow-inner"
+                                                />
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="p-6 border-t border-slate-100 bg-slate-50">
+                                    <button
+                                        onClick={handleInsertSubmit}
+                                        disabled={isInserting}
+                                        className="w-full py-4 rounded-xl bg-emerald-500 text-slate-900 text-[11px] font-black uppercase tracking-widest hover:bg-emerald-400 transition-all shadow-md active:scale-[0.98] disabled:opacity-50 flex items-center justify-center gap-2"
+                                    >
+                                        {isInserting ? <Loader2 size={16} className="animate-spin text-slate-900" /> : <DatabaseZap size={16} />} 
+                                        {isInserting ? "Injecting Data..." : "Execute Tuple Injection"}
                                     </button>
                                 </div>
                             </motion.div>

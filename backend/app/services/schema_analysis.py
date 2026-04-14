@@ -288,3 +288,30 @@ class SchemaAnalysisService:
         except Exception as e:
             logger.error(f"Error fetching table intelligence for {table_name}: {e}")
             raise e
+
+    def insert_row(self, table_name: str, row_data: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Safely inserts a single row into the given table using parameterized queries.
+        """
+        try:
+            with self.engine.begin() as conn:
+                safe_table = table_name.replace('"', '""')
+                
+                # Filter out any keys where the value is None or empty string (for integer columns)
+                filtered_data = {k: v for k, v in row_data.items() if v is not None and v != ""}
+                
+                if not filtered_data:
+                    raise Exception("No data to insert")
+
+                columns = [f'"{k.replace(chr(34), chr(34)+chr(34))}"' for k in filtered_data.keys()]
+                placeholders = [f":{k}" for k in filtered_data.keys()]
+                
+                query_str = f"INSERT INTO \"{safe_table}\" ({', '.join(columns)}) VALUES ({', '.join(placeholders)})"
+                
+                query = text(query_str)
+                conn.execute(query, filtered_data)
+                
+                return {"success": True, "message": "Row inserted successfully."}
+        except Exception as e:
+            logger.error(f"Error inserting row into {table_name}: {e}")
+            raise e

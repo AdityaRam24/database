@@ -32,6 +32,11 @@ class TableDataRequest(BaseModel):
     connection_string: str
     table_name: str
 
+class InsertRowRequest(BaseModel):
+    connection_string: str
+    table_name: str
+    row_data: dict
+
 class SandboxGenerateRequest(BaseModel):
     connection_string: str
     prompt: str
@@ -288,6 +293,17 @@ def get_table_data(request: TableDataRequest):
         service = SchemaAnalysisService(request.connection_string)
         return service.get_table_data(request.table_name)
     except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/insert-row")
+def insert_table_row(request: InsertRowRequest):
+    try:
+        if _is_mongodb(request.connection_string) or _is_firebase(request.connection_string):
+            raise HTTPException(status_code=400, detail="Insert row via data explorer is currently strictly for relational SQL databases.")
+        service = SchemaAnalysisService(request.connection_string)
+        return service.insert_row(request.table_name, request.row_data)
+    except Exception as e:
+        logger.error(f"Insert row failed: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/table-intelligence")
