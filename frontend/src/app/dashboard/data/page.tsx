@@ -282,12 +282,26 @@ export default function DataExplorerPage() {
                                     <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">Zero Nodes Detected</p>
                                 </div>
                             ) : (
-                                <ul className="flex flex-col gap-1.5">
+                                <motion.ul 
+                                    className="flex flex-col gap-1.5"
+                                    initial="hidden"
+                                    animate="show"
+                                    variants={{
+                                        hidden: { opacity: 0 },
+                                        show: { opacity: 1, transition: { staggerChildren: 0.05 } }
+                                    }}
+                                >
                                     {filteredTables.map(node => {
                                         const active = selectedTable === node.data.label;
                                         return (
-                                            <li key={node.data.label} className="relative group">
-                                                <button
+                                            <motion.li 
+                                                key={node.data.label} 
+                                                className="relative group"
+                                                variants={{ hidden: { opacity: 0, x: -10 }, show: { opacity: 1, x: 0 } }}
+                                            >
+                                                <motion.button
+                                                    whileHover={{ scale: 1.02 }}
+                                                    whileTap={{ scale: 0.98 }}
                                                     onClick={() => handleTableClick(node.data.label)}
                                                     className={`w-full text-left px-4 py-3 rounded-xl transition-all border flex items-center justify-between overflow-hidden relative outline-none
                                                         ${active
@@ -310,11 +324,11 @@ export default function DataExplorerPage() {
                                                     </div>
 
                                                     <ChevronRight size={14} className={`shrink-0 transition-transform ${active ? 'text-violet-500 translate-x-1' : 'text-slate-300 group-hover:text-slate-400 group-hover:translate-x-0.5'}`} />
-                                                </button>
-                                            </li>
+                                                </motion.button>
+                                            </motion.li>
                                         );
                                     })}
-                                </ul>
+                                </motion.ul>
                             )}
                         </div>
                     </div>
@@ -398,11 +412,13 @@ export default function DataExplorerPage() {
                                                 <motion.div
                                                     key={i}
                                                     layout
-                                                    initial={{ opacity: 0, y: 5 }}
+                                                    initial={{ opacity: 0, y: 15 }}
                                                     animate={{ opacity: 1, y: 0 }}
+                                                    whileHover={{ scale: 1.01, zIndex: 10 }}
+                                                    whileTap={{ scale: 0.99 }}
                                                     transition={{ duration: 0.2, delay: i < 30 ? i * 0.02 : 0 }}
                                                     onClick={() => setInspectedRow(row)}
-                                                    className="bg-white border border-slate-200 hover:border-violet-300 hover:shadow-md rounded-xl p-3 px-6 transition-all cursor-pointer group flex flex-col"
+                                                    className="bg-white border border-slate-200 hover:border-violet-300 hover:shadow-lg rounded-xl p-3 px-6 transition-all cursor-pointer group flex flex-col relative"
                                                 >
                                                     <div
                                                         className="grid gap-4 items-center"

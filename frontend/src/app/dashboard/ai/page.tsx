@@ -45,11 +45,11 @@ interface ChatSession {
 /* ─── Constants ──────────────────────────────────────────────────── */
 const LANGUAGES = [
     { code: 'english', label: '🇺🇸 English' },
-    { code: 'hindi',   label: '🇮🇳 Hindi'   },
-    { code: 'spanish', label: '🇪🇸 Spanish'  },
-    { code: 'french',  label: '🇫🇷 French'   },
-    { code: 'arabic',  label: '🇸🇦 Arabic'   },
-    { code: 'german',  label: '🇩🇪 German'   },
+    { code: 'hindi', label: '🇮🇳 Hindi' },
+    { code: 'spanish', label: '🇪🇸 Spanish' },
+    { code: 'french', label: '🇫🇷 French' },
+    { code: 'arabic', label: '🇸🇦 Arabic' },
+    { code: 'german', label: '🇩🇪 German' },
 ];
 
 const FRIENDLY_TUTOR_RULES = `
@@ -121,7 +121,7 @@ function MiniBarChart({ columns, rows }: { columns: string[]; rows: any[][] }) {
     return (
         <div className="mt-4 p-4 rounded-2xl bg-gradient-to-br from-violet-50 via-indigo-50 to-white dark:from-violet-500/10 dark:via-indigo-500/10 dark:to-white/[0.02] border border-violet-100 dark:border-violet-500/20">
             <p className="text-[10px] font-black text-violet-500 uppercase tracking-widest mb-3 flex items-center gap-1.5">
-                <BarChart2 size={11}/> Visual Breakdown
+                <BarChart2 size={11} /> Visual Breakdown
             </p>
             <div className="space-y-2.5">
                 {rows.slice(0, 8).map((row, i) => (
@@ -133,7 +133,7 @@ function MiniBarChart({ columns, rows }: { columns: string[]; rows: any[][] }) {
                                     initial={{ width: 0 }}
                                     animate={{ width: `${Math.max(4, (values[i] / max) * 100)}%` }}
                                     transition={{ duration: 0.9, delay: i * 0.06, ease: 'easeOut' }}
-                                    style={{ background: `linear-gradient(90deg, hsl(${255 - i*14},80%,65%), hsl(${238 - i*14},70%,58%))` }}
+                                    style={{ background: `linear-gradient(90deg, hsl(${255 - i * 14},80%,65%), hsl(${238 - i * 14},70%,58%))` }}
                                 />
                             </div>
                             <span className="text-slate-800 dark:text-slate-300 font-black w-10 text-right tabular-nums">{row[1]}</span>
@@ -252,7 +252,7 @@ export default function AskAIPage() {
 
             try {
                 localStorage.setItem(key, JSON.stringify(nextSessions));
-            } catch (err) {}
+            } catch (err) { }
 
             return nextSessions;
         });
@@ -319,7 +319,7 @@ export default function AskAIPage() {
             try {
                 const stored = localStorage.getItem('business_rules');
                 if (stored) localRules = JSON.parse(stored);
-            } catch (e) {}
+            } catch (e) { }
 
             try {
                 const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/semantic/rules`);
@@ -540,7 +540,7 @@ export default function AskAIPage() {
 
     const stopListening = useCallback(() => {
         if (activeRecogRef.current) {
-            try { activeRecogRef.current.stop(); } catch {}
+            try { activeRecogRef.current.stop(); } catch { }
             activeRecogRef.current = null;
         }
         if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
@@ -592,7 +592,7 @@ export default function AskAIPage() {
             });
             const data = await res.json();
             const reply = data.answer || 'Hmm, I got an empty response. Could you try rephrasing?';
-            
+
             // If the AI auto-generated a query result along with the answer, directly use it!
             const newMsgId = genId();
             setMessages(prev => [...prev, {
@@ -603,7 +603,7 @@ export default function AskAIPage() {
                 query_result: data.query_result || null
             }]);
             speak(reply);
-            
+
             // If the query was successful, fetch its cost dynamically in the background
             if (data.query_result && data.query_result.sql && !data.query_result.error) {
                 try {
@@ -613,7 +613,7 @@ export default function AskAIPage() {
                     });
                     const costData = await cr.json();
                     setMessages(p => p.map(m => m.id === newMsgId ? { ...m, query_result: { ...m.query_result!, query_cost: costData } } : m));
-                } catch {}
+                } catch { }
             }
         } catch (e: any) {
             if (e.name !== 'AbortError') {
@@ -641,7 +641,7 @@ export default function AskAIPage() {
                         body: JSON.stringify({ connection_string: connectionString, sql: data.sql }),
                     });
                     costData = await cr.json();
-                } catch {}
+                } catch { }
             }
             setMessages(p => p.map(m => m.id === msgId ? { ...m, loading_query: false, query_result: { ...data, query_cost: costData } } : m));
         } catch {
@@ -731,19 +731,19 @@ export default function AskAIPage() {
                                         <p className="text-[11px] font-bold" style={{ color: 'rgba(76,29,149,0.5)' }}>Your conversations will appear here</p>
                                     </div>
                                 ) : (
-                                    <>  
+                                    <>
                                         {/* Group by Today / Yesterday / Older */}
                                         {(() => {
                                             const now = Date.now();
-                                            const todayStart = new Date(); todayStart.setHours(0,0,0,0);
+                                            const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
                                             const yesterdayStart = new Date(todayStart); yesterdayStart.setDate(yesterdayStart.getDate() - 1);
-                                            
+
                                             const groups: { label: string; items: ChatSession[] }[] = [
                                                 { label: 'Today', items: sessions.filter(s => s.updatedAt >= todayStart.getTime()) },
                                                 { label: 'Yesterday', items: sessions.filter(s => s.updatedAt >= yesterdayStart.getTime() && s.updatedAt < todayStart.getTime()) },
                                                 { label: 'Older', items: sessions.filter(s => s.updatedAt < yesterdayStart.getTime()) },
                                             ].filter(g => g.items.length > 0);
-                                            
+
                                             return groups.map(group => (
                                                 <div key={group.label} className="mb-2">
                                                     <p className="text-[9px] font-black uppercase tracking-widest px-3 py-1.5 mb-0.5"
@@ -752,7 +752,8 @@ export default function AskAIPage() {
                                                         <motion.div
                                                             key={session.id}
                                                             onClick={() => loadSession(session.id)}
-                                                            whileHover={{ x: 2 }}
+                                                            whileHover={{ x: 2, scale: 1.01 }}
+                                                            whileTap={{ scale: 0.99 }}
                                                             role="button"
                                                             tabIndex={0}
                                                             onKeyDown={(e) => e.key === 'Enter' && loadSession(session.id)}
@@ -794,391 +795,389 @@ export default function AskAIPage() {
                     )}
                 </AnimatePresence>
 
-            {/* ────────── Main Chat Panel ────────── */}
-            <div
-                className="flex flex-col flex-1 min-w-0 bg-white dark:bg-white/[0.03]"
-            >
-                <div className="shrink-0 flex items-center justify-between px-5 py-3 border-b border-violet-100/80 dark:border-white/[0.06] bg-white/70 dark:bg-white/[0.03] backdrop-blur-xl">
-                    <div className="flex items-center gap-3">
-                        {/* Sidebar Toggle */}
-                        <button
-                            onClick={() => setIsSidebarOpen(o => !o)}
-                            title={isSidebarOpen ? 'Close sidebar' : 'Open history'}
-                            className="p-2 rounded-xl text-slate-400 hover:text-violet-600 hover:bg-violet-50 dark:hover:bg-violet-500/10 transition-all"
-                        >
-                            <PanelLeft size={16} />
-                        </button>
+                {/* ────────── Main Chat Panel ────────── */}
+                <div
+                    className="flex flex-col flex-1 min-w-0 bg-white dark:bg-white/[0.03]"
+                >
+                    <div className="shrink-0 flex items-center justify-between px-5 py-3 border-b border-violet-100/80 dark:border-white/[0.06] bg-white/70 dark:bg-white/[0.03] backdrop-blur-xl">
+                        <div className="flex items-center gap-3">
+                            {/* Sidebar Toggle */}
+                            <button
+                                onClick={() => setIsSidebarOpen(o => !o)}
+                                title={isSidebarOpen ? 'Close sidebar' : 'Open history'}
+                                className="p-2 rounded-xl text-slate-400 hover:text-violet-600 hover:bg-violet-50 dark:hover:bg-violet-500/10 transition-all"
+                            >
+                                <PanelLeft size={16} />
+                            </button>
 
-                        {/* Avatar */}
-                        <div className="relative">
-                            <div className="w-10 h-10 rounded-2xl flex items-center justify-center shadow-lg"
-                                style={{ background: 'linear-gradient(135deg, #7c3aed, #4f46e5)', boxShadow: '0 4px 16px rgba(124,58,237,0.35)' }}>
-                                <Wand2 size={18} color="white" />
+                            {/* Avatar */}
+                            <div className="relative">
+                                <div className="w-10 h-10 rounded-2xl flex items-center justify-center shadow-lg"
+                                    style={{ background: 'linear-gradient(135deg, #7c3aed, #4f46e5)', boxShadow: '0 4px 16px rgba(124,58,237,0.35)' }}>
+                                    <Wand2 size={18} color="white" />
+                                </div>
+                                <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-emerald-400 border-2 border-white" />
                             </div>
-                            <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-emerald-400 border-2 border-white" />
+
+                            <div>
+                                <div className="flex items-center gap-2">
+                                    <h1 className="text-[15px] font-black text-slate-900 dark:text-slate-100 tracking-tight">Lumina</h1>
+                                    <span className="text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest"
+                                        style={{ background: 'linear-gradient(135deg,#ede9fe,#ddd6fe)', color: '#6d28d9' }}>
+                                        AI Guide
+                                    </span>
+                                </div>
+                                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Your friendly database companion</p>
+                            </div>
+
+                            <div className="hidden lg:flex items-center gap-1.5 ml-4 pl-4 border-l border-slate-100 dark:border-white/[0.06]">
+                                {[
+                                    { icon: Shield, label: 'Safe Mode', bg: '#f3e8ff', fg: '#7c3aed' },
+                                    { icon: CheckCircle2, label: 'Firewall On', bg: '#dcfce7', fg: '#15803d' },
+                                    { icon: RefreshCw, label: 'Self-Healing', bg: '#dbeafe', fg: '#1d4ed8' },
+                                ].map(({ icon: Icon, label, bg, fg }) => (
+                                    <span key={label} className="flex items-center gap-1 text-[10px] px-2.5 py-1 rounded-full font-bold" style={{ background: bg, color: fg }}>
+                                        <Icon size={9} /> {label}
+                                    </span>
+                                ))}
+                            </div>
                         </div>
 
-                        <div>
-                            <div className="flex items-center gap-2">
-                                <h1 className="text-[15px] font-black text-slate-900 dark:text-slate-100 tracking-tight">Lumina</h1>
-                                <span className="text-[9px] font-black px-2 py-0.5 rounded-full uppercase tracking-widest"
-                                    style={{ background: 'linear-gradient(135deg,#ede9fe,#ddd6fe)', color: '#6d28d9' }}>
-                                    AI Guide
-                                </span>
-                            </div>
-                            <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest mt-0.5">Your friendly database companion</p>
-                        </div>
+                        <div className="flex items-center gap-2">
+                            {/* TTS toggle */}
+                            <button onClick={() => { setTtsEnabled(t => !t); if (ttsEnabled) window.speechSynthesis?.cancel(); }}
+                                title={ttsEnabled ? 'Disable voice' : 'Enable AI voice'}
+                                className={`p-2.5 rounded-xl transition-all ${ttsEnabled ? 'bg-violet-100 text-violet-700 shadow-sm' : 'text-slate-400 hover:bg-slate-100'}`}>
+                                {ttsEnabled ? <Volume2 size={15} /> : <VolumeX size={15} />}
+                            </button>
 
-                        <div className="hidden lg:flex items-center gap-1.5 ml-4 pl-4 border-l border-slate-100 dark:border-white/[0.06]">
-                            {[
-                                { icon: Shield, label: 'Safe Mode', bg: '#f3e8ff', fg: '#7c3aed' },
-                                { icon: CheckCircle2, label: 'Firewall On', bg: '#dcfce7', fg: '#15803d' },
-                                { icon: RefreshCw, label: 'Self-Healing', bg: '#dbeafe', fg: '#1d4ed8' },
-                            ].map(({ icon: Icon, label, bg, fg }) => (
-                                <span key={label} className="flex items-center gap-1 text-[10px] px-2.5 py-1 rounded-full font-bold" style={{ background: bg, color: fg }}>
-                                    <Icon size={9}/> {label}
-                                </span>
-                            ))}
+                            {/* Language */}
+                            <div className="relative">
+                                <button onClick={() => setShowLangPicker(p => !p)}
+                                    className="flex items-center gap-1.5 text-[12px] px-3 py-2 rounded-xl border border-slate-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.05] hover:bg-slate-50 dark:hover:bg-white/[0.08] font-bold text-slate-600 dark:text-slate-300 shadow-sm transition-all">
+                                    <Globe size={11} className="text-violet-500" />
+                                    {selectedLang.label}
+                                    <ChevronDown size={10} className="text-slate-400" />
+                                </button>
+                                <AnimatePresence>
+                                    {showLangPicker && (
+                                        <motion.div initial={{ opacity: 0, scale: 0.93, y: -6 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.93, y: -6 }}
+                                            className="absolute top-11 right-0 z-50 p-1.5 rounded-2xl shadow-2xl border border-slate-100 dark:border-white/[0.08] bg-white dark:bg-slate-900/95 min-w-[180px]">
+                                            {LANGUAGES.map(lang => (
+                                                <button key={lang.code} onClick={() => { setLanguage(lang.code); setShowLangPicker(false); }}
+                                                    className={`flex items-center w-full text-left text-[12px] px-3 py-2.5 rounded-xl transition-colors font-bold ${language === lang.code ? 'bg-violet-50 dark:bg-violet-500/10 text-violet-700 dark:text-violet-300' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/[0.05]'}`}>
+                                                    {lang.label}
+                                                    {language === lang.code && <CheckCircle2 size={13} className="ml-auto text-violet-500" />}
+                                                </button>
+                                            ))}
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+                            </div>
+
+                            {/* Clear */}
+                            <button onClick={clearChat} title="Clear chat"
+                                className="p-2.5 rounded-xl text-slate-400 hover:text-rose-500 hover:bg-rose-50 transition-all">
+                                <Trash2 size={15} />
+                            </button>
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-2">
-                        {/* TTS toggle */}
-                        <button onClick={() => { setTtsEnabled(t => !t); if (ttsEnabled) window.speechSynthesis?.cancel(); }}
-                            title={ttsEnabled ? 'Disable voice' : 'Enable AI voice'}
-                            className={`p-2.5 rounded-xl transition-all ${ttsEnabled ? 'bg-violet-100 text-violet-700 shadow-sm' : 'text-slate-400 hover:bg-slate-100'}`}>
-                            {ttsEnabled ? <Volume2 size={15}/> : <VolumeX size={15}/>}
-                        </button>
+                    {/* ────────── Messages ────────── */}
+                    <div ref={messagesContainerRef} className="flex-1 overflow-y-auto">
+                        <div className="py-6 px-4 sm:px-8 space-y-6 min-h-full">
 
-                        {/* Language */}
-                        <div className="relative">
-                            <button onClick={() => setShowLangPicker(p => !p)}
-                                className="flex items-center gap-1.5 text-[12px] px-3 py-2 rounded-xl border border-slate-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.05] hover:bg-slate-50 dark:hover:bg-white/[0.08] font-bold text-slate-600 dark:text-slate-300 shadow-sm transition-all">
-                                <Globe size={11} className="text-violet-500"/>
-                                {selectedLang.label}
-                                <ChevronDown size={10} className="text-slate-400"/>
-                            </button>
-                            <AnimatePresence>
-                                {showLangPicker && (
-                                    <motion.div initial={{ opacity: 0, scale: 0.93, y: -6 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.93, y: -6 }}
-                                        className="absolute top-11 right-0 z-50 p-1.5 rounded-2xl shadow-2xl border border-slate-100 dark:border-white/[0.08] bg-white dark:bg-slate-900/95 min-w-[180px]">
-                                        {LANGUAGES.map(lang => (
-                                            <button key={lang.code} onClick={() => { setLanguage(lang.code); setShowLangPicker(false); }}
-                                                className={`flex items-center w-full text-left text-[12px] px-3 py-2.5 rounded-xl transition-colors font-bold ${language === lang.code ? 'bg-violet-50 dark:bg-violet-500/10 text-violet-700 dark:text-violet-300' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-white/[0.05]'}`}>
-                                                {lang.label}
-                                                {language === lang.code && <CheckCircle2 size={13} className="ml-auto text-violet-500"/>}
-                                            </button>
+                            {/* No DB connected */}
+                            {!connectionString && (
+                                <div className="flex flex-col items-center justify-center h-full py-24 gap-6 text-center">
+                                    <div className="w-24 h-24 rounded-3xl flex items-center justify-center"
+                                        style={{ background: 'linear-gradient(135deg,#7c3aed,#4f46e5)', boxShadow: '0 8px 32px rgba(124,58,237,0.3)' }}>
+                                        <Database size={38} color="white" />
+                                    </div>
+                                    <div>
+                                        <h2 className="text-xl font-black text-slate-900 dark:text-slate-100 mb-2">No Database Connected</h2>
+                                        <p className="text-slate-500 text-sm font-bold max-w-xs">Connect a database from the sidebar to start chatting with Lumina!</p>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Empty state with starters */}
+                            {connectionString && messages.length === 0 && (
+                                <div className="flex flex-col items-center justify-center py-16 gap-8">
+                                    <div className="text-center">
+                                        <div className="w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-5"
+                                            style={{ background: 'linear-gradient(135deg,#7c3aed,#4f46e5)', boxShadow: '0 8px 32px rgba(124,58,237,0.3)' }}>
+                                            <MessageCircle size={34} color="white" />
+                                        </div>
+                                        <h2 className="text-2xl font-black text-slate-900 dark:text-slate-100">Hey, I'm Lumina! 👋</h2>
+                                        <p className="text-slate-500 font-bold text-sm mt-2">Ask me anything — in plain English!</p>
+                                    </div>
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 w-full max-w-2xl">
+                                        {STARTERS.map(s => (
+                                            <motion.button key={s.text} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
+                                                onClick={() => handleSend(s.text)}
+                                                className="text-left px-4 py-4 rounded-2xl border border-slate-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.05] hover:border-violet-300 dark:hover:border-violet-400 hover:shadow-md transition-all cursor-pointer group">
+                                                <span className="text-2xl mb-3 block">{s.emoji}</span>
+                                                <span className="text-[13px] font-bold text-slate-700 group-hover:text-violet-700 transition-colors leading-snug">{s.text}</span>
+                                            </motion.button>
                                         ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Conversation */}
+                            <AnimatePresence initial={false}>
+                                {messages.map((msg, i) => (
+                                    <motion.div key={msg.id}
+                                        initial={{ opacity: 0, y: 20, scale: 0.96 }}
+                                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                                        transition={{ duration: 0.28, ease: [0.25, 0.1, 0.25, 1] }}
+                                        className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse ml-auto max-w-[78%]' : 'mr-auto max-w-[88%]'} w-full`}
+                                    >
+                                        {/* Avatar */}
+                                        <div className="shrink-0 w-9 h-9 rounded-2xl flex items-center justify-center shadow mt-1"
+                                            style={{ background: msg.role === 'ai' ? 'linear-gradient(135deg,#8b5cf6,#6366f1)' : 'linear-gradient(135deg,#1e293b,#334155)' }}>
+                                            {msg.role === 'ai' ? <Wand2 size={14} color="white" /> : <User size={14} color="white" />}
+                                        </div>
+
+                                        <div className="flex flex-col gap-2 min-w-0 flex-1">
+                                            <span className={`text-[10px] font-black uppercase tracking-widest ${msg.role === 'user' ? 'text-right text-slate-400' : 'text-violet-500'}`}>
+                                                {msg.role === 'ai' ? '✦ Lumina' : 'You'}
+                                            </span>
+
+                                            {/* Bubble */}
+                                            <div className={`rounded-2xl px-5 py-4 text-[14px] shadow-sm font-medium ${msg.role === 'user'
+                                                    ? 'text-white rounded-tr-sm'
+                                                    : 'text-slate-800 dark:text-slate-100 bg-white dark:bg-white/[0.05] border border-slate-100/80 dark:border-white/[0.07] rounded-tl-sm shadow-[0_2px_12px_rgba(0,0,0,0.04)]'
+                                                }`}
+                                                style={msg.role === 'user' ? { background: 'linear-gradient(135deg,#1e293b,#334155)', boxShadow: '0 4px 16px rgba(30,41,59,0.25)' } : {}}>
+                                                <FormattedText text={msg.content} />
+                                            </div>
+
+                                            {/* Show Data button */}
+                                            {msg.role === 'ai' && i > 0 && !msg.query_result && !msg.suggested_action && !msg.content.includes('The change was applied') && !msg.content.includes('Something went wrong') && (
+                                                <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
+                                                    onClick={() => handleRunQuery(msg.id, messages[i - 1]?.content || msg.content)}
+                                                    disabled={!!msg.loading_query}
+                                                    className="self-start flex items-center gap-2 text-[11px] font-black uppercase tracking-widest px-4 py-2 rounded-full border border-violet-300 dark:border-violet-500/40 bg-white dark:bg-violet-500/10 text-violet-600 dark:text-violet-400 hover:bg-violet-50 dark:hover:bg-violet-500/20 hover:border-violet-400 transition-all shadow-sm disabled:opacity-60 cursor-pointer mt-2">
+                                                    {msg.loading_query
+                                                        ? <><Loader2 size={11} className="animate-spin" /> Fetching your data…</>
+                                                        : <><Play size={11} fill="currentColor" /> Show me the data</>}
+                                                </motion.button>
+                                            )}
+
+                                            {/* Query result */}
+                                            {msg.query_result && (
+                                                <div className="bg-white dark:bg-white/[0.04] border border-slate-100 dark:border-white/[0.06] rounded-2xl p-4 shadow-sm">
+                                                    {msg.query_result.firewall_blocked ? (
+                                                        <div className="flex items-center gap-2.5 text-[13px] text-rose-700 bg-rose-50 border border-rose-200 rounded-xl px-4 py-3 font-bold">
+                                                            <Shield size={16} /> 🛡️ Blocked by Safety Firewall — this action looked risky!
+                                                        </div>
+                                                    ) : msg.query_result.error ? (
+                                                        <div className="flex items-start gap-2.5 text-[13px] text-rose-700 bg-rose-50 border border-rose-200 rounded-xl px-4 py-3">
+                                                            <AlertCircle size={16} className="shrink-0 mt-0.5" />
+                                                            <div>
+                                                                <p className="font-black text-[10px] uppercase tracking-widest mb-1">Something went wrong</p>
+                                                                <p className="font-bold">{msg.query_result.error}</p>
+                                                            </div>
+                                                        </div>
+                                                    ) : (<>
+                                                        <div className="p-3.5 rounded-xl text-[12px] font-mono leading-relaxed overflow-x-auto mb-3"
+                                                            style={{ background: '#0f172a', color: '#4ade80' }}>
+                                                            {msg.query_result.sql}
+                                                        </div>
+                                                        {msg.query_result.explanation && (
+                                                            <div className="flex items-start gap-2 text-[13px] text-amber-800 bg-amber-50 border border-amber-100 rounded-xl px-4 py-3 mb-3 font-bold">
+                                                                <Lightbulb size={14} className="text-amber-500 shrink-0 mt-0.5" />
+                                                                {msg.query_result.explanation}
+                                                            </div>
+                                                        )}
+                                                        {msg.query_result.attempts > 1 && (
+                                                            <p className="text-[10px] font-black text-blue-500 mb-3 flex items-center gap-1 uppercase tracking-widest">
+                                                                <RefreshCw size={10} /> Auto-fixed in {msg.query_result.attempts} tries 🔧
+                                                            </p>
+                                                        )}
+                                                        {msg.query_result.chart_type && <MiniBarChart columns={msg.query_result.columns} rows={msg.query_result.rows} />}
+                                                        {msg.query_result.rows.length > 0 && <DataTable columns={msg.query_result.columns} rows={msg.query_result.rows} />}
+                                                        <p className="text-[10px] text-slate-400 mt-3 flex items-center gap-1.5 font-black uppercase tracking-widest">
+                                                            <CheckCircle2 size={10} className="text-emerald-500" />
+                                                            {msg.query_result.rows.length} row{msg.query_result.rows.length !== 1 ? 's' : ''} returned
+                                                        </p>
+                                                        {msg.query_result.query_cost && (
+                                                            <div className="mt-3 flex items-center gap-3 px-3 py-2.5 rounded-xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-100">
+                                                                <span className="flex items-center gap-1 text-[11px] font-black text-amber-600"><DollarSign size={11} />{msg.query_result.query_cost.cost_estimate.dollar_cost_display}</span>
+                                                                <span className="flex items-center gap-1 text-[11px] font-black text-emerald-600"><Leaf size={11} />{msg.query_result.query_cost.cost_estimate.co2_display}</span>
+                                                                <span className="ml-auto text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-lg bg-white border shadow-sm"
+                                                                    style={{ color: msg.query_result.query_cost.rating === 'cheap' ? '#16a34a' : '#ea580c' }}>
+                                                                    {msg.query_result.query_cost.rating}
+                                                                </span>
+                                                            </div>
+                                                        )}
+                                                    </>)}
+                                                </div>
+                                            )}
+
+                                            {/* Suggested action */}
+                                            {msg.suggested_action && (
+                                                <div className="bg-gradient-to-br from-violet-50 to-indigo-50 dark:from-violet-500/10 dark:to-indigo-500/10 border border-violet-200 dark:border-violet-500/20 rounded-2xl p-5 shadow-sm">
+                                                    <p className="text-[10px] font-black text-violet-600 dark:text-violet-400 uppercase tracking-widest mb-3 flex items-center gap-1.5">
+                                                        <Lightbulb size={11} className="text-amber-500" /> Pending Database Change
+                                                    </p>
+                                                    <code className="text-[12px] font-mono block p-4 rounded-xl mb-4"
+                                                        style={{ background: '#0f172a', color: '#4ade80' }}>
+                                                        {msg.suggested_action}
+                                                    </code>
+                                                    <p className="text-[12px] text-slate-600 dark:text-slate-300 font-bold mb-4 bg-white/70 dark:bg-white/[0.04] p-3 rounded-xl border border-violet-100 dark:border-violet-500/20">
+                                                        ⚠️ Review the SQL above carefully — once approved, it will permanently modify your database!
+                                                    </p>
+                                                    <div className="flex gap-3">
+                                                        <button
+                                                            onClick={() => handleDismissAction(msg.id)}
+                                                            disabled={executing !== null}
+                                                            className="flex-1 py-3 rounded-2xl text-[12px] font-black uppercase tracking-wider border border-slate-200 dark:border-white/[0.1] bg-white dark:bg-white/[0.05] text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/[0.08] transition-all disabled:opacity-50 cursor-pointer">
+                                                            No, dismiss
+                                                        </button>
+                                                        <motion.button whileTap={{ scale: 0.97 }}
+                                                            onClick={() => handleExecute(msg.id, msg.suggested_action!)}
+                                                            disabled={executing !== null}
+                                                            className="flex-1 py-3 rounded-2xl text-[12px] font-black text-white uppercase tracking-wider flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
+                                                            style={{ background: 'linear-gradient(135deg,#7c3aed,#4f46e5)', boxShadow: '0 4px 20px rgba(124,58,237,0.35)' }}>
+                                                            {executing === msg.id ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle2 size={14} />}
+                                                            Yes, Apply Change
+                                                        </motion.button>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </motion.div>
+                                ))}
+                            </AnimatePresence>
+
+                            {/* Thinking */}
+                            {loading && (
+                                <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+                                    className="flex gap-3 max-w-[80%] mr-auto">
+                                    <div className="shrink-0 w-9 h-9 rounded-2xl flex items-center justify-center shadow"
+                                        style={{ background: 'linear-gradient(135deg,#8b5cf6,#6366f1)' }}>
+                                        <Wand2 size={14} color="white" />
+                                    </div>
+                                    <div>
+                                        <span className="text-[10px] font-black uppercase tracking-widest text-violet-500">✦ Lumina</span>
+                                        <div className="mt-1 flex items-center gap-3 px-5 py-3.5 bg-white dark:bg-white/[0.05] border border-slate-100 dark:border-white/[0.06] rounded-2xl rounded-tl-sm shadow-sm">
+                                            <TypingWave />
+                                            <span className="text-[13px] font-bold text-slate-400">Thinking…</span>
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            )}
+
+                            <div ref={messagesEndRef} className="h-2" />
+                        </div>
+                    </div>
+
+                    {/* ────────── Input Bar ────────── */}
+                    <div className="shrink-0 px-4 sm:px-8 pb-5 pt-3 border-t border-violet-100/60 dark:border-white/[0.06] bg-white/75 dark:bg-white/[0.03] backdrop-blur-xl">
+                        <div className="max-w-3xl mx-auto space-y-2">
+
+                            {/* Voice error/tip */}
+                            <AnimatePresence>
+                                {voiceError && (
+                                    <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                                        className="flex items-center gap-2 px-4 py-2.5 bg-rose-50 border border-rose-200 rounded-2xl">
+                                        <Info size={13} className="text-rose-500 shrink-0" />
+                                        <span className="text-[12px] font-bold text-rose-700">{voiceError}</span>
+                                        <button onClick={() => setVoiceError(null)} className="ml-auto text-rose-400 hover:text-rose-600 font-black text-xs">✕</button>
                                     </motion.div>
                                 )}
                             </AnimatePresence>
-                        </div>
 
-                        {/* Clear */}
-                        <button onClick={clearChat} title="Clear chat"
-                            className="p-2.5 rounded-xl text-slate-400 hover:text-rose-500 hover:bg-rose-50 transition-all">
-                            <Trash2 size={15}/>
-                        </button>
-                    </div>
-                </div>
-
-                {/* ────────── Messages ────────── */}
-                <div ref={messagesContainerRef} className="flex-1 overflow-y-auto">
-                    <div className="py-6 px-4 sm:px-8 space-y-6 min-h-full">
-
-                        {/* No DB connected */}
-                        {!connectionString && (
-                            <div className="flex flex-col items-center justify-center h-full py-24 gap-6 text-center">
-                                <div className="w-24 h-24 rounded-3xl flex items-center justify-center"
-                                    style={{ background: 'linear-gradient(135deg,#7c3aed,#4f46e5)', boxShadow: '0 8px 32px rgba(124,58,237,0.3)' }}>
-                                    <Database size={38} color="white"/>
-                                </div>
-                                <div>
-                                    <h2 className="text-xl font-black text-slate-900 dark:text-slate-100 mb-2">No Database Connected</h2>
-                                    <p className="text-slate-500 text-sm font-bold max-w-xs">Connect a database from the sidebar to start chatting with Lumina!</p>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Empty state with starters */}
-                        {connectionString && messages.length === 0 && (
-                            <div className="flex flex-col items-center justify-center py-16 gap-8">
-                                <div className="text-center">
-                                    <div className="w-20 h-20 rounded-3xl flex items-center justify-center mx-auto mb-5"
-                                        style={{ background: 'linear-gradient(135deg,#7c3aed,#4f46e5)', boxShadow: '0 8px 32px rgba(124,58,237,0.3)' }}>
-                                        <MessageCircle size={34} color="white"/>
-                                    </div>
-                                    <h2 className="text-2xl font-black text-slate-900 dark:text-slate-100">Hey, I'm Lumina! 👋</h2>
-                                    <p className="text-slate-500 font-bold text-sm mt-2">Ask me anything — in plain English!</p>
-                                </div>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 w-full max-w-2xl">
-                                    {STARTERS.map(s => (
-                                        <motion.button key={s.text} whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}
-                                            onClick={() => handleSend(s.text)}
-                                            className="text-left px-4 py-4 rounded-2xl border border-slate-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.05] hover:border-violet-300 dark:hover:border-violet-400 hover:shadow-md transition-all cursor-pointer group">
-                                            <span className="text-2xl mb-3 block">{s.emoji}</span>
-                                            <span className="text-[13px] font-bold text-slate-700 group-hover:text-violet-700 transition-colors leading-snug">{s.text}</span>
-                                        </motion.button>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Conversation */}
-                        <AnimatePresence initial={false}>
-                            {messages.map((msg, i) => (
-                                <motion.div key={msg.id}
-                                    initial={{ opacity: 0, y: 20, scale: 0.96 }}
-                                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                                    transition={{ duration: 0.28, ease: [0.25, 0.1, 0.25, 1] }}
-                                    className={`flex gap-3 ${msg.role === 'user' ? 'flex-row-reverse ml-auto max-w-[78%]' : 'mr-auto max-w-[88%]'} w-full`}
-                                >
-                                    {/* Avatar */}
-                                    <div className="shrink-0 w-9 h-9 rounded-2xl flex items-center justify-center shadow mt-1"
-                                        style={{ background: msg.role === 'ai' ? 'linear-gradient(135deg,#8b5cf6,#6366f1)' : 'linear-gradient(135deg,#1e293b,#334155)' }}>
-                                        {msg.role === 'ai' ? <Wand2 size={14} color="white"/> : <User size={14} color="white"/>}
-                                    </div>
-
-                                    <div className="flex flex-col gap-2 min-w-0 flex-1">
-                                        <span className={`text-[10px] font-black uppercase tracking-widest ${msg.role === 'user' ? 'text-right text-slate-400' : 'text-violet-500'}`}>
-                                            {msg.role === 'ai' ? '✦ Lumina' : 'You'}
+                            {/* Listening / Transcribing pill */}
+                            <AnimatePresence>
+                                {isTranscribing && (
+                                    <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                                        className="flex items-center gap-2.5 px-4 py-2.5 bg-violet-50 border border-violet-200 rounded-2xl">
+                                        <Loader2 size={14} className="text-violet-500 animate-spin shrink-0" />
+                                        <span className="text-[12px] font-black text-violet-700 uppercase tracking-widest">⚙️ Transcribing your voice…</span>
+                                    </motion.div>
+                                )}
+                                {isListening && !isTranscribing && (
+                                    <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                                        className="flex items-center gap-2.5 px-4 py-2.5 bg-rose-50 border border-rose-200 rounded-2xl">
+                                        <motion.div className="w-2.5 h-2.5 rounded-full bg-rose-500"
+                                            animate={{ scale: [1, 1.4, 1], opacity: [1, 0.6, 1] }}
+                                            transition={{ duration: 1, repeat: Infinity }} />
+                                        <span className="text-[12px] font-black text-rose-700 uppercase tracking-widest">
+                                            🎤 {useWhisperFallback ? 'Recording locally… tap Stop when done' : 'Listening… speak now!'}
                                         </span>
-
-                                        {/* Bubble */}
-                                        <div className={`rounded-2xl px-5 py-4 text-[14px] shadow-sm font-medium ${
-                                            msg.role === 'user'
-                                                ? 'text-white rounded-tr-sm'
-                                                : 'text-slate-800 dark:text-slate-100 bg-white dark:bg-white/[0.05] border border-slate-100/80 dark:border-white/[0.07] rounded-tl-sm shadow-[0_2px_12px_rgba(0,0,0,0.04)]'
-                                        }`}
-                                            style={msg.role === 'user' ? { background: 'linear-gradient(135deg,#1e293b,#334155)', boxShadow: '0 4px 16px rgba(30,41,59,0.25)' } : {}}>
-                                            <FormattedText text={msg.content} />
-                                        </div>
-
-                                        {/* Show Data button */}
-                                        {msg.role === 'ai' && i > 0 && !msg.query_result && !msg.suggested_action && !msg.content.includes('The change was applied') && !msg.content.includes('Something went wrong') && (
-                                            <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}
-                                                onClick={() => handleRunQuery(msg.id, messages[i - 1]?.content || msg.content)}
-                                                disabled={!!msg.loading_query}
-                                                className="self-start flex items-center gap-2 text-[11px] font-black uppercase tracking-widest px-4 py-2 rounded-full border border-violet-300 dark:border-violet-500/40 bg-white dark:bg-violet-500/10 text-violet-600 dark:text-violet-400 hover:bg-violet-50 dark:hover:bg-violet-500/20 hover:border-violet-400 transition-all shadow-sm disabled:opacity-60 cursor-pointer mt-2">
-                                                {msg.loading_query
-                                                    ? <><Loader2 size={11} className="animate-spin"/> Fetching your data…</>
-                                                    : <><Play size={11} fill="currentColor"/> Show me the data</>}
-                                            </motion.button>
-                                        )}
-
-                                        {/* Query result */}
-                                        {msg.query_result && (
-                                            <div className="bg-white dark:bg-white/[0.04] border border-slate-100 dark:border-white/[0.06] rounded-2xl p-4 shadow-sm">
-                                                {msg.query_result.firewall_blocked ? (
-                                                    <div className="flex items-center gap-2.5 text-[13px] text-rose-700 bg-rose-50 border border-rose-200 rounded-xl px-4 py-3 font-bold">
-                                                        <Shield size={16}/> 🛡️ Blocked by Safety Firewall — this action looked risky!
-                                                    </div>
-                                                ) : msg.query_result.error ? (
-                                                    <div className="flex items-start gap-2.5 text-[13px] text-rose-700 bg-rose-50 border border-rose-200 rounded-xl px-4 py-3">
-                                                        <AlertCircle size={16} className="shrink-0 mt-0.5"/>
-                                                        <div>
-                                                            <p className="font-black text-[10px] uppercase tracking-widest mb-1">Something went wrong</p>
-                                                            <p className="font-bold">{msg.query_result.error}</p>
-                                                        </div>
-                                                    </div>
-                                                ) : (<>
-                                                    <div className="p-3.5 rounded-xl text-[12px] font-mono leading-relaxed overflow-x-auto mb-3"
-                                                        style={{ background: '#0f172a', color: '#4ade80' }}>
-                                                        {msg.query_result.sql}
-                                                    </div>
-                                                    {msg.query_result.explanation && (
-                                                        <div className="flex items-start gap-2 text-[13px] text-amber-800 bg-amber-50 border border-amber-100 rounded-xl px-4 py-3 mb-3 font-bold">
-                                                            <Lightbulb size={14} className="text-amber-500 shrink-0 mt-0.5"/>
-                                                            {msg.query_result.explanation}
-                                                        </div>
-                                                    )}
-                                                    {msg.query_result.attempts > 1 && (
-                                                        <p className="text-[10px] font-black text-blue-500 mb-3 flex items-center gap-1 uppercase tracking-widest">
-                                                            <RefreshCw size={10}/> Auto-fixed in {msg.query_result.attempts} tries 🔧
-                                                        </p>
-                                                    )}
-                                                    {msg.query_result.chart_type && <MiniBarChart columns={msg.query_result.columns} rows={msg.query_result.rows}/>}
-                                                    {msg.query_result.rows.length > 0 && <DataTable columns={msg.query_result.columns} rows={msg.query_result.rows}/>}
-                                                    <p className="text-[10px] text-slate-400 mt-3 flex items-center gap-1.5 font-black uppercase tracking-widest">
-                                                        <CheckCircle2 size={10} className="text-emerald-500"/>
-                                                        {msg.query_result.rows.length} row{msg.query_result.rows.length !== 1 ? 's' : ''} returned
-                                                    </p>
-                                                    {msg.query_result.query_cost && (
-                                                        <div className="mt-3 flex items-center gap-3 px-3 py-2.5 rounded-xl bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-100">
-                                                            <span className="flex items-center gap-1 text-[11px] font-black text-amber-600"><DollarSign size={11}/>{msg.query_result.query_cost.cost_estimate.dollar_cost_display}</span>
-                                                            <span className="flex items-center gap-1 text-[11px] font-black text-emerald-600"><Leaf size={11}/>{msg.query_result.query_cost.cost_estimate.co2_display}</span>
-                                                            <span className="ml-auto text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-lg bg-white border shadow-sm"
-                                                                style={{ color: msg.query_result.query_cost.rating === 'cheap' ? '#16a34a' : '#ea580c' }}>
-                                                                {msg.query_result.query_cost.rating}
-                                                            </span>
-                                                        </div>
-                                                    )}
-                                                </>)}
-                                            </div>
-                                        )}
-
-                                        {/* Suggested action */}
-                                        {msg.suggested_action && (
-                                            <div className="bg-gradient-to-br from-violet-50 to-indigo-50 dark:from-violet-500/10 dark:to-indigo-500/10 border border-violet-200 dark:border-violet-500/20 rounded-2xl p-5 shadow-sm">
-                                                <p className="text-[10px] font-black text-violet-600 dark:text-violet-400 uppercase tracking-widest mb-3 flex items-center gap-1.5">
-                                                    <Lightbulb size={11} className="text-amber-500"/> Pending Database Change
-                                                </p>
-                                                <code className="text-[12px] font-mono block p-4 rounded-xl mb-4"
-                                                    style={{ background: '#0f172a', color: '#4ade80' }}>
-                                                    {msg.suggested_action}
-                                                </code>
-                                                <p className="text-[12px] text-slate-600 dark:text-slate-300 font-bold mb-4 bg-white/70 dark:bg-white/[0.04] p-3 rounded-xl border border-violet-100 dark:border-violet-500/20">
-                                                    ⚠️ Review the SQL above carefully — once approved, it will permanently modify your database!
-                                                </p>
-                                                <div className="flex gap-3">
-                                                    <button
-                                                        onClick={() => handleDismissAction(msg.id)}
-                                                        disabled={executing !== null}
-                                                        className="flex-1 py-3 rounded-2xl text-[12px] font-black uppercase tracking-wider border border-slate-200 dark:border-white/[0.1] bg-white dark:bg-white/[0.05] text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/[0.08] transition-all disabled:opacity-50 cursor-pointer">
-                                                        No, dismiss
-                                                    </button>
-                                                    <motion.button whileTap={{ scale: 0.97 }}
-                                                        onClick={() => handleExecute(msg.id, msg.suggested_action!)}
-                                                        disabled={executing !== null}
-                                                        className="flex-1 py-3 rounded-2xl text-[12px] font-black text-white uppercase tracking-wider flex items-center justify-center gap-2 disabled:opacity-50 cursor-pointer"
-                                                        style={{ background: 'linear-gradient(135deg,#7c3aed,#4f46e5)', boxShadow: '0 4px 20px rgba(124,58,237,0.35)' }}>
-                                                        {executing === msg.id ? <Loader2 size={14} className="animate-spin"/> : <CheckCircle2 size={14}/>}
-                                                        Yes, Apply Change
-                                                    </motion.button>
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                </motion.div>
-                            ))}
-                        </AnimatePresence>
-
-                        {/* Thinking */}
-                        {loading && (
-                            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
-                                className="flex gap-3 max-w-[80%] mr-auto">
-                                <div className="shrink-0 w-9 h-9 rounded-2xl flex items-center justify-center shadow"
-                                    style={{ background: 'linear-gradient(135deg,#8b5cf6,#6366f1)' }}>
-                                    <Wand2 size={14} color="white"/>
-                                </div>
-                                <div>
-                                    <span className="text-[10px] font-black uppercase tracking-widest text-violet-500">✦ Lumina</span>
-                                    <div className="mt-1 flex items-center gap-3 px-5 py-3.5 bg-white dark:bg-white/[0.05] border border-slate-100 dark:border-white/[0.06] rounded-2xl rounded-tl-sm shadow-sm">
-                                        <TypingWave/>
-                                        <span className="text-[13px] font-bold text-slate-400">Thinking…</span>
-                                    </div>
-                                </div>
-                            </motion.div>
-                        )}
-
-                        <div ref={messagesEndRef} className="h-2"/>
-                    </div>
-                </div>
-
-                {/* ────────── Input Bar ────────── */}
-                <div className="shrink-0 px-4 sm:px-8 pb-5 pt-3 border-t border-violet-100/60 dark:border-white/[0.06] bg-white/75 dark:bg-white/[0.03] backdrop-blur-xl">
-                    <div className="max-w-3xl mx-auto space-y-2">
-
-                        {/* Voice error/tip */}
-                        <AnimatePresence>
-                            {voiceError && (
-                                <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-                                    className="flex items-center gap-2 px-4 py-2.5 bg-rose-50 border border-rose-200 rounded-2xl">
-                                    <Info size={13} className="text-rose-500 shrink-0"/>
-                                    <span className="text-[12px] font-bold text-rose-700">{voiceError}</span>
-                                    <button onClick={() => setVoiceError(null)} className="ml-auto text-rose-400 hover:text-rose-600 font-black text-xs">✕</button>
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
-
-                        {/* Listening / Transcribing pill */}
-                        <AnimatePresence>
-                            {isTranscribing && (
-                                <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-                                    className="flex items-center gap-2.5 px-4 py-2.5 bg-violet-50 border border-violet-200 rounded-2xl">
-                                    <Loader2 size={14} className="text-violet-500 animate-spin shrink-0"/>
-                                    <span className="text-[12px] font-black text-violet-700 uppercase tracking-widest">⚙️ Transcribing your voice…</span>
-                                </motion.div>
-                            )}
-                            {isListening && !isTranscribing && (
-                                <motion.div initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
-                                    className="flex items-center gap-2.5 px-4 py-2.5 bg-rose-50 border border-rose-200 rounded-2xl">
-                                    <motion.div className="w-2.5 h-2.5 rounded-full bg-rose-500"
-                                        animate={{ scale: [1, 1.4, 1], opacity: [1, 0.6, 1] }}
-                                        transition={{ duration: 1, repeat: Infinity }}/>
-                                    <span className="text-[12px] font-black text-rose-700 uppercase tracking-widest">
-                                        🎤 {useWhisperFallback ? 'Recording locally… tap Stop when done' : 'Listening… speak now!'}
-                                    </span>
-                                    <button onClick={stopListening} className="ml-auto text-[11px] font-black text-rose-500 hover:text-rose-700 uppercase tracking-widest px-2 py-1 rounded-lg hover:bg-rose-100 transition-all">Stop</button>
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
-
-
-                        {/* Input row */}
-                        <div className={`flex gap-2 items-center px-2 py-2 rounded-2xl border bg-white dark:bg-white/[0.05] transition-all ${isListening ? 'border-rose-300 shadow-[0_0_0_4px_rgba(244,63,94,0.08)]' : 'border-slate-200 dark:border-white/[0.08] focus-within:border-violet-400 focus-within:shadow-[0_0_0_4px_rgba(124,58,237,0.08)]'}`}
-                            style={{ boxShadow: '0 4px 24px rgba(124,58,237,0.06)' }}>
-
-                            <input ref={inputRef} value={input}
-                                onChange={e => setInput(e.target.value)}
-                                onKeyDown={e => e.key === 'Enter' && !e.shiftKey && handleSend()}
-                                placeholder={!connectionString ? 'Connect a database first' : isListening ? 'Listening…' : 'Ask Lumina anything about your database…'}
-                                disabled={!connectionString}
-                                className="flex-1 px-4 py-2.5 text-[14px] bg-transparent border-none outline-none placeholder-slate-400 dark:placeholder-slate-500 disabled:opacity-50 font-bold text-slate-800 dark:text-slate-100"
-                            />
-
-                            {/* Mic button */}
-                            <motion.button whileTap={{ scale: 0.92 }}
-                                onClick={toggleListening}
-                                disabled={!connectionString || isTranscribing}
-                                title={isListening ? 'Stop listening' : useWhisperFallback ? 'Record voice (local mode)' : 'Speak to me'}
-                                className={`flex items-center justify-center w-10 h-10 rounded-xl shrink-0 transition-all disabled:opacity-40 cursor-pointer ${
-                                    isListening
-                                        ? 'bg-rose-500 text-white shadow-[0_0_24px_rgba(239,68,68,0.5)]'
-                                        : isTranscribing
-                                        ? 'bg-violet-100 text-violet-400'
-                                        : useWhisperFallback
-                                        ? 'bg-amber-100 text-amber-600 hover:bg-amber-200'
-                                        : 'bg-slate-100 text-slate-500 hover:bg-violet-100 hover:text-violet-600 hover:shadow-md'
-                                }`}>
-                                {isListening ? <MicOff size={16}/> : isTranscribing ? <Loader2 size={16} className="animate-spin"/> : <Mic size={16}/>}
-                            </motion.button>
-
-                            {/* Send / Stop */}
-                            <AnimatePresence mode="wait">
-                                {loading ? (
-                                    <motion.button key="stop" initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.8, opacity: 0 }}
-                                        onClick={() => { abortController?.abort(); setLoading(false); }}
-                                        className="flex items-center justify-center w-10 h-10 rounded-xl shrink-0 cursor-pointer"
-                                        style={{ background: '#ffe4e6', color: '#e11d48' }}>
-                                        <StopCircle size={18}/>
-                                    </motion.button>
-                                ) : (
-                                    <motion.button key="send" initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.8, opacity: 0 }}
-                                        whileTap={{ scale: 0.92 }}
-                                        onClick={() => handleSend()}
-                                        disabled={!input.trim() || !connectionString}
-                                        className="flex items-center justify-center w-10 h-10 rounded-xl text-white shrink-0 transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
-                                        style={{
-                                            background: input.trim() ? 'linear-gradient(135deg,#7c3aed,#4f46e5)' : '#e2e8f0',
-                                            color: input.trim() ? 'white' : '#94a3b8',
-                                            boxShadow: input.trim() ? '0 4px 16px rgba(124,58,237,0.45)' : 'none',
-                                        }}>
-                                        <Send size={15}/>
-                                    </motion.button>
+                                        <button onClick={stopListening} className="ml-auto text-[11px] font-black text-rose-500 hover:text-rose-700 uppercase tracking-widest px-2 py-1 rounded-lg hover:bg-rose-100 transition-all">Stop</button>
+                                    </motion.div>
                                 )}
                             </AnimatePresence>
-                        </div>
 
-                        <p className="text-center text-[10px] text-slate-400 font-bold">
-                            {speechSupported
-                                ? '🎤 Voice-to-text ready  ·  Always review changes before approving  ·  Powered by Ollama'
-                                : 'Always review database changes before approving  ·  Powered by Ollama'}
-                        </p>
-                    </div>{/* end max-w-3xl */}
-                </div>{/* end input bar */}
 
-            </div>{/* end main chat panel */}
+                            {/* Input row */}
+                            <div className={`flex gap-2 items-center px-2 py-2 rounded-2xl border bg-white dark:bg-white/[0.05] transition-all ${isListening ? 'border-rose-300 shadow-[0_0_0_4px_rgba(244,63,94,0.08)]' : 'border-slate-200 dark:border-white/[0.08] focus-within:border-violet-400 focus-within:shadow-[0_0_0_4px_rgba(124,58,237,0.08)]'}`}
+                                style={{ boxShadow: '0 4px 24px rgba(124,58,237,0.06)' }}>
+
+                                <input ref={inputRef} value={input}
+                                    onChange={e => setInput(e.target.value)}
+                                    onKeyDown={e => e.key === 'Enter' && !e.shiftKey && handleSend()}
+                                    placeholder={!connectionString ? 'Connect a database first' : isListening ? 'Listening…' : 'Ask Lumina anything about your database…'}
+                                    disabled={!connectionString}
+                                    className="flex-1 px-4 py-2.5 text-[14px] bg-transparent border-none outline-none placeholder-slate-400 dark:placeholder-slate-500 disabled:opacity-50 font-bold text-slate-800 dark:text-slate-100"
+                                />
+
+                                {/* Mic button */}
+                                <motion.button whileTap={{ scale: 0.92 }}
+                                    onClick={toggleListening}
+                                    disabled={!connectionString || isTranscribing}
+                                    title={isListening ? 'Stop listening' : useWhisperFallback ? 'Record voice (local mode)' : 'Speak to me'}
+                                    className={`flex items-center justify-center w-10 h-10 rounded-xl shrink-0 transition-all disabled:opacity-40 cursor-pointer ${isListening
+                                            ? 'bg-rose-500 text-white shadow-[0_0_24px_rgba(239,68,68,0.5)]'
+                                            : isTranscribing
+                                                ? 'bg-violet-100 text-violet-400'
+                                                : useWhisperFallback
+                                                    ? 'bg-amber-100 text-amber-600 hover:bg-amber-200'
+                                                    : 'bg-slate-100 text-slate-500 hover:bg-violet-100 hover:text-violet-600 hover:shadow-md'
+                                        }`}>
+                                    {isListening ? <MicOff size={16} /> : isTranscribing ? <Loader2 size={16} className="animate-spin" /> : <Mic size={16} />}
+                                </motion.button>
+
+                                {/* Send / Stop */}
+                                <AnimatePresence mode="wait">
+                                    {loading ? (
+                                        <motion.button key="stop" initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.8, opacity: 0 }}
+                                            onClick={() => { abortController?.abort(); setLoading(false); }}
+                                            className="flex items-center justify-center w-10 h-10 rounded-xl shrink-0 cursor-pointer"
+                                            style={{ background: '#ffe4e6', color: '#e11d48' }}>
+                                            <StopCircle size={18} />
+                                        </motion.button>
+                                    ) : (
+                                        <motion.button key="send" initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.8, opacity: 0 }}
+                                            whileTap={{ scale: 0.92 }}
+                                            onClick={() => handleSend()}
+                                            disabled={!input.trim() || !connectionString}
+                                            className="flex items-center justify-center w-10 h-10 rounded-xl text-white shrink-0 transition-all disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                                            style={{
+                                                background: input.trim() ? 'linear-gradient(135deg,#7c3aed,#4f46e5)' : '#e2e8f0',
+                                                color: input.trim() ? 'white' : '#94a3b8',
+                                                boxShadow: input.trim() ? '0 4px 16px rgba(124,58,237,0.45)' : 'none',
+                                            }}>
+                                            <Send size={15} />
+                                        </motion.button>
+                                    )}
+                                </AnimatePresence>
+                            </div>
+
+                            <p className="text-center text-[10px] text-slate-400 font-bold">
+                                {speechSupported
+                                    ? '🎤 Voice-to-text ready  ·  Always review changes before approving  ·  Powered by Ollama'
+                                    : 'Always review database changes before approving  ·  Powered by Ollama'}
+                            </p>
+                        </div>{/* end max-w-3xl */}
+                    </div>{/* end input bar */}
+
+                </div>{/* end main chat panel */}
             </div>{/* end outer flex row */}
         </DashboardShell>
     );

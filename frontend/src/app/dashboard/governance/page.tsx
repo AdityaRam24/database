@@ -11,6 +11,7 @@ import {
 import { Button } from '@/components/ui/button';
 import DashboardShell from '@/components/DashboardShell';
 import VisionUploader from '@/components/VisionUploader';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface SafetyResult {
     is_safe: boolean;
@@ -230,7 +231,15 @@ export default function GovernancePage() {
                 <div className="flex flex-1 flex-col lg:flex-row w-full mx-auto relative h-full">
                     
                     {/* Main Interface */}
-                    <div className="flex-1 p-4 md:p-8 space-y-6 overflow-y-auto bg-slate-50/20">
+                    <motion.div 
+                        className="flex-1 p-4 md:p-8 space-y-6 overflow-y-auto bg-slate-50/20"
+                        initial="hidden"
+                        animate="show"
+                        variants={{
+                            hidden: { opacity: 0 },
+                            show: { opacity: 1, transition: { staggerChildren: 0.1 } }
+                        }}
+                    >
 
                         {/* Success Banner */}
                         {applySuccess && (
@@ -250,12 +259,18 @@ export default function GovernancePage() {
                         )}
 
                         {/* Vision Intelligence Layer */}
-                        <div className="mb-6">
+                        <motion.div 
+                            className="mb-6"
+                            variants={{ hidden: { opacity: 0, y: 15 }, show: { opacity: 1, y: 0 } }}
+                        >
                             <VisionUploader />
-                        </div>
+                        </motion.div>
 
                         {/* AI Command Center */}
-                        <div className="bg-white border border-gray-200 rounded-[24px] p-6 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden">
+                        <motion.div 
+                            variants={{ hidden: { opacity: 0, y: 15 }, show: { opacity: 1, y: 0 } }}
+                            className="bg-white border border-gray-200 rounded-[24px] p-6 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden"
+                        >
                             <div className="absolute top-0 right-0 w-64 h-64 bg-violet-400 opacity-[0.03] rounded-full blur-3xl -mr-20 -mt-20"></div>
                             
                             <div className="flex items-center gap-3 mb-5 relative z-10">
@@ -287,10 +302,13 @@ export default function GovernancePage() {
                                     </Button>
                                 </div>
                             </div>
-                        </div>
+                        </motion.div>
 
                         {/* Pre-compiled Instructions Loader */}
-                        <div className="px-2">
+                        <motion.div 
+                            className="px-2"
+                            variants={{ hidden: { opacity: 0, y: 15 }, show: { opacity: 1, y: 0 } }}
+                        >
                             <button
                                 onClick={() => setShowExamples(s => !s)}
                                 className="flex items-center gap-1.5 text-[10px] font-black text-slate-500 uppercase tracking-widest hover:text-violet-600 transition-colors cursor-pointer"
@@ -323,10 +341,13 @@ export default function GovernancePage() {
                                     ))}
                                 </div>
                             )}
-                        </div>
+                        </motion.div>
 
                         {/* SQL Target Editor */}
-                        <div className="bg-slate-900 rounded-[24px] shadow-xl overflow-hidden border border-slate-800 flex flex-col mt-4">
+                        <motion.div 
+                            variants={{ hidden: { opacity: 0, y: 15 }, show: { opacity: 1, y: 0 } }}
+                            className="bg-slate-900 rounded-[24px] shadow-xl overflow-hidden border border-slate-800 flex flex-col mt-4"
+                        >
                             <div className="bg-slate-950 px-5 py-3 flex items-center justify-between border-b border-slate-800 shadow-sm relative">
                                 <div className="flex items-center gap-2">
                                     <div className="flex gap-1.5 mr-3">
@@ -370,11 +391,17 @@ export default function GovernancePage() {
                                     {checking ? <><Loader2 size={14} className="mr-2 animate-spin text-slate-900" /> Computing Verification Matrix…</> : <><ShieldCheck size={14} className="mr-2" /> Verify Structural Safety</>}
                                 </Button>
                             </div>
-                        </div>
+                        </motion.div>
 
                         {/* Safety Verification Matrix (Replaces Modal) */}
-                        {result && (
-                            <div className="mt-6 animate-in slide-in-from-bottom-4 duration-500">
+                        <AnimatePresence>
+                            {result && (
+                                <motion.div 
+                                    initial={{ opacity: 0, y: 40, scale: 0.95 }}
+                                    animate={{ opacity: 1, y: 0, scale: 1, transition: { type: 'spring', damping: 25, stiffness: 200 } }}
+                                    exit={{ opacity: 0, scale: 0.95, y: 20 }}
+                                    className="mt-6"
+                                >
                                 <div className={`border-2 rounded-[24px] overflow-hidden shadow-xl ${result.is_safe ? 'border-emerald-500/40 bg-white' : 'border-rose-500/40 bg-white'}`}>
                                     {/* Matrix Header */}
                                     <div className={`px-6 py-5 border-b flex items-center justify-between ${result.is_safe ? 'bg-emerald-50/50 border-emerald-100' : 'bg-rose-50/50 border-rose-100'}`}>
@@ -458,9 +485,10 @@ export default function GovernancePage() {
                                         )}
                                     </div>
                                 </div>
-                            </div>
+                            </motion.div>
                         )}
-                    </div>
+                        </AnimatePresence>
+                    </motion.div>
 
                     {/* Deployment Ledger Sidebar */}
                     {showHistory && (

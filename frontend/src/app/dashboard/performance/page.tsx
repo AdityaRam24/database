@@ -11,6 +11,7 @@ import {
 import { Button } from '@/components/ui/button';
 import DashboardShell from '@/components/DashboardShell';
 import { useZombieIndexes } from '@/hooks/useZombieIndexes';
+import { motion, AnimatePresence } from 'framer-motion';
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
@@ -363,9 +364,19 @@ export default function PerformancePage() {
                                             <p className="text-[15px] font-bold text-emerald-800">State Matrix Optimal: Zero Penalty Nodes Detected</p>
                                         </div>
                                     ) : (
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+                                        <motion.div 
+                                            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5"
+                                            initial="hidden"
+                                            animate="show"
+                                            variants={{ hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.1 } } }}
+                                        >
                                             {filteredCols.map((col, i) => (
-                                                <div key={i} className="bg-white relative overflow-hidden rounded-2xl p-5 border border-gray-100 shadow-sm hover:shadow-md transition-shadow group flex flex-col">
+                                                <motion.div 
+                                                    key={i} 
+                                                    variants={{ hidden: { opacity: 0, y: 15 }, show: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 200, damping: 25 } } }}
+                                                    whileHover={{ scale: 1.02 }}
+                                                    className="bg-white relative overflow-hidden rounded-2xl p-5 border border-gray-100 shadow-sm group flex flex-col"
+                                                >
                                                     <div className="absolute top-0 left-0 right-0 h-1.5" style={{ background: STATUS_COLOR[col.status] }} />
                                                     
                                                     <div className="flex items-center gap-2 mb-4">
@@ -407,9 +418,9 @@ export default function PerformancePage() {
                                                             </div>
                                                         )}
                                                     </div>
-                                                </div>
+                                                </motion.div>
                                             ))}
-                                        </div>
+                                        </motion.div>
                                     )}
                                 </div>
                             )}
@@ -444,12 +455,21 @@ export default function PerformancePage() {
                                                 </button>
                                             </div>
 
-                                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                                            <motion.div 
+                                                className="grid grid-cols-1 lg:grid-cols-2 gap-4"
+                                                initial="hidden"
+                                                animate="show"
+                                                variants={{ hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.1 } } }}
+                                            >
                                                 {zombies.map((z, i) => {
                                                     const isDropped = droppedZombies.has(z.index_name);
                                                     const isDropping = droppingZombies.has(z.index_name);
                                                     return (
-                                                        <div key={i} className={`bg-white border border-gray-200 rounded-2xl p-5 hover:shadow-lg transition-all duration-300 ${isDropped ? 'opacity-50 grayscale pointer-events-none bg-slate-50' : 'shadow-sm'}`}>
+                                                        <motion.div 
+                                                            key={i} 
+                                                            variants={{ hidden: { opacity: 0, scale: 0.95 }, show: { opacity: 1, scale: 1, transition: { type: 'spring', damping: 25, stiffness: 200 } } }}
+                                                            whileHover={{ scale: 1.01 }}
+                                                            className={`bg-white border border-gray-200 rounded-2xl p-5 transition-all duration-300 ${isDropped ? 'opacity-50 grayscale pointer-events-none bg-slate-50' : 'shadow-sm hover:shadow-lg'}`}>
                                                             <div className="flex justify-between items-start mb-4">
                                                                 <div>
                                                                     <div className="flex items-center gap-2 mb-1.5">
@@ -490,10 +510,10 @@ export default function PerformancePage() {
                                                                     {isDropped ? 'Pruned' : isDropping ? 'Pruning...' : 'Prune Policy'}
                                                                 </button>
                                                             </div>
-                                                        </div>
+                                                        </motion.div>
                                                     );
                                                 })}
-                                            </div>
+                                            </motion.div>
                                         </div>
                                     )}
                                 </div>

@@ -129,9 +129,14 @@ export default function QueryBuilderPage() {
         </div>
 
         <div className="flex-1 overflow-auto p-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-7xl mx-auto">
+          <motion.div 
+            className="grid grid-cols-1 lg:grid-cols-2 gap-6 max-w-7xl mx-auto"
+            initial="hidden"
+            animate="show"
+            variants={{ hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.1 } } }}
+          >
             {/* Left side: Editor */}
-            <div className="flex flex-col gap-4">
+            <motion.div variants={{ hidden: { opacity: 0, x: -10 }, show: { opacity: 1, x: 0 } }} className="flex flex-col gap-4">
               {/* Magic Prompt Field */}
               <div className="bg-gradient-to-r from-violet-500/10 via-indigo-500/10 to-violet-500/10 p-5 rounded-3xl border border-violet-100 shadow-sm">
                  <div className="flex items-center gap-2 mb-3">
@@ -200,10 +205,10 @@ export default function QueryBuilderPage() {
                   <p>{error}</p>
                 </div>
               )}
-            </div>
+            </motion.div>
 
             {/* Right Side: Results */}
-            <div className="flex flex-col gap-4">
+            <motion.div variants={{ hidden: { opacity: 0, x: 10 }, show: { opacity: 1, x: 0 } }} className="flex flex-col gap-4">
               {!result && !loading && !error && (
                 <div className="h-[400px] border-2 border-dashed border-slate-200 rounded-3xl flex flex-col items-center justify-center text-center p-8 bg-white/50">
                   <div className="w-16 h-16 bg-slate-100 rounded-2xl flex items-center justify-center mb-4 text-slate-300">
@@ -233,8 +238,8 @@ export default function QueryBuilderPage() {
 
               {result && result.supported !== false && (
                 <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
+                  initial={{ opacity: 0, y: 15, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1, transition: { type: "spring", damping: 25, stiffness: 200 } }}
                   className="flex flex-col gap-4"
                 >
                   <div className={`p-6 rounded-3xl border ${isExpensive ? 'bg-rose-50 border-rose-200' : isCheap ? 'bg-emerald-50 border-emerald-200' : 'bg-amber-50 border-amber-200'} shadow-sm relative overflow-hidden`}>
@@ -324,8 +329,8 @@ export default function QueryBuilderPage() {
                   </div>
                 </motion.div>
               )}
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         </div>
       </div>
     </DashboardShell>
