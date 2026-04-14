@@ -19,8 +19,10 @@ import ReactFlow, {
     EdgeLabelRenderer
 } from 'reactflow';
 import 'reactflow/dist/style.css';
-import { Database, ChevronRight, Search, Layers, Zap, HelpCircle, RefreshCcw, Activity } from 'lucide-react';
+import { Database, ChevronRight, Search, Layers, Zap, HelpCircle, RefreshCcw, Activity, X, KeyRound, BarChart3, Copy, Check } from 'lucide-react';
 import dagre from 'dagre';
+import { motion, AnimatePresence } from 'framer-motion';
+
 
 // ─── Interfaces ─────────────────────────────────────────────────────────────
 
@@ -153,6 +155,11 @@ const TableNode = memo(({ id, data }: NodeProps<TableNodeData>) => {
 
             {isBottleneck && !data.overlayMode && (
                 <div className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-amber-500 rounded-full animate-pulse shadow-[0_0_8px_rgba(245,158,11,0.6)]" title="High Degree Node" />
+            )}
+
+            {/* Index health warning badge */}
+            {(data as any).hasIndexWarning && !data.overlayMode && (
+                <div className="absolute -bottom-1 -right-1 w-2.5 h-2.5 bg-rose-500 rounded-full shadow-[0_0_8px_rgba(239,68,68,0.6)]" title="Poor index coverage — high sequential scans detected" />
             )}
 
             {/* Hover state columns list */}
@@ -307,6 +314,12 @@ const SchemaGraphContent = ({ connectionString }: { connectionString: string }) 
         setDbType(localStorage.getItem('db_type') || 'sql');
     }, []);
 
+    // ── Table Intelligence Inspector ────────────────────────────────────────
+    const [inspectorData, setInspectorData] = useState<any | null>(null);
+    const [inspectorLoading, setInspectorLoading] = useState(false);
+    const [copied, setCopied] = useState(false);
+
+
     // Top bar interactions
     const [searchQuery, setSearchQuery] = useState('');
     const [isSearchFocused, setIsSearchFocused] = useState(false);
@@ -317,6 +330,20 @@ const SchemaGraphContent = ({ connectionString }: { connectionString: string }) 
     const [legendExpanded, setLegendExpanded] = useState(false);
 
     const [graphData, setGraphData] = useState<{ nodes: any[], edges: any[] }>({ nodes: [], edges: [] });
+
+    // Fetch table intelligence when a node is focused
+    useEffect(() => {
+        if (!focusedNodeId || !connectionString) { setInspectorData(null); return; }
+        setInspectorLoading(true);
+        fetch(`${process.env.NEXT_PUBLIC_API_URL}/analysis/table-intelligence`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ connection_string: connectionString, table_name: focusedNodeId }),
+        })
+        .then(r => r.ok ? r.json() : null)
+        .then(data => { setInspectorData(data); setInspectorLoading(false); })
+        .catch(() => { setInspectorData(null); setInspectorLoading(false); });
+    }, [focusedNodeId, connectionString]);
 
     // Focus / Pan to Node
     const handleFocusNode = useCallback((id: string, panTo: boolean = true) => {
@@ -522,6 +549,7 @@ const SchemaGraphContent = ({ connectionString }: { connectionString: string }) 
                 heatmapMode,
                 maxHeatmapVal: maxVal,
                 liveTelemetryMode,
+                hasIndexWarning: (node.data.seq_scan || 0) > 500 && (node.data.idx_scan || 0) < (node.data.seq_scan || 0) * 0.5,
             };
 
             const isChanged = node.data.isFocused !== newData.isFocused || node.data.isHovered !== newData.isHovered || node.data.isDimmed !== newData.isDimmed ||
@@ -774,6 +802,104 @@ const SchemaGraphContent = ({ connectionString }: { connectionString: string }) 
                     <ZoomControls />
                 </ReactFlow>
             </div>
+
+            {/* ── Table Intelligence Inspector Panel ─────────────────────────── */}
+            <AnimatePresence>
+            {focusedNodeId && (
+                <motion.div
+                    key="inspector"
+                    initial={{ x: '100%', opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    exit={{ x: '100%', opacity: 0 }}
+                    transition={{ type: 'spring', damping: 28, stiffness: 240 }}
+                    className="absolute top-0 right-0 bottom-0 w-[300px] z-30 flex flex-col bg-white dark:bg-slate-900 border-l border-gray-200 dark:border-white/[0.08] shadow-[-12px_0_40px_rgba(0,0,0,0.06)] overflow-hidden"
+                >
+                    {/* Header */}
+                    <div className="p-4 border-b border-gray-100 dark:border-white/[0.07] flex items-center justify-between shrink-0">
+                        <div>
+                            <div className="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-0.5">Table Inspector</div>
+                            <div className="text-[15px] font-bold text-gray-900 dark:text-slate-100 truncate max-w-[200px]">{focusedNodeId}</div>
+                        </div>
+                        <button onClick={handleClearFocus} className="w-8 h-8 rounded-lg bg-gray-50 dark:bg-white/[0.06] border border-gray-200 dark:border-white/[0.08] flex items-center justify-center text-gray-400 hover:text-gray-700 dark:hover:text-slate-200 transition-colors">
+                            <X size={14} />
+                        </button>
+                    </div>
+
+                    {inspectorLoading ? (
+                        <div className="flex-1 flex items-center justify-center">
+                            <Database size={18} className="animate-pulse text-violet-400" />
+                        </div>
+                    ) : inspectorData ? (
+                        <div className="flex-1 overflow-y-auto p-4 space-y-4 text-[12px]">
+
+                            {/* Quick Stats */}
+                            <div className="grid grid-cols-2 gap-2">
+                                {[
+                                    { label: 'Rows', value: (inspectorData.rows ?? 0).toLocaleString() },
+                                    { label: 'Size', value: inspectorData.size_bytes < 1048576 ? `${(inspectorData.size_bytes/1024).toFixed(1)} KB` : `${(inspectorData.size_bytes/1048576).toFixed(2)} MB` },
+                                    { label: 'Columns', value: inspectorData.columns?.length ?? 0 },
+                                    { label: 'Indexes', value: inspectorData.indexes?.length ?? 0 },
+                                ].map(s => (
+                                    <div key={s.label} className="bg-gray-50 dark:bg-white/[0.04] rounded-xl p-3 border border-gray-100 dark:border-white/[0.06]">
+                                        <div className="text-[13px] font-bold text-gray-800 dark:text-slate-100">{s.value}</div>
+                                        <div className="text-[10px] text-gray-400 uppercase tracking-wider mt-0.5">{s.label}</div>
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* Index Health */}
+                            {inspectorData.indexes?.length > 0 && (
+                                <div>
+                                    <div className="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2 flex items-center gap-1.5">
+                                        <KeyRound size={10} /> Index Health
+                                    </div>
+                                    <div className="space-y-1.5">
+                                        {inspectorData.indexes.map((idx: any) => {
+                                            const health = idx.scans > 100 ? 'good' : idx.scans > 10 ? 'ok' : 'unused';
+                                            return (
+                                                <div key={idx.name} className="flex items-center justify-between bg-gray-50 dark:bg-white/[0.04] rounded-lg px-3 py-2 border border-gray-100 dark:border-white/[0.06] gap-2">
+                                                    <div className="min-w-0">
+                                                        <div className="font-medium text-gray-700 dark:text-slate-200 truncate text-[11px]">{idx.name}</div>
+                                                        <div className="text-[9px] text-gray-400 font-mono">{idx.type}{idx.is_unique ? ' · UNIQUE' : ''}</div>
+                                                    </div>
+                                                    <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full shrink-0 ${
+                                                        health === 'good' ? 'bg-emerald-50 text-emerald-700' :
+                                                        health === 'ok' ? 'bg-amber-50 text-amber-700' :
+                                                        'bg-rose-50 text-rose-600'
+                                                    }`}>
+                                                        {health === 'good' ? `${idx.scans} hits` : health === 'ok' ? 'low use' : 'unused'}
+                                                    </span>
+                                                </div>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* DDL Preview */}
+                            {inspectorData.ddl && (
+                                <div>
+                                    <div className="flex items-center justify-between mb-2">
+                                        <div className="text-[10px] uppercase tracking-widest text-gray-400 font-bold flex items-center gap-1.5">
+                                            <BarChart3 size={10} /> DDL
+                                        </div>
+                                        <button
+                                            onClick={() => { navigator.clipboard.writeText(inspectorData.ddl); setCopied(true); setTimeout(() => setCopied(false), 1500); }}
+                                            className="flex items-center gap-1 text-[9px] font-bold text-gray-400 hover:text-gray-700 dark:hover:text-slate-200 transition-colors"
+                                        >
+                                            {copied ? <><Check size={10} className="text-emerald-500" /> Copied</> : <><Copy size={10} /> Copy</>}
+                                        </button>
+                                    </div>
+                                    <pre className="bg-gray-50 dark:bg-white/[0.04] border border-gray-100 dark:border-white/[0.06] rounded-xl p-3 text-[10px] font-mono text-gray-700 dark:text-slate-300 overflow-x-auto whitespace-pre-wrap leading-relaxed max-h-48 overflow-y-auto">{inspectorData.ddl}</pre>
+                                </div>
+                            )}
+                        </div>
+                    ) : (
+                        <div className="flex-1 flex items-center justify-center text-[11px] text-gray-400">No details available</div>
+                    )}
+                </motion.div>
+            )}
+            </AnimatePresence>
         </div>
     );
 };

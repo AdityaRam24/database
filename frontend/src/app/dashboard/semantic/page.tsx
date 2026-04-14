@@ -37,12 +37,22 @@ export default function SemanticLayerPage() {
         setConnectionString(cs);
         setMounted(true);
         loadRules();
+
+        const handler = (e: any) => {
+            const newCs = e?.detail?.connStr || localStorage.getItem('db_connection_string');
+            console.log('[Knowledge] project-changed fired, switching to:', newCs);
+            setConnectionString(newCs);
+            loadRules();
+        };
+        window.addEventListener('project-changed', handler);
+        return () => window.removeEventListener('project-changed', handler);
     }, []);
 
     const loadRules = async () => {
+        if (!connectionString) return;
         setLoading(true);
         try {
-            const res = await fetch(`${API}/semantic/rules`);
+            const res = await fetch(`${API}/semantic/rules?connection_string=${encodeURIComponent(connectionString)}`);
             const data = await res.json();
             setRules(data.rules || []);
 
@@ -55,11 +65,11 @@ export default function SemanticLayerPage() {
                         await fetch(`${API}/semantic/rules`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ name: rule.name, definition: rule.definition }),
+                            body: JSON.stringify({ name: rule.name, definition: rule.definition, connection_string: connectionString }),
                         });
                     }
                     localStorage.removeItem('business_rules');
-                    const res2 = await fetch(`${API}/semantic/rules`);
+                    const res2 = await fetch(`${API}/semantic/rules?connection_string=${encodeURIComponent(connectionString)}`);
                     const data2 = await res2.json();
                     setRules(data2.rules || []);
                 }
@@ -73,14 +83,21 @@ export default function SemanticLayerPage() {
         }
     };
 
+    // Re-load rules whenever connection string changes
+    useEffect(() => {
+        if (connectionString) {
+            loadRules();
+        }
+    }, [connectionString]);
+
     const handleAdd = async () => {
-        if (!newName.trim() || !newDef.trim()) return;
+        if (!newName.trim() || !newDef.trim() || !connectionString) return;
         setSaving(true);
         try {
             const res = await fetch(`${API}/semantic/rules`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name: newName.trim(), definition: newDef.trim() }),
+                body: JSON.stringify({ name: newName.trim(), definition: newDef.trim(), connection_string: connectionString }),
             });
             if (res.ok) {
                 await loadRules();
@@ -97,8 +114,9 @@ export default function SemanticLayerPage() {
     };
 
     const handleDelete = async (id: string) => {
+        if (!connectionString) return;
         try {
-            await fetch(`${API}/semantic/rules/${id}`, { method: 'DELETE' });
+            await fetch(`${API}/semantic/rules/${id}?connection_string=${encodeURIComponent(connectionString)}`, { method: 'DELETE' });
             await loadRules();
         } catch (e) {
             console.error(e);
@@ -106,13 +124,13 @@ export default function SemanticLayerPage() {
     };
 
     const handleAddExample = async (rule: BusinessRule) => {
-        if (rules.some(r => r.name === rule.name)) return;
+        if (rules.some(r => r.name === rule.name) || !connectionString) return;
         setSaving(true);
         try {
             await fetch(`${API}/semantic/rules`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name: rule.name, definition: rule.definition }),
+                body: JSON.stringify({ name: rule.name, definition: rule.definition, connection_string: connectionString }),
             });
             await loadRules();
         } catch (e) {

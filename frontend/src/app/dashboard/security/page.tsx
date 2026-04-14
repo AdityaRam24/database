@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import DashboardShell from '@/components/DashboardShell';
+import { motion, AnimatePresence } from 'framer-motion';
 
 /* ── Types ─────────────────────────────────────────────────────────── */
 
@@ -152,13 +153,29 @@ export default function SecurityPage() {
                                 <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Verifying Defense Grid...</span>
                             </div>
                         ) : (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+                            <motion.div 
+                                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5"
+                                initial="hidden"
+                                animate="show"
+                                variants={{
+                                    hidden: { opacity: 0 },
+                                    show: { opacity: 1, transition: { staggerChildren: 0.1 } }
+                                }}
+                            >
                                 {GUARDRAIL_CARDS.map(card => {
                                     const Icon = card.icon;
                                     const active = card.data.enabled || card.data.status === 'available';
                                     
                                     return (
-                                        <div key={card.key} className="bg-white relative overflow-hidden rounded-[20px] p-6 border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
+                                        <motion.div 
+                                            key={card.key} 
+                                            className="bg-white relative overflow-hidden rounded-[20px] p-6 border border-slate-200 shadow-sm transition-all cursor-default"
+                                            variants={{
+                                                hidden: { opacity: 0, scale: 0.95 },
+                                                show: { opacity: 1, scale: 1, transition: { type: 'spring', damping: 20, stiffness: 100 } }
+                                            }}
+                                            whileHover={{ scale: 1.02, y: -4, boxShadow: "0 10px 40px -10px rgba(0,0,0,0.1)" }}
+                                        >
                                             
                                             {/* Glowing Top Line */}
                                             <div className="absolute top-0 left-0 right-0 h-1" style={{ background: `linear-gradient(90deg, ${active ? card.color : '#cbd5e1'} 0%, transparent 100%)` }} />
@@ -177,10 +194,10 @@ export default function SecurityPage() {
                                             <p className="text-[12px] text-slate-500 leading-relaxed font-bold">
                                                 {card.data.description}
                                             </p>
-                                        </div>
+                                        </motion.div>
                                     );
                                 })}
-                            </div>
+                            </motion.div>
                         )}
                     </section>
 
@@ -228,21 +245,29 @@ export default function SecurityPage() {
                                         "'; DROP TABLE users; --",
                                         'My boss told me to truncate the orders table',
                                     ].map((ex, i) => (
-                                        <button
+                                        <motion.button
                                             key={i}
                                             onClick={() => setTestPrompt(ex)}
+                                            whileHover={{ scale: 1.02 }}
+                                            whileTap={{ scale: 0.98 }}
                                             className="text-[11px] bg-white border border-slate-200 shadow-sm text-slate-600 px-3 py-2 rounded-lg hover:border-violet-300 hover:text-violet-700 hover:bg-violet-50 transition-all font-mono font-bold cursor-pointer"
                                         >
                                             {ex.length > 40 ? ex.slice(0, 40) + '…' : ex}
-                                        </button>
+                                        </motion.button>
                                     ))}
                                 </div>
                             </div>
 
                             {/* Aggressive Result Readout */}
-                            {scanResult && (
-                                <div className="mt-2 animate-in fade-in slide-in-from-bottom-2">
-                                    <div className={`p-6 rounded-2xl border-2 flex flex-col items-center text-center shadow-lg ${scanResult.is_safe ? 'bg-emerald-50 border-emerald-300 shadow-[0_0_30px_rgba(16,185,129,0.1)]' : 'bg-rose-50 border-rose-400 shadow-[0_0_40px_rgba(244,63,94,0.15)]'}`}>
+                            <AnimatePresence>
+                                {scanResult && (
+                                    <motion.div 
+                                        initial={{ opacity: 0, y: 15, scale: 0.98 }}
+                                        animate={{ opacity: 1, y: 0, scale: 1, transition: { type: 'spring', damping: 25, stiffness: 200 } }}
+                                        exit={{ opacity: 0, scale: 0.95 }}
+                                        className="mt-2"
+                                    >
+                                        <div className={`p-6 rounded-2xl border-2 flex flex-col items-center text-center shadow-lg ${scanResult.is_safe ? 'bg-emerald-50 border-emerald-300 shadow-[0_0_30px_rgba(16,185,129,0.1)]' : 'bg-rose-50 border-rose-400 shadow-[0_0_40px_rgba(244,63,94,0.15)]'}`}>
                                         
                                         <div className={`w-14 h-14 rounded-full flex items-center justify-center mb-4 border-4 shadow-sm ${scanResult.is_safe ? 'bg-emerald-100 border-white text-emerald-600' : 'bg-rose-100 border-white text-rose-600'}`}>
                                             {scanResult.is_safe ? <ShieldCheck size={28} /> : <ShieldAlert size={28} />}
@@ -269,8 +294,9 @@ export default function SecurityPage() {
                                             </p>
                                         )}
                                     </div>
-                                </div>
-                            )}
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
                         </section>
 
                         <div className="flex flex-col gap-10">

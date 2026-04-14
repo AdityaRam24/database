@@ -920,12 +920,522 @@
           "invoiceline": 7,
           "playlisttrack": 6
         },
-        "total_seq_scans": 275,
-        "xact_rollback": 312
+        "total_seq_scans": 5753,
+        "xact_rollback": 13637
+      }
+    },
+    {
+      "timestamp": "2026-04-13T18:28:02.348337",
+      "metrics": {
+        "queries": [],
+        "query_stats": {
+          "total_calls": 0,
+          "avg_mean_time": 0.0,
+          "max_mean_time": 0.0
+        },
+        "table_sizes": {
+          "artist": 90112,
+          "album": 81920,
+          "employee": 40960,
+          "customer": 73728,
+          "invoice": 122880,
+          "invoiceline": 344064,
+          "track": 663552,
+          "playlist": 24576,
+          "playlisttrack": 876544,
+          "genre": 24576,
+          "mediatype": 24576
+        },
+        "connection_count": 1,
+        "table_seq_scans": {
+          "customer": 1609,
+          "employee": 1583,
+          "invoice": 903,
+          "track": 460,
+          "artist": 252,
+          "album": 251,
+          "mediatype": 228,
+          "playlist": 227,
+          "genre": 227,
+          "invoiceline": 7,
+          "playlisttrack": 6
+        },
+        "total_seq_scans": 5753,
+        "xact_rollback": 13643
+      }
+    },
+    {
+      "timestamp": "2026-04-13T18:28:03.234578",
+      "metrics": {
+        "queries": [],
+        "query_stats": {
+          "total_calls": 0,
+          "avg_mean_time": 0.0,
+          "max_mean_time": 0.0
+        },
+        "table_sizes": {
+          "artist": 90112,
+          "album": 81920,
+          "employee": 40960,
+          "customer": 73728,
+          "invoice": 122880,
+          "invoiceline": 344064,
+          "track": 663552,
+          "playlist": 24576,
+          "playlisttrack": 876544,
+          "genre": 24576,
+          "mediatype": 24576
+        },
+        "connection_count": 1,
+        "table_seq_scans": {
+          "customer": 1609,
+          "employee": 1583,
+          "invoice": 903,
+          "track": 460,
+          "artist": 252,
+          "album": 251,
+          "mediatype": 228,
+          "playlist": 227,
+          "genre": 227,
+          "invoiceline": 7,
+          "playlisttrack": 6
+        },
+        "total_seq_scans": 5753,
+        "xact_rollback": 13646
+      }
+    },
+    {
+      "timestamp": "2026-04-13T18:28:03.674100",
+      "metrics": {
+        "queries": [],
+        "query_stats": {
+          "total_calls": 0,
+          "avg_mean_time": 0.0,
+          "max_mean_time": 0.0
+        },
+        "table_sizes": {
+          "artist": 90112,
+          "album": 81920,
+          "employee": 40960,
+          "customer": 73728,
+          "invoice": 122880,
+          "invoiceline": 344064,
+          "track": 663552,
+          "playlist": 24576,
+          "playlisttrack": 876544,
+          "genre": 24576,
+          "mediatype": 24576
+        },
+        "connection_count": 1,
+        "table_seq_scans": {
+          "customer": 1609,
+          "employee": 1583,
+          "invoice": 903,
+          "track": 460,
+          "artist": 252,
+          "album": 251,
+          "mediatype": 228,
+          "playlist": 227,
+          "genre": 227,
+          "invoiceline": 7,
+          "playlisttrack": 6
+        },
+        "total_seq_scans": 5753,
+        "xact_rollback": 13649
+      }
+    },
+    {
+      "timestamp": "2026-04-13T18:28:04.246458",
+      "metrics": {
+        "queries": [],
+        "query_stats": {
+          "total_calls": 0,
+          "avg_mean_time": 0.0,
+          "max_mean_time": 0.0
+        },
+        "table_sizes": {
+          "artist": 90112,
+          "album": 81920,
+          "employee": 40960,
+          "customer": 73728,
+          "invoice": 122880,
+          "invoiceline": 344064,
+          "track": 663552,
+          "playlist": 24576,
+          "playlisttrack": 876544,
+          "genre": 24576,
+          "mediatype": 24576
+        },
+        "connection_count": 1,
+        "table_seq_scans": {
+          "customer": 1609,
+          "employee": 1583,
+          "invoice": 903,
+          "track": 460,
+          "artist": 252,
+          "album": 251,
+          "mediatype": 228,
+          "playlist": 227,
+          "genre": 227,
+          "invoiceline": 7,
+          "playlisttrack": 6
+        },
+        "total_seq_scans": 5753,
+        "xact_rollback": 13652
+      }
+    },
+    {
+      "timestamp": "2026-04-13T18:28:16.794841",
+      "metrics": {
+        "queries": [],
+        "query_stats": {
+          "total_calls": 0,
+          "avg_mean_time": 0.0,
+          "max_mean_time": 0.0
+        },
+        "table_sizes": {
+          "artist": 90112,
+          "album": 81920,
+          "employee": 40960,
+          "customer": 73728,
+          "invoice": 122880,
+          "invoiceline": 344064,
+          "track": 663552,
+          "playlist": 24576,
+          "playlisttrack": 876544,
+          "genre": 24576,
+          "mediatype": 24576
+        },
+        "connection_count": 3,
+        "table_seq_scans": {
+          "customer": 1609,
+          "employee": 1583,
+          "invoice": 903,
+          "track": 460,
+          "artist": 252,
+          "album": 251,
+          "mediatype": 228,
+          "playlist": 227,
+          "genre": 227,
+          "invoiceline": 7,
+          "playlisttrack": 6
+        },
+        "total_seq_scans": 5753,
+        "xact_rollback": 13679
+      }
+    },
+    {
+      "timestamp": "2026-04-13T18:28:38.946188",
+      "metrics": {
+        "queries": [],
+        "query_stats": {
+          "total_calls": 0,
+          "avg_mean_time": 0.0,
+          "max_mean_time": 0.0
+        },
+        "table_sizes": {
+          "users": 49152,
+          "user_profiles": 16384,
+          "categories": 32768,
+          "orders": 32768,
+          "order_items": 24576,
+          "products": 32768
+        },
+        "connection_count": 2,
+        "table_seq_scans": {
+          "users": 201,
+          "products": 197,
+          "user_profiles": 106,
+          "orders": 106,
+          "categories": 102,
+          "order_items": 1
+        },
+        "total_seq_scans": 713,
+        "xact_rollback": 1964
+      }
+    },
+    {
+      "timestamp": "2026-04-13T18:28:38.963076",
+      "metrics": {
+        "queries": [],
+        "query_stats": {
+          "total_calls": 0,
+          "avg_mean_time": 0.0,
+          "max_mean_time": 0.0
+        },
+        "table_sizes": {
+          "users": 49152,
+          "user_profiles": 16384,
+          "categories": 32768,
+          "orders": 32768,
+          "order_items": 24576,
+          "products": 32768
+        },
+        "connection_count": 3,
+        "table_seq_scans": {
+          "users": 201,
+          "products": 197,
+          "user_profiles": 106,
+          "orders": 106,
+          "categories": 102,
+          "order_items": 1
+        },
+        "total_seq_scans": 713,
+        "xact_rollback": 1967
+      }
+    },
+    {
+      "timestamp": "2026-04-13T18:28:41.549012",
+      "metrics": {
+        "queries": [],
+        "query_stats": {
+          "total_calls": 0,
+          "avg_mean_time": 0.0,
+          "max_mean_time": 0.0
+        },
+        "table_sizes": {
+          "users": 49152,
+          "user_profiles": 16384,
+          "categories": 32768,
+          "orders": 32768,
+          "order_items": 24576,
+          "products": 32768
+        },
+        "connection_count": 1,
+        "table_seq_scans": {
+          "users": 201,
+          "products": 197,
+          "user_profiles": 106,
+          "orders": 106,
+          "categories": 102,
+          "order_items": 1
+        },
+        "total_seq_scans": 713,
+        "xact_rollback": 1973
+      }
+    },
+    {
+      "timestamp": "2026-04-13T18:55:34.296199",
+      "metrics": {
+        "queries": [],
+        "query_stats": {
+          "total_calls": 0,
+          "avg_mean_time": 0.0,
+          "max_mean_time": 0.0
+        },
+        "table_sizes": {
+          "users": 49152,
+          "user_profiles": 16384,
+          "categories": 32768,
+          "orders": 32768,
+          "order_items": 24576,
+          "products": 32768
+        },
+        "connection_count": 3,
+        "table_seq_scans": {
+          "users": 232,
+          "products": 225,
+          "user_profiles": 120,
+          "orders": 120,
+          "categories": 119,
+          "order_items": 1
+        },
+        "total_seq_scans": 817,
+        "xact_rollback": 2248
+      }
+    },
+    {
+      "timestamp": "2026-04-13T18:57:03.536960",
+      "metrics": {
+        "queries": [],
+        "query_stats": {
+          "total_calls": 0,
+          "avg_mean_time": 0.0,
+          "max_mean_time": 0.0
+        },
+        "table_sizes": {
+          "users": 49152,
+          "user_profiles": 16384,
+          "categories": 32768,
+          "orders": 32768,
+          "order_items": 24576,
+          "products": 32768
+        },
+        "connection_count": 1,
+        "table_seq_scans": {
+          "users": 248,
+          "products": 241,
+          "user_profiles": 128,
+          "orders": 128,
+          "categories": 127,
+          "order_items": 1
+        },
+        "total_seq_scans": 873,
+        "xact_rollback": 2409
+      }
+    },
+    {
+      "timestamp": "2026-04-13T18:57:03.685252",
+      "metrics": {
+        "queries": [],
+        "query_stats": {
+          "total_calls": 0,
+          "avg_mean_time": 0.0,
+          "max_mean_time": 0.0
+        },
+        "table_sizes": {
+          "users": 49152,
+          "user_profiles": 16384,
+          "categories": 32768,
+          "orders": 32768,
+          "order_items": 24576,
+          "products": 32768
+        },
+        "connection_count": 1,
+        "table_seq_scans": {
+          "users": 248,
+          "products": 241,
+          "user_profiles": 128,
+          "orders": 128,
+          "categories": 127,
+          "order_items": 1
+        },
+        "total_seq_scans": 873,
+        "xact_rollback": 2412
+      }
+    },
+    {
+      "timestamp": "2026-04-13T19:08:03.675083",
+      "metrics": {
+        "queries": [],
+        "query_stats": {
+          "total_calls": 0,
+          "avg_mean_time": 0.0,
+          "max_mean_time": 0.0
+        },
+        "table_sizes": {
+          "users": 49152,
+          "user_profiles": 16384,
+          "categories": 32768,
+          "orders": 32768,
+          "order_items": 24576,
+          "products": 32768
+        },
+        "connection_count": 3,
+        "table_seq_scans": {
+          "users": 266,
+          "products": 255,
+          "user_profiles": 135,
+          "orders": 135,
+          "categories": 134,
+          "order_items": 1
+        },
+        "total_seq_scans": 926,
+        "xact_rollback": 2683
+      }
+    },
+    {
+      "timestamp": "2026-04-13T19:08:23.429716",
+      "metrics": {
+        "queries": [],
+        "query_stats": {
+          "total_calls": 0,
+          "avg_mean_time": 0.0,
+          "max_mean_time": 0.0
+        },
+        "table_sizes": {
+          "users": 49152,
+          "user_profiles": 16384,
+          "categories": 32768,
+          "orders": 32768,
+          "order_items": 24576,
+          "products": 32768
+        },
+        "connection_count": 1,
+        "table_seq_scans": {
+          "users": 266,
+          "products": 255,
+          "user_profiles": 135,
+          "orders": 135,
+          "categories": 134,
+          "order_items": 1
+        },
+        "total_seq_scans": 926,
+        "xact_rollback": 2695
+      }
+    },
+    {
+      "timestamp": "2026-04-13T19:08:23.553445",
+      "metrics": {
+        "queries": [],
+        "query_stats": {
+          "total_calls": 0,
+          "avg_mean_time": 0.0,
+          "max_mean_time": 0.0
+        },
+        "table_sizes": {
+          "users": 49152,
+          "user_profiles": 16384,
+          "categories": 32768,
+          "orders": 32768,
+          "order_items": 24576,
+          "products": 32768
+        },
+        "connection_count": 1,
+        "table_seq_scans": {
+          "users": 266,
+          "products": 255,
+          "user_profiles": 135,
+          "orders": 135,
+          "categories": 134,
+          "order_items": 1
+        },
+        "total_seq_scans": 926,
+        "xact_rollback": 2698
+      }
+    },
+    {
+      "timestamp": "2026-04-14T09:27:01.367091",
+      "metrics": {
+        "queries": [],
+        "query_stats": {
+          "total_calls": 0,
+          "avg_mean_time": 0.0,
+          "max_mean_time": 0.0
+        },
+        "table_sizes": {
+          "artist": 90112,
+          "album": 81920,
+          "employee": 40960,
+          "customer": 73728,
+          "invoice": 122880,
+          "invoiceline": 344064,
+          "track": 663552,
+          "playlist": 24576,
+          "playlisttrack": 876544,
+          "genre": 24576,
+          "mediatype": 24576
+        },
+        "connection_count": 2,
+        "table_seq_scans": {
+          "customer": 2060,
+          "employee": 2024,
+          "invoice": 1155,
+          "track": 586,
+          "artist": 316,
+          "album": 314,
+          "mediatype": 291,
+          "playlist": 290,
+          "genre": 290,
+          "invoiceline": 7,
+          "playlisttrack": 6
+        },
+        "total_seq_scans": 7339,
+        "xact_rollback": 15527
       }
     }
   ],
-  "last_updated": "2026-04-12T18:42:12.739984",
+  "last_updated": "2026-04-14T09:27:01.367091",
   "incident_history": [
     {
       "id": "INC-1775479611-3409",

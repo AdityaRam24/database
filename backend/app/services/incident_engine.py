@@ -16,31 +16,39 @@ from sqlalchemy.pool import NullPool
 
 logger = logging.getLogger(__name__)
 
-DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data")
-INCIDENTS_BASELINES_FILE = os.path.join(DATA_DIR, "incident_baselines.json")
+import base64
 
-# Z-Score thresholds
+DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data")
 Z_INCIDENT = 3.0
+
+def _get_baselines_file(connection_string: str = None) -> str:
+    """Return a unique baselines file path per database connection."""
+    if not connection_string:
+        return os.path.join(DATA_DIR, "incident_baselines.json")
+    b64 = base64.urlsafe_b64encode(connection_string.encode()).decode().rstrip("=")
+    return os.path.join(DATA_DIR, f"incident_baselines_{b64}.json")
 
 
 def _ensure_data_dir():
     os.makedirs(DATA_DIR, exist_ok=True)
 
 
-def _load_baselines() -> Dict[str, Any]:
+def _load_baselines(connection_string: str = None) -> Dict[str, Any]:
     _ensure_data_dir()
-    if os.path.exists(INCIDENTS_BASELINES_FILE):
+    path = _get_baselines_file(connection_string)
+    if os.path.exists(path):
         try:
-            with open(INCIDENTS_BASELINES_FILE, "r") as f:
+            with open(path, "r") as f:
                 return json.load(f)
         except (json.JSONDecodeError, IOError):
             pass
     return {"snapshots": [], "last_updated": None, "incident_history": []}
 
 
-def _save_baselines(data: Dict[str, Any]):
+def _save_baselines(data: Dict[str, Any], connection_string: str = None):
     _ensure_data_dir()
-    with open(INCIDENTS_BASELINES_FILE, "w") as f:
+    path = _get_baselines_file(connection_string)
+    with open(path, "w") as f:
         json.dump(data, f, indent=2, default=str)
 
 
@@ -51,6 +59,7 @@ def _prune_old_snapshots(snapshots: List[Dict], days: int = 7) -> List[Dict]:
 def _prune_old_incidents(incidents: List[Dict], days: int = 30) -> List[Dict]:
     cutoff = (datetime.utcnow() - timedelta(days=days)).isoformat()
     return [i for i in incidents if i.get("detected_at", "") >= cutoff]
+
 
 
 class IncidentEngine:
@@ -173,7 +182,7 @@ class IncidentEngine:
         baselines["snapshots"].append(snapshot)
         baselines["snapshots"] = _prune_old_snapshots(baselines["snapshots"])
         baselines["last_updated"] = snapshot["timestamp"]
-        _save_baselines(baselines)
+        _save_baselines(baselines, self.connection_string)
 
         return snapshot
 
@@ -352,7 +361,7 @@ class IncidentEngine:
         if final_incidents:
             baselines["incident_history"].extend(final_incidents)
             baselines["incident_history"] = _prune_old_incidents(baselines["incident_history"])
-            _save_baselines(baselines)
+            _save_baselines(baselines, self.connection_string)
 
         summary = {"CRITICAL": 0, "HIGH": 0, "MEDIUM": 0, "LOW": 0}
         for i in final_incidents:
@@ -427,7 +436,7 @@ class IncidentEngine:
         }
 
     def get_incident_history(self) -> Dict[str, Any]:
-        baselines = _load_baselines()
+        baselines = _load_baselines(self.connection_string)
         incidents = baselines.get("incident_history", [])
         incidents.sort(key=lambda x: x["detected_at"], reverse=True)
         return {
@@ -435,7 +444,7 @@ class IncidentEngine:
         }
 
     def get_summary(self) -> Dict[str, Any]:
-        baselines = _load_baselines()
+        baselines = _load_baselines(self.connection_string)
         incidents = baselines.get("incident_history", [])
         
         # We might only care about summarizing *active* or recent incidents, 

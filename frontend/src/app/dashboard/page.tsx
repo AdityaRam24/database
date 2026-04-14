@@ -411,10 +411,11 @@ export default function DashboardPage() {
 
   useEffect(() => {
     const handler = (e: any) => {
-      const { connStr, connectionType, projectName } = e.detail;
+      const { connStr, connectionType, projectName, name } = e.detail;
       setConnectionString(connStr);
       if (connectionType) setDbType(connectionType);
-      if (projectName) setDbName(projectName);
+      const newName = name || projectName;
+      if (newName) setDbName(newName);
       fetchStats(connStr);
     };
     window.addEventListener("project-changed", handler);

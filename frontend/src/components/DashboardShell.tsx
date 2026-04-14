@@ -21,6 +21,8 @@ import { NavBar } from '@/components/ui/tubelight-navbar';
 import { EtheralShadow } from '@/components/ui/etheral-shadow';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { MenuToggle } from '@/components/ui/menu-toggle';
+import { motion, AnimatePresence } from 'framer-motion';
+
 
 const NAV_ITEMS = [
   { path: '/dashboard', label: 'Home', icon: Database, color: '#6366f1', textColor: '#818cf8' },
@@ -338,7 +340,18 @@ export default function DashboardShell({ children }: { children: React.ReactNode
 
           {/* ── Page body ── */}
           <div className="flex-1 relative flex flex-col mt-6 px-1 sm:px-2">
-            {children}
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={pathname}
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -15 }}
+                transition={{ duration: 0.3, ease: 'easeOut' }}
+                className="flex-1 relative flex flex-col"
+              >
+                {children}
+              </motion.div>
+            </AnimatePresence>
           </div>
         </div>
 

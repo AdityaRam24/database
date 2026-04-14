@@ -274,6 +274,48 @@ async def connect_firebase(request: FirebaseConnectionRequest):
         raise HTTPException(status_code=500, detail=f"Firebase connection error: {str(e)}")
 
 
+class Neo4jConnectionRequest(BaseModel):
+    uri: str
+    user: str = None
+    password: str = None
+    project_name: str = "My Neo4j Graph"
+
+@router.post("/neo4j", response_model=DBConnectionResponse)
+async def connect_neo4j(request: Neo4jConnectionRequest):
+    """
+    Connects to a user's Neo4j database using Bolt URI and credentials.
+    """
+    from app.services.neo4j_service import Neo4jService
+    logger.info(f"Neo4j connection request for project: {request.project_name}")
+
+    if not Neo4jService.verify_connection(request.uri, request.user, request.password):
+        raise HTTPException(status_code=400, detail="Could not connect to Neo4j. Check your URI, credentials, and network access.")
+
+    try:
+        service = Neo4jService(request.uri, request.user, request.password)
+        node_count = service.get_node_count()
+        rel_count = service.get_relationship_count()
+        service.close()
+        
+        project_id = str(uuid.uuid4())
+
+        # Construct a safe connection string representation (e.g. URI combined with user)
+        # Note: Do not store raw password directly here ideally, but for MVP mirroring others:
+        conn_str = f"{request.uri}|{request.user}|{request.password}"
+
+        return DBConnectionResponse(
+            success=True,
+            project_id=project_id,
+            message=f"Connected to Neo4j. Found {node_count} nodes and {rel_count} relationships.",
+            table_count=node_count,  # Mapping node count to the generic "table_count" metric
+            connection_string=conn_str,
+        )
+    except Exception as e:
+        logger.error(f"Neo4j connection failed: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Neo4j connection error: {str(e)}")
+
+
+
 class GitHubImportRequest(BaseModel):
     github_url: str
     project_name: str = "GitHub Import"

@@ -170,9 +170,10 @@ class AIService:
         """
         try:
             prompt_text = "You are an expert PostgreSQL database architect with perfect computer vision. Look at this database diagram (ERD or whiteboard sketch). Extract every table, column, data type, primary key, and foreign key relationship you can see. Return ONLY the valid PostgreSQL CREATE TABLE statements (DDL). No markdown formatting, no explanations, no text before or after the SQL. IF IT IS NOT A DIAGRAM, throw an error."
-            
-            # CRITICAL: For vision, we MUST use a vision model like 'llava'
-            vision_model = "llava" if self.ai_mode == "OLLAMA" else self.model
+            # Use the currently configured model, but if it's Ollama and the model isn't vision-capable, auto-fallback to 'moondream'
+            vision_model = self.model
+            if self.ai_mode == "OLLAMA" and not any(v in vision_model.lower() for v in ["llava", "vision", "moondream"]):
+                vision_model = "moondream"
 
             if self.ai_mode == "OLLAMA":
                 base = str(self.client.base_url).split("/v1")[0]
@@ -212,16 +213,53 @@ class AIService:
                 content = response.choices[0].message.content.strip()
 
             # Clean output
+            # DEBUG LOGGING: Write the exact raw output to see what the model hallucinated
+            with open("latest_vision_output.txt", "w") as f:
+                f.write(content)
+                
             for tag in ["```sql", "```"]:
                 if content.startswith(tag): content = content[len(tag):]
             if content.endswith("```"): content = content[:-3]
-            return content.strip()
+            content = content.strip()
             
-        except (httpx.ConnectError, httpx.HTTPStatusError, Exception) as e:
+            # Detect if the model couldn't read the image
+            content_lower = content.lower()
+            
+            # If the model panicked and outputted nothing, or didn't even output a table
+            is_empty_or_bad = len(content_lower) < 15 or "create table" not in content_lower
+            hallucinated_users = "create table users (" in content_lower and content_lower.count("create table") == 1
+            
+            if "image_unreadable" in content_lower or "engine=postgresql" in content_lower or hallucinated_users or is_empty_or_bad:
+                raise Exception("The text in this diagram is too small, complex, or illegible for the current AI model to read perfectly. Please upload a clearer diagram with larger text, or switch to a heavier vision model.")
+                
+            # Detect if a text-only model failed to see the image and followed the "throw an error" instruction
+            if content_lower.startswith("error:") or "not a database diagram" in content_lower or "cannot see" in content_lower:
+                raise Exception(f"Model '{vision_model}' does not support Vision/Images. Please install a multimodal model like 'moondream' (run: ollama run moondream).")
+                
+            return content
+            
+        except httpx.HTTPStatusError as e:
+            err_body = e.response.text
+            logger.error(f"AI Vision generation failed with HTTP error: {e}. Body: {err_body}")
+            err_str = str(e).lower()
+            
+            # If 404, it means the model is not installed. Let the frontend show this specific error.
+            if "404" in err_str and "not found" in err_str:
+                raise Exception(f"Model '{vision_model}' not found in Ollama. Please ensure you have a vision-capable model installed.")
+                
+            # If 500 OOM crash, fallback to demo mode
+            if e.response.status_code == 500 and ("stopped" in err_body.lower() or "resource" in err_body.lower()):
+                logger.warning("Ollama crashed (likely OOM). Falling back to demo mode.")
+                return "OFFLINE_DEMO_FALLBACK: CREATE TABLE \"Customer\" (\n  \"id\" SERIAL PRIMARY KEY,\n  \"name\" VARCHAR(255),\n  \"email\" VARCHAR(255) UNIQUE\n);\n\nCREATE TABLE \"Order\" (\n  \"id\" SERIAL PRIMARY KEY,\n  \"customer_id\" INTEGER REFERENCES \"Customer\"(\"id\"),\n  \"total\" DECIMAL(10,2)\n);"
+                
+            raise Exception(f"Ollama returned an error: {err_body} (Status: {e.response.status_code})")
+            
+        except (httpx.ConnectError, Exception) as e:
             logger.error(f"AI Vision generation failed: {e}")
             err_str = str(e).lower()
-            # Catching "All connection attempts failed" and variants
-            if any(key in err_str for key in ["connection", "11434", "failed", "refused", "timeout"]):
+            
+            # Catching actual offline errors "All connection attempts failed"
+            if isinstance(e, httpx.ConnectError) or any(key in err_str for key in ["connection refused", "failed to connect", "target machine actively refused"]):
                 return "OFFLINE_DEMO_FALLBACK: CREATE TABLE \"Customer\" (\n  \"id\" SERIAL PRIMARY KEY,\n  \"name\" VARCHAR(255),\n  \"email\" VARCHAR(255) UNIQUE\n);\n\nCREATE TABLE \"Order\" (\n  \"id\" SERIAL PRIMARY KEY,\n  \"customer_id\" INTEGER REFERENCES \"Customer\"(\"id\"),\n  \"total\" DECIMAL(10,2)\n);"
             raise e
 

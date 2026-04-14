@@ -1,6 +1,8 @@
 from fastapi import APIRouter, HTTPException, UploadFile, File
 from pydantic import BaseModel
 import base64
+import io
+from PIL import Image
 from app.services.ai_service import AIService
 import logging
 
@@ -24,6 +26,26 @@ async def upload_schema_vision(file: UploadFile = File(...)):
         
     try:
         contents = await file.read()
+        
+        # Resize image to prevent massive VRAM spikes in Ollama
+        try:
+            img = Image.open(io.BytesIO(contents))
+            # If the image has an alpha channel (transparent PNG), we MUST composite it over a white background!
+            if img.mode in ('RGBA', 'LA') or (img.mode == 'P' and 'transparency' in img.info):
+                alpha = img.convert('RGBA')
+                bg = Image.new('RGB', alpha.size, (255, 255, 255))
+                bg.paste(alpha, mask=alpha.split()[3])
+                img = bg
+            elif img.mode != 'RGB':
+                img = img.convert('RGB')
+                
+            img.thumbnail((1024, 1024))
+            buf = io.BytesIO()
+            img.save(buf, format='JPEG')
+            contents = buf.getvalue()
+        except Exception as e:
+            logger.warning(f"Failed to resize image, continuing with original: {e}")
+            
         base64_img = base64.b64encode(contents).decode('utf-8')
         
         sql_ddl = await ai_service.generate_schema_from_image(base64_img)
