@@ -84,8 +84,20 @@ export default function LabPage() {
     <DashboardShell>
       <div className="flex flex-col h-full bg-slate-50 dark:bg-slate-950 min-h-0">
         {/* Header */}
-        <div className="px-6 py-5 border-b border-indigo-200 dark:border-white/10 shadow-sm z-10 flex justify-between items-center bg-gradient-to-r from-indigo-50 dark:from-indigo-500/5 to-white dark:to-transparent">
-          <div>
+        <div className="px-6 py-5 border-b border-indigo-200 dark:border-white/10 shadow-sm z-10 flex justify-between items-center bg-gradient-to-r from-indigo-50 dark:from-indigo-500/5 to-white dark:to-transparent relative overflow-hidden">
+             {/* 3D lab background elements */}
+             <motion.div 
+                  animate={{ rotateZ: 360, rotateX: [40, 60, 40] }} 
+                  transition={{ repeat: Infinity, duration: 25, ease: "linear" }}
+                  className="absolute right-10 -top-20 w-64 h-64 border-[15px] border-indigo-500/5 dark:border-indigo-500/10 pointer-events-none rounded-[40px]" 
+                  style={{ transformStyle: 'preserve-3d' }}
+              />
+              <motion.div 
+                  animate={{ y: [0, 15, 0], scale: [1, 1.05, 1] }} 
+                  transition={{ repeat: Infinity, duration: 8, ease: "easeInOut" }}
+                  className="absolute right-[30%] -bottom-10 w-32 h-32 bg-indigo-400/20 dark:bg-indigo-600/30 rounded-full blur-[40px] pointer-events-none" 
+              />
+          <div className="relative z-10">
             <h1 className="text-xl font-black text-indigo-900 dark:text-white flex items-center gap-2">
               <FlaskConical className="text-indigo-600 dark:text-indigo-400" /> The Simulation Chamber (Shadow Lab)
             </h1>
@@ -171,12 +183,26 @@ export default function LabPage() {
             {/* Right Side: Results */}
             <div className="flex flex-col gap-4">
               {!result && !loading && !error && (
-                <div className="h-[400px] border-2 border-dashed border-indigo-200 dark:border-indigo-500/20 rounded-3xl flex flex-col items-center justify-center text-center p-8 bg-indigo-50/50 dark:bg-indigo-500/5">
-                  <div className="w-16 h-16 bg-white dark:bg-white/[0.04] border border-indigo-100 dark:border-indigo-500/20 rounded-2xl flex items-center justify-center mb-4 text-indigo-300 dark:text-indigo-500">
+                <div className="h-[400px] border-2 border-dashed border-indigo-200 dark:border-indigo-500/20 rounded-3xl flex flex-col items-center justify-center text-center p-8 bg-indigo-50/50 dark:bg-indigo-500/5 relative overflow-hidden group">
+                  {/* 3D Lab Flask floating effect */}
+                  <motion.div 
+                      animate={{ y: [0, -15, 0], rotateZ: [0, 5, 0] }} 
+                      transition={{ repeat: Infinity, duration: 6, ease: "easeInOut" }}
+                      className="absolute right-12 bottom-12 w-32 h-32 rounded-br-3xl rounded-bl-3xl bg-gradient-to-t from-indigo-500/10 to-transparent pointer-events-none group-hover:from-indigo-500/20 transition-colors backdrop-blur-[1px]"
+                      style={{ borderBottom: '6px solid rgba(99, 102, 241, 0.2)', borderLeft: '2px solid rgba(99, 102, 241, 0.1)', borderRight: '2px solid rgba(99, 102, 241, 0.1)' }}
+                  />
+                  <motion.div 
+                      animate={{ rotateX: [60, 40, 60], rotateY: [0, 180, 360] }} 
+                      transition={{ repeat: Infinity, duration: 15, ease: "linear" }}
+                      className="absolute left-10 top-10 w-24 h-24 rounded-full border-4 border-indigo-500/20 border-t-indigo-500/40 pointer-events-none group-hover:border-indigo-500/30 transition-colors"
+                      style={{ transformStyle: 'preserve-3d' }}
+                  />
+
+                  <div className="w-16 h-16 bg-white dark:bg-white/[0.04] border border-indigo-100 dark:border-indigo-500/20 rounded-2xl flex items-center justify-center mb-4 text-indigo-500 dark:text-indigo-400 relative z-10 shadow-lg hover:-translate-y-1 transition-transform">
                     <FlaskRound size={32} />
                   </div>
-                  <h3 className="text-lg font-black text-indigo-900 dark:text-white">Lab is Standing By</h3>
-                  <p className="text-sm font-medium text-indigo-500 dark:text-indigo-300 mt-2 max-w-sm">
+                  <h3 className="text-lg font-black text-indigo-900 dark:text-white relative z-10">Lab is Standing By</h3>
+                  <p className="text-sm font-medium text-indigo-500 dark:text-indigo-300 mt-2 max-w-sm relative z-10">
                     Modifying production tables is scary. Run it here first, and we'll tell you if it speeds things up or breaks things.
                   </p>
                 </div>
@@ -200,7 +226,9 @@ export default function LabPage() {
                   </div>
 
                   <div className="relative z-10 flex items-center gap-2 mb-6 border-b border-emerald-100 dark:border-emerald-500/20 pb-4">
-                     <CheckCircle2 size={24} className="text-emerald-500" />
+                     <div className="p-2 rounded-xl bg-emerald-100 dark:bg-emerald-500/20 shadow-inner">
+                        <CheckCircle2 size={24} className="text-emerald-600 dark:text-emerald-400" />
+                     </div>
                      <h3 className="text-xl font-black text-emerald-900 dark:text-emerald-300">Structural Change Safe</h3>
                   </div>
 

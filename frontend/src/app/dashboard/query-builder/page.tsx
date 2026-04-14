@@ -104,8 +104,21 @@ export default function QueryBuilderPage() {
     <DashboardShell>
       <div className="flex flex-col h-full bg-slate-50 dark:bg-slate-950 min-h-0">
         {/* Header */}
-        <div className="px-6 py-5 border-b border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900/80 shadow-sm z-10 flex justify-between items-center">
-          <div>
+        <div className="px-6 py-5 border-b border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900/80 shadow-sm z-10 flex justify-between items-center relative overflow-hidden">
+          {/* Floating 3D Background */}
+          <motion.div 
+              animate={{ rotate: 360 }} 
+              transition={{ repeat: Infinity, duration: 40, ease: "linear" }}
+              className="absolute -right-10 -top-20 w-64 h-64 border-[30px] border-violet-500/5 dark:border-violet-500/10 rounded-full pointer-events-none" 
+              style={{ transformStyle: 'preserve-3d', transform: 'rotateX(60deg) rotateY(20deg)' }}
+          />
+          <motion.div 
+              animate={{ y: [0, -15, 0] }} 
+              transition={{ repeat: Infinity, duration: 6, ease: "easeInOut" }}
+              className="absolute right-[20%] top-0 w-48 h-48 bg-violet-400/10 dark:bg-violet-600/20 rounded-full blur-[50px] pointer-events-none" 
+          />
+          
+          <div className="relative z-10">
             <h1 className="text-xl font-black text-slate-900 dark:text-white flex items-center gap-2">
               <Zap className="text-violet-500" /> Query Optimization Sandbox
             </h1>
@@ -113,7 +126,7 @@ export default function QueryBuilderPage() {
               Test queries and check their structural cost before pushing to production.
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 relative z-10">
             <button
                 onClick={() => setGuideMode(v => !v)}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-[11px] font-bold transition-all shadow-sm ${guideMode ? 'bg-amber-100 dark:bg-amber-500/20 border-amber-300 dark:border-amber-500/40 text-amber-700 dark:text-amber-300' : 'bg-white dark:bg-white/[0.05] border-slate-200 dark:border-white/10 text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-white/[0.08]'}`}
@@ -208,11 +221,26 @@ export default function QueryBuilderPage() {
             {/* Right Side: Results */}
             <motion.div variants={{ hidden: { opacity: 0, x: 10 }, show: { opacity: 1, x: 0 } }} className="flex flex-col gap-4">
               {!result && !loading && !error && (
-                <div className="h-[400px] border-2 border-dashed border-slate-200 dark:border-white/10 rounded-3xl flex flex-col items-center justify-center text-center p-8 bg-white/50 dark:bg-white/[0.02]">
-                  <div className="w-16 h-16 bg-slate-100 dark:bg-white/[0.05] rounded-2xl flex items-center justify-center mb-4 text-slate-300 dark:text-slate-600">
+                <div className="h-[400px] border-2 border-dashed border-slate-200 dark:border-white/10 rounded-3xl flex flex-col items-center justify-center text-center p-8 bg-white/50 dark:bg-white/[0.02] relative overflow-hidden group">
+                  
+                  {/* 3D Floating Geometry inside box */}
+                  <motion.div 
+                      animate={{ rotateX: [20, 60, 20], rotateY: [0, 45, 0], scale: [1, 1.1, 1] }} 
+                      transition={{ repeat: Infinity, duration: 10, ease: "easeInOut" }}
+                      className="absolute right-10 bottom-10 w-32 h-32 rounded-full border-8 border-violet-500/10 pointer-events-none group-hover:border-violet-500/20 transition-colors"
+                      style={{ transformStyle: 'preserve-3d' }}
+                  />
+                  <motion.div 
+                      animate={{ rotateX: [-20, -60, -20], rotateY: [45, 0, 45] }} 
+                      transition={{ repeat: Infinity, duration: 12, ease: "easeInOut" }}
+                      className="absolute -left-10 top-10 w-40 h-40 rounded-3xl border-4 border-emerald-500/10 pointer-events-none group-hover:border-emerald-500/20 transition-colors"
+                      style={{ transformStyle: 'preserve-3d' }}
+                  />
+
+                  <div className="w-16 h-16 bg-white dark:bg-white/[0.05] shadow-lg rounded-2xl flex items-center justify-center mb-4 text-violet-500 dark:text-violet-400 relative z-10 hover:scale-110 transition-transform">
                     <TrendingDown size={32} />
                   </div>
-                  <h3 className="text-lg font-black text-slate-800 dark:text-white">Ready to Benchmark</h3>
+                  <h3 className="text-lg font-black text-slate-800 dark:text-white relative z-10">Ready to Benchmark</h3>
                   <p className="text-sm font-medium text-slate-400 dark:text-slate-500 mt-2 max-w-sm">
                     Enter a query and hit Analyze. We'll simulate its execution plan and tell you how much it costs in computation and real dollars.
                   </p>

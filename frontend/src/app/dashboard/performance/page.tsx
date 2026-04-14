@@ -184,8 +184,20 @@ export default function PerformancePage() {
             <div className="flex flex-col h-full w-full max-w-[1400px] mx-auto pb-10">
 
                 {/* ── Page header ── */}
-                <div className="px-6 py-5 flex items-center justify-between flex-wrap gap-3 border-b border-gray-100 bg-white shadow-sm z-10 relative">
-                    <div className="flex items-center gap-3">
+                <div className="px-6 py-5 flex items-center justify-between flex-wrap gap-3 border-b border-gray-100 dark:border-white/[0.05] bg-white dark:bg-slate-900/80 shadow-sm z-10 relative overflow-hidden backdrop-blur-xl">
+                    {/* 3D Telemetry Grid Background */}
+                    <motion.div 
+                        animate={{ rotate: 360, scale: [1, 1.1, 1] }} 
+                        transition={{ repeat: Infinity, duration: 60, ease: "linear" }}
+                        className="absolute -right-20 -top-20 w-80 h-80 border-[8px] border-dashed border-rose-500/10 dark:border-rose-500/20 rounded-full pointer-events-none" 
+                        style={{ transformStyle: 'preserve-3d', transform: 'rotateX(70deg) rotateY(-10deg)' }}
+                    />
+                    <motion.div 
+                        animate={{ x: [0, -20, 0] }} 
+                        transition={{ repeat: Infinity, duration: 15, ease: "easeInOut" }}
+                        className="absolute right-[15%] top-10 w-40 h-40 bg-indigo-400/10 dark:bg-indigo-600/20 rounded-full blur-[50px] pointer-events-none" 
+                    />
+                    <div className="relative z-10 flex items-center gap-3">
                         <div className="w-10 h-10 rounded-xl bg-violet-100 flex items-center justify-center relative shadow-inner ring-1 ring-violet-200">
                             <Bot size={22} className="text-violet-600" />
                             <div className="absolute top-0 right-0 -mr-1 -mt-1 w-3 h-3 bg-emerald-500 rounded-full animate-pulse border-2 border-white shadow-[0_0_8px_rgba(16,185,129,0.8)]"></div>
@@ -198,7 +210,7 @@ export default function PerformancePage() {
                         </div>
                     </div>
                     
-                    <div className="flex items-center gap-2.5">
+                    <div className="relative z-10 flex items-center gap-2.5">
                         <button
                             onClick={() => setShowLearn(v => !v)}
                             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-50 border border-indigo-200 text-indigo-700 text-xs font-bold transition-all hover:bg-indigo-100 shadow-sm"
@@ -359,9 +371,18 @@ export default function PerformancePage() {
                                     )}
 
                                     {filteredCols.length === 0 ? (
-                                        <div className="flex flex-col items-center justify-center py-20 bg-emerald-50 border border-emerald-100 rounded-3xl gap-4 shadow-sm">
-                                            <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-sm text-emerald-500"><CheckCircle size={32} /></div>
-                                            <p className="text-[15px] font-bold text-emerald-800">State Matrix Optimal: Zero Penalty Nodes Detected</p>
+                                        <div className="flex flex-col items-center justify-center py-20 bg-emerald-50 dark:bg-emerald-500/5 border border-emerald-100 dark:border-emerald-500/20 rounded-3xl gap-4 shadow-sm relative overflow-hidden group">
+                                            {/* 3D Ideal State Orb */}
+                                            <motion.div 
+                                                animate={{ rotateX: [10, 40, 10], rotateY: [-20, -50, -20], scale: [1, 1.1, 1] }} 
+                                                transition={{ repeat: Infinity, duration: 12, ease: "easeInOut" }}
+                                                className="absolute right-20 bottom-0 w-32 h-32 rounded-full border-4 border-emerald-500/20 pointer-events-none group-hover:border-emerald-500/30 transition-colors"
+                                                style={{ transformStyle: 'preserve-3d' }}
+                                            />
+                                            <div className="w-16 h-16 bg-white dark:bg-white/[0.05] rounded-2xl flex items-center justify-center shadow-lg text-emerald-500 dark:text-emerald-400 relative z-10 hover:-translate-y-1 transition-transform">
+                                                <CheckCircle size={32} />
+                                            </div>
+                                            <p className="text-[15px] font-black text-emerald-800 dark:text-emerald-300 relative z-10">State Matrix Optimal: Zero Penalty Nodes Detected</p>
                                         </div>
                                     ) : (
                                         <motion.div 
@@ -429,9 +450,17 @@ export default function PerformancePage() {
                             {activeTab === 'zombies' && (
                                 <div className="animate-in fade-in slide-in-from-bottom-2 duration-300">
                                      {zombies.length === 0 ? (
-                                        <div className="flex flex-col items-center justify-center py-20 bg-emerald-50 border border-emerald-100 rounded-3xl gap-4 shadow-sm">
-                                            <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-sm text-emerald-500"><CheckCircle size={32} /></div>
-                                            <p className="text-[15px] font-bold text-emerald-800">State Matrix Optimal: Zero Wasted Indexes Detected</p>
+                                        <div className="flex flex-col items-center justify-center py-20 bg-emerald-50 dark:bg-emerald-500/5 border border-emerald-100 dark:border-emerald-500/20 rounded-3xl gap-4 shadow-sm relative overflow-hidden group">
+                                            <motion.div 
+                                                animate={{ rotateX: [10, 40, 10], rotateY: [-20, -50, -20], scale: [1, 1.1, 1] }} 
+                                                transition={{ repeat: Infinity, duration: 12, ease: "easeInOut" }}
+                                                className="absolute right-20 bottom-0 w-32 h-32 rounded-full border-4 border-emerald-500/20 pointer-events-none group-hover:border-emerald-500/30 transition-colors"
+                                                style={{ transformStyle: 'preserve-3d' }}
+                                            />
+                                            <div className="w-16 h-16 bg-white dark:bg-white/[0.05] rounded-2xl flex items-center justify-center shadow-lg text-emerald-500 dark:text-emerald-400 relative z-10 hover:-translate-y-1 transition-transform">
+                                                <CheckCircle size={32} />
+                                            </div>
+                                            <p className="text-[15px] font-black text-emerald-800 dark:text-emerald-300 relative z-10">State Matrix Optimal: Zero Wasted Indexes Detected</p>
                                         </div>
                                     ) : (
                                         <div className="flex flex-col gap-5">
@@ -538,9 +567,17 @@ export default function PerformancePage() {
                                     </div>
 
                                     {recommendations.length === 0 ? (
-                                        <div className="flex flex-col items-center justify-center py-20 bg-emerald-50 border border-emerald-100 rounded-3xl gap-4 shadow-sm">
-                                            <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-sm text-emerald-500"><CheckCircle size={32} /></div>
-                                            <p className="text-[15px] font-bold text-emerald-800">State Matrix Optimal: No Agent Actions Formulated</p>
+                                        <div className="flex flex-col items-center justify-center py-20 bg-emerald-50 dark:bg-emerald-500/5 border border-emerald-100 dark:border-emerald-500/20 rounded-3xl gap-4 shadow-sm relative overflow-hidden group">
+                                            <motion.div 
+                                                animate={{ rotateX: [10, 40, 10], rotateY: [-20, -50, -20], scale: [1, 1.1, 1] }} 
+                                                transition={{ repeat: Infinity, duration: 12, ease: "easeInOut" }}
+                                                className="absolute right-20 bottom-0 w-32 h-32 rounded-full border-4 border-emerald-500/20 pointer-events-none group-hover:border-emerald-500/30 transition-colors"
+                                                style={{ transformStyle: 'preserve-3d' }}
+                                            />
+                                            <div className="w-16 h-16 bg-white dark:bg-white/[0.05] rounded-2xl flex items-center justify-center shadow-lg text-emerald-500 dark:text-emerald-400 relative z-10 hover:-translate-y-1 transition-transform">
+                                                <CheckCircle size={32} />
+                                            </div>
+                                            <p className="text-[15px] font-black text-emerald-800 dark:text-emerald-300 relative z-10">State Matrix Optimal: No Agent Actions Formulated</p>
                                         </div>
                                     ) : (
                                         <div className="flex flex-col gap-6">

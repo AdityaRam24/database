@@ -347,8 +347,20 @@ export default function DataExplorerPage() {
         <DashboardShell>
             <div className="flex flex-col h-full w-full max-w-[1600px] mx-auto bg-slate-50/50 dark:bg-transparent">
                 {/* ── Page Header ── */}
-                <div className="px-6 py-5 flex items-center justify-between flex-wrap gap-3 border-b border-gray-100 dark:border-white/[0.05] bg-white dark:bg-white/[0.02] shadow-sm z-10 relative backdrop-blur-xl">
-                    <div className="flex items-center gap-4">
+                <div className="px-6 py-5 flex items-center justify-between flex-wrap gap-3 border-b border-gray-100 dark:border-white/[0.05] bg-white dark:bg-white/[0.02] shadow-sm z-10 relative backdrop-blur-xl overflow-hidden">
+                    {/* Floating 3D Geometric Data Core */}
+                    <motion.div 
+                        animate={{ rotateZ: 360, rotateX: [10, 30, 10], rotateY: [-20, 20, -20] }} 
+                        transition={{ repeat: Infinity, duration: 45, ease: "linear" }}
+                        className="absolute right-40 -top-40 w-96 h-96 border-[40px] border-emerald-500/5 dark:border-emerald-500/10 rounded-[60px] pointer-events-none" 
+                        style={{ transformStyle: 'preserve-3d' }}
+                    />
+                    <motion.div 
+                        animate={{ x: [0, 20, 0] }} 
+                        transition={{ repeat: Infinity, duration: 10, ease: "easeInOut" }}
+                        className="absolute right-[10%] top-0 w-64 h-64 bg-emerald-400/10 dark:bg-emerald-600/20 rounded-full blur-[60px] pointer-events-none" 
+                    />
+                    <div className="relative z-10 flex items-center gap-4">
                         <div className="w-10 h-10 rounded-xl bg-violet-100 dark:bg-violet-500/10 flex items-center justify-center relative shadow-inner ring-1 ring-violet-200 dark:ring-violet-500/20">
                             <GaugeCircle size={22} className="text-violet-600" />
                             <div className="absolute top-0 right-0 -mr-1 -mt-1 w-3 h-3 bg-emerald-500 rounded-full animate-pulse border-2 border-white shadow-[0_0_8px_rgba(16,185,129,0.8)]"></div>
@@ -364,7 +376,7 @@ export default function DataExplorerPage() {
                     </div>
 
                     {selectedTable && (
-                        <div className="flex items-center gap-3">
+                        <div className="relative z-10 flex items-center gap-3">
                             <div className="relative group">
                                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
                                     <Search size={14} className="text-slate-400 dark:text-slate-500" />
@@ -532,12 +544,26 @@ export default function DataExplorerPage() {
                         <div className="flex-1 overflow-auto custom-scrollbar relative p-4 md:p-6 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px]">
 
                             {!selectedTable ? (
-                                <div className="h-full flex flex-col items-center justify-center pointer-events-none opacity-40">
-                                    <div className="w-20 h-20 rounded-2xl bg-white dark:bg-white/[0.05] border border-slate-200 dark:border-white/10 shadow-sm flex items-center justify-center text-slate-200 dark:text-slate-700 mb-6">
+                                <div className="h-full flex flex-col items-center justify-center relative overflow-hidden group">
+                                    {/* 3D Datacube Floating Effect */}
+                                    <motion.div 
+                                        animate={{ rotateX: [20, 45, 20], rotateY: [0, 90, 180, 270, 360], y: [0, -20, 0] }} 
+                                        transition={{ repeat: Infinity, duration: 25, ease: "linear" }}
+                                        className="absolute w-48 h-48 rounded-3xl border-8 border-violet-500/10 dark:border-violet-500/20 group-hover:border-violet-500/30 transition-colors pointer-events-none opacity-50"
+                                        style={{ transformStyle: 'preserve-3d' }}
+                                    />
+                                    <motion.div 
+                                        animate={{ rotateX: [70, 50, 70], rotateY: [-90, 0, 90], scale: [0.8, 1.2, 0.8] }} 
+                                        transition={{ repeat: Infinity, duration: 18, ease: "easeInOut" }}
+                                        className="absolute w-64 h-64 rounded-full border border-emerald-500/10 dark:border-emerald-500/20 group-hover:border-emerald-500/30 transition-colors pointer-events-none opacity-40"
+                                        style={{ transformStyle: 'preserve-3d' }}
+                                    />
+
+                                    <div className="w-20 h-20 rounded-2xl bg-white dark:bg-white/[0.05] border border-slate-200 dark:border-white/10 shadow-lg flex items-center justify-center text-slate-400 dark:text-slate-600 mb-6 relative z-10 hover:-translate-y-2 transition-transform duration-300">
                                         <Database size={32} />
                                     </div>
-                                    <p className="text-[13px] font-bold text-slate-600 dark:text-slate-400 tracking-tight text-center">Neural Substrate: Idle</p>
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1 text-center">Initiate node synchronization to bridge data streams.</p>
+                                    <p className="text-[13px] font-bold text-slate-800 dark:text-slate-300 tracking-tight text-center relative z-10">Neural Substrate: Idle</p>
+                                    <p className="text-[10px] font-black text-slate-500 dark:text-slate-500 uppercase tracking-widest mt-1 text-center relative z-10">Initiate node synchronization to bridge data streams.</p>
                                 </div>
                             ) : dataLoading ? (
                                 <div className="h-full flex flex-col items-center justify-center">
