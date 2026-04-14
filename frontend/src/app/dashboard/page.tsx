@@ -113,10 +113,10 @@ function SkeletonPulse({ className = "" }: { className?: string }) {
 }
 
 function getHealthLabel(score: number) {
-  if (score >= 95) return { text: "Excellent", emoji: "🚀", color: "#10b981", bg: "#d1fae5", border: "#6ee7b7" };
-  if (score >= 80) return { text: "Good", emoji: "✅", color: "#3b82f6", bg: "#dbeafe", border: "#93c5fd" };
-  if (score >= 60) return { text: "Fair", emoji: "⚠️", color: "#f59e0b", bg: "#fef3c7", border: "#fcd34d" };
-  return { text: "Needs Attention", emoji: "🔴", color: "#ef4444", bg: "#fee2e2", border: "#fca5a5" };
+  if (score >= 95) return { text: "Excellent", emoji: "🚀", color: "#064e3b", bg: "#34d399", border: "#10b981", shadow: "#059669" };
+  if (score >= 80) return { text: "Good", emoji: "✅", color: "#1e3a8a", bg: "#60a5fa", border: "#3b82f6", shadow: "#2563eb" };
+  if (score >= 60) return { text: "Fair", emoji: "⚠️", color: "#78350f", bg: "#fbbf24", border: "#f59e0b", shadow: "#d97706" };
+  return { text: "Needs Attention", emoji: "🔴", color: "#7f1d1d", bg: "#f87171", border: "#ef4444", shadow: "#dc2626" };
 }
 
 /* ─── Stat Card ────────────────────────────────────────────── */
@@ -130,35 +130,56 @@ function StatCard({
 }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, delay: index * 0.07 }}
-      className="relative rounded-2xl p-5 overflow-hidden group cursor-default"
-      style={{ background: gradient, boxShadow: `0 4px 24px ${color}22` }}
+      initial={{ opacity: 0, y: 20, scale: 0.95 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      whileHover={{ y: -8, scale: 1.02 }}
+      transition={{ type: "spring", stiffness: 300, damping: 20, delay: index * 0.05 }}
+      className="relative rounded-3xl p-5 overflow-hidden group cursor-default"
+      style={{ background: gradient, boxShadow: `0 10px 40px -10px ${color}80, inset 0 2px 0 rgba(255,255,255,0.2)` }}
     >
-      {/* Decorative rings */}
-      <div className="absolute -right-6 -top-6 w-28 h-28 rounded-full border border-white/10 pointer-events-none" />
-      <div className="absolute -right-2 -top-2 w-14 h-14 rounded-full border border-white/10 pointer-events-none" />
+      {/* 3D Floating Isometric Cube Element */}
+      <motion.div 
+        animate={{ y: [0, -12, 0], rotateX: [30, 40, 30], rotateZ: [15, 25, 15] }} 
+        transition={{ repeat: Infinity, duration: 4 + index * 0.5, ease: "easeInOut" }}
+        className="absolute -right-4 -top-6 w-24 h-24 rounded-2xl opacity-20 pointer-events-none"
+        style={{
+          background: `linear-gradient(135deg, white 0%, rgba(255,255,255,0) 100%)`,
+          transform: 'perspective(500px)',
+          boxShadow: '-15px 15px 25px rgba(0,0,0,0.3), inset 2px 2px 8px rgba(255,255,255,0.9)',
+          backdropFilter: 'blur(4px)'
+        }}
+      />
+      
+      {/* Small 3D Floating Orb */}
+      <motion.div 
+        animate={{ y: [0, 10, 0], scale: [1, 1.1, 1] }} 
+        transition={{ repeat: Infinity, duration: 5 + index * 0.3, ease: "easeInOut" }}
+        className="absolute right-4 top-14 w-8 h-8 rounded-full opacity-30 pointer-events-none"
+        style={{
+          background: `radial-gradient(circle at 30% 30%, white, ${color})`,
+          boxShadow: '-5px 5px 15px rgba(0,0,0,0.4), inset -2px -2px 6px rgba(0,0,0,0.3)'
+        }}
+      />
 
-      <div className="relative z-10 flex items-center justify-between mb-3">
-        <span className="text-[10px] font-black text-white/60 uppercase tracking-widest">{label}</span>
-        <div className="w-8 h-8 rounded-xl flex items-center justify-center bg-white/15">
-          <Icon size={14} className="text-white" />
+      <div className="relative z-10 flex items-center justify-between mb-3 group-hover:scale-105 transition-transform duration-300">
+        <span className="text-[10px] font-black text-white/80 uppercase tracking-widest drop-shadow-sm">{label}</span>
+        <div className="w-8 h-8 rounded-xl flex items-center justify-center bg-white/20 backdrop-blur-md shadow-[inset_0_1px_rgba(255,255,255,0.4)]">
+          <Icon size={14} className="text-white drop-shadow-md" />
         </div>
       </div>
 
-      <div className="relative z-10 flex items-end gap-1.5 mb-2">
-        <span className="text-[2.6rem] font-black tracking-tight leading-none text-white">{value}</span>
-        {unit && <span className="text-base font-bold text-white/50 mb-1">{unit}</span>}
+      <div className="relative z-10 flex items-end gap-1.5 mb-2 origin-left group-hover:scale-110 transition-transform duration-300">
+        <span className="text-[2.6rem] font-black tracking-tight leading-none text-white drop-shadow-lg">{value}</span>
+        {unit && <span className="text-base font-black text-white/70 mb-1">{unit}</span>}
       </div>
 
       {/* Friendly label */}
-      <p className="relative z-10 text-[12px] font-bold text-white/75">{friendlyLabel}</p>
+      <p className="relative z-10 text-[12px] font-bold text-white/90 drop-shadow-sm">{friendlyLabel}</p>
 
       {/* Tooltip on hover */}
-      <div className="absolute inset-x-0 bottom-0 h-0 group-hover:h-auto overflow-hidden transition-all duration-300">
-        <div className="px-4 py-2 bg-black/30 backdrop-blur-sm">
-          <p className="text-[11px] text-white/80 font-medium">{tip}</p>
+      <div className="absolute inset-x-0 bottom-0 translate-y-full group-hover:translate-y-0 opacity-0 group-hover:opacity-100 overflow-hidden transition-all duration-300 z-20">
+        <div className="px-4 py-3 bg-black/40 backdrop-blur-md border-t border-white/10">
+          <p className="text-[11px] text-white/90 font-black tracking-wide leading-relaxed">{tip}</p>
         </div>
       </div>
     </motion.div>
@@ -173,42 +194,85 @@ function HealthHero({ score }: { score: number }) {
 
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.95 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={{ duration: 0.5 }}
-      className="relative rounded-2xl overflow-hidden p-6 row-span-1"
+      initial={{ opacity: 0, scale: 0.90, rotateX: 10 }}
+      animate={{ opacity: 1, scale: 1, rotateX: 0 }}
+      whileHover={{ scale: 1.02, y: -5 }}
+      transition={{ type: "spring", stiffness: 300, damping: 20 }}
+      className="relative rounded-3xl overflow-hidden p-6 row-span-1 group"
       style={{
-        background: "linear-gradient(135deg, #4f46e5 0%, #7c3aed 60%, #9333ea 100%)",
-        boxShadow: "0 8px 32px rgba(124,58,237,0.35)",
+        background: "linear-gradient(135deg, #4f46e5 0%, #7c3aed 60%, #a855f7 100%)",
+        boxShadow: "0 12px 40px -10px rgba(124,58,237,0.6), inset 0 2px 0 rgba(255,255,255,0.2)",
       }}
     >
-      {/* Decoration */}
-      <div className="absolute -right-12 -top-12 w-48 h-48 rounded-full border border-white/10 pointer-events-none" />
-      <div className="absolute -right-4 -top-4 w-24 h-24 rounded-full border border-white/10 pointer-events-none" />
+      {/* 3D Floating Torus / Rings */}
+      <motion.div 
+        animate={{ rotateZ: 360, rotateX: [20, 40, 20], rotateY: [10, -10, 10] }} 
+        transition={{ repeat: Infinity, duration: 15, ease: "linear" }}
+        className="absolute -right-8 -top-8 w-44 h-44 rounded-full border-[12px] border-white/5 pointer-events-none"
+        style={{ transformOrigin: 'center center', transformStyle: 'preserve-3d' }}
+      />
+      <motion.div 
+        animate={{ y: [0, -15, 0], x: [0, 5, 0] }} 
+        transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
+        className="absolute right-10 top-10 w-16 h-16 rounded-full opacity-40 pointer-events-none"
+        style={{
+          background: `radial-gradient(circle at 30% 30%, #fff, #c084fc)`,
+          boxShadow: '-8px 8px 15px rgba(0,0,0,0.3)',
+          filter: 'blur(2px)'
+        }}
+      />
 
       <div className="relative z-10 flex items-center justify-between mb-4">
         <div>
-          <p className="text-[10px] font-black text-white/60 uppercase tracking-widest mb-1">Overall Health</p>
+          <p className="text-[10px] font-black text-white/80 uppercase tracking-widest mb-2 drop-shadow-sm">Overall Health</p>
           <div className="flex items-center gap-2">
-            <span className="text-sm font-black px-2.5 py-0.5 rounded-full" style={{ background: health.bg, color: health.color }}>
-              {health.emoji} {health.text}
-            </span>
+            <motion.div 
+              whileHover={{ scale: 1.1, rotate: -2 }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl shadow-lg cursor-default border"
+              style={{ 
+                background: `linear-gradient(to bottom, ${health.bg}, ${health.border})`, 
+                color: health.color,
+                borderColor: health.bg,
+                boxShadow: `0 4px 0 ${health.shadow}, 0 10px 20px -5px ${health.shadow}80`,
+                transform: "translateY(-4px)"
+              }}
+            >
+              <span className="text-base drop-shadow-sm">{health.emoji}</span>
+              <span className="text-sm font-black tracking-wide drop-shadow-sm">{health.text}</span>
+            </motion.div>
           </div>
         </div>
-        <svg width="80" height="80" viewBox="0 0 80 80">
-          <circle cx="40" cy="40" r="36" fill="none" stroke="rgba(255,255,255,0.12)" strokeWidth="6" />
-          <circle
-            cx="40" cy="40" r="36" fill="none"
-            stroke="white" strokeWidth="6"
-            strokeLinecap="round"
-            strokeDasharray={circumference}
-            strokeDashoffset={offset}
-            transform="rotate(-90 40 40)"
-            style={{ transition: "stroke-dashoffset 1.2s ease" }}
-          />
-          <text x="40" y="40" dominantBaseline="middle" textAnchor="middle" fill="white" fontSize="18" fontWeight="900">{score}</text>
-          <text x="40" y="54" dominantBaseline="middle" textAnchor="middle" fill="rgba(255,255,255,0.5)" fontSize="8" fontWeight="700">/100</text>
-        </svg>
+        
+        {/* 3D Looking Score Ring */}
+        <div className="relative hover:scale-110 transition-transform duration-500 ease-out">
+          <svg width="84" height="84" viewBox="0 0 84 84" className="drop-shadow-2xl z-10 relative">
+            <defs>
+              <filter id="glow">
+                <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                <feMerge>
+                  <feMergeNode in="coloredBlur"/>
+                  <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+              </filter>
+            </defs>
+            {/* Background Track with inner shadow illusion */}
+            <circle cx="42" cy="42" r="36" fill="rgba(0,0,0,0.15)" />
+            <circle cx="42" cy="42" r="36" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="6" />
+            
+            <circle
+              cx="42" cy="42" r="36" fill="none"
+              stroke="#ffffff" strokeWidth="7"
+              strokeLinecap="round"
+              strokeDasharray={circumference}
+              strokeDashoffset={offset}
+              transform="rotate(-90 42 42)"
+              filter="url(#glow)"
+              style={{ transition: "stroke-dashoffset 1.5s cubic-bezier(0.34, 1.56, 0.64, 1)" }}
+            />
+            <text x="42" y="42" dominantBaseline="middle" textAnchor="middle" fill="#ffffff" fontSize="22" fontWeight="900" style={{ textShadow: "0 2px 4px rgba(0,0,0,0.3)" }}>{score}</text>
+            <text x="42" y="56" dominantBaseline="middle" textAnchor="middle" fill="rgba(255,255,255,0.7)" fontSize="9" fontWeight="800">/100</text>
+          </svg>
+        </div>
       </div>
 
       <p className="relative z-10 text-[13px] text-white/70 font-bold leading-snug">
@@ -230,35 +294,40 @@ function ActionCard({ action, onClick, index }: { action: typeof QUICK_ACTIONS[0
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ 
-        y: -10, 
+        y: -6, 
         scale: 1.02,
         boxShadow: `0 16px 40px ${action.color}22`
       }}
       transition={{ 
-        duration: 0.35, 
+        duration: 0.3,
         delay: 0.15 + index * 0.05,
-        y: { type: "tween", duration: 0.8, ease: "easeInOut" },
-        scale: { type: "tween", duration: 0.8, ease: "easeInOut" },
-        boxShadow: { duration: 0.8, ease: "easeInOut" }
       }}
-      whileTap={{ scale: 0.98, transition: { duration: 0.1 } }}
+      whileTap={{ scale: 0.96, y: 0, transition: { duration: 0.1 } }}
       onClick={onClick}
-      className="group text-left rounded-2xl p-4 border transition-all duration-700 ease-in-out cursor-pointer relative overflow-hidden"
-      style={{ background: resolvedTheme === 'dark' ? 'rgba(255,255,255,0.03)' : action.bg, borderColor: resolvedTheme === 'dark' ? 'rgba(255,255,255,0.1)' : action.border }}
+      className="group text-left rounded-2xl p-4 transition-all duration-300 ease-out cursor-pointer relative overflow-hidden flex flex-col h-full"
+      style={{ 
+        background: resolvedTheme === 'dark' ? 'rgba(255,255,255,0.03)' : `${action.bg}99`, 
+        borderTop: `1px solid ${resolvedTheme === 'dark' ? 'rgba(255,255,255,0.1)' : action.border}`,
+        borderLeft: `1px solid ${resolvedTheme === 'dark' ? 'rgba(255,255,255,0.1)' : action.border}`,
+        borderRight: `1px solid ${resolvedTheme === 'dark' ? 'rgba(255,255,255,0.1)' : action.border}`,
+        borderBottom: `4px solid ${resolvedTheme === 'dark' ? 'rgba(255,255,255,0.15)' : action.border}`,
+      }}
     >
-      <div className="absolute inset-0 bg-white/0 group-hover:bg-white/20 transition-colors duration-1000" />
+      <div className="absolute inset-0 bg-white/0 group-hover:bg-white/40 dark:group-hover:bg-white/5 transition-colors duration-300 pointer-events-none" />
       
-      <div className="relative z-10 flex items-start justify-between mb-3">
-        <div className="w-10 h-10 rounded-xl flex items-center justify-center text-xl shadow-sm transition-transform duration-1000 group-hover:scale-110" style={{ background: `${action.color}18` }}>
+      <div className="relative z-10 flex items-start justify-between mb-3 w-full">
+        <motion.div 
+          whileHover={{ rotateZ: 5, rotateX: 15, scale: 1.1 }}
+          className="w-10 h-10 rounded-xl flex items-center justify-center text-xl shadow-sm transition-transform duration-300" style={{ background: `${action.color}20`, boxShadow: `inset 0 2px 4px rgba(255,255,255,0.5), 0 2px 4px ${action.color}30` }}>
           {action.emoji}
-        </div>
-        <ChevronRight size={14} className="mt-1 transition-all duration-700 group-hover:translate-x-1" style={{ color: action.color }} />
+        </motion.div>
+        <ChevronRight size={14} className="mt-1 transition-all duration-300 group-hover:translate-x-1" style={{ color: action.color }} />
       </div>
-      <p className="relative z-10 text-[13px] font-black text-slate-900 dark:text-white leading-tight mb-1 transition-all duration-700">{action.label}</p>
-      <p className="relative z-10 text-[11px] font-bold leading-snug transition-all duration-700" style={{ color: `${action.color}cc` }}>{action.whatItDoes}</p>
+      <p className="relative z-10 text-[13px] font-black text-slate-900 dark:text-white leading-tight mb-1">{action.label}</p>
+      <p className="relative z-10 text-[11px] font-bold leading-snug" style={{ color: `${action.color}cc` }}>{action.whatItDoes}</p>
       
-      <div className="relative z-10 overflow-hidden transition-all duration-1000 max-h-0 group-hover:max-h-20 opacity-0 group-hover:opacity-100 mt-0 group-hover:mt-2">
-        <p className="text-[10px] text-slate-500 font-medium leading-relaxed italic border-l-2 pl-2" style={{ borderColor: `${action.color}33` }}>
+      <div className="relative z-10 overflow-hidden transition-all duration-500 max-h-0 group-hover:max-h-20 opacity-0 group-hover:opacity-100 mt-0 group-hover:mt-2">
+        <p className="text-[10px] text-slate-500 font-medium leading-relaxed italic border-l-2 pl-2" style={{ borderColor: `${action.color}50` }}>
           {action.desc}
         </p>
       </div>
