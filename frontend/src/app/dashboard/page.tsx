@@ -174,11 +174,11 @@ function StatCard({
       </div>
 
       {/* Friendly label */}
-      <p className="relative z-10 text-[12px] font-bold text-white/90 drop-shadow-sm">{friendlyLabel}</p>
+      <p className="relative z-10 text-[12px] font-bold text-white/90 drop-shadow-sm transition-opacity duration-300 group-hover:opacity-0">{friendlyLabel}</p>
 
       {/* Tooltip on hover */}
-      <div className="absolute inset-x-0 bottom-0 translate-y-full group-hover:translate-y-0 opacity-0 group-hover:opacity-100 overflow-hidden transition-all duration-300 z-20">
-        <div className="px-4 py-3 bg-black/40 backdrop-blur-md border-t border-white/10">
+      <div className="absolute inset-x-0 bottom-0 top-[96px] opacity-0 group-hover:opacity-100 overflow-hidden transition-all duration-300 z-20">
+        <div className="w-full h-full px-5 py-3 bg-black/30 backdrop-blur-md border-t border-white/10 flex items-start">
           <p className="text-[11px] text-white/90 font-black tracking-wide leading-relaxed">{tip}</p>
         </div>
       </div>

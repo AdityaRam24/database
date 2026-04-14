@@ -87,15 +87,15 @@ const TableNode = memo(({ id, data }: NodeProps<TableNodeData>) => {
 
     const isBottleneck = data.connectionDegree > 4;
 
-    const metricValue = data.heatmapMode === 'size' 
-        ? (data.size_bytes || 0) 
+    const metricValue = data.heatmapMode === 'size'
+        ? (data.size_bytes || 0)
         : (data.heatmapMode === 'rows' ? (data.rows || 0) : (data.seq_scan || 0));
-    
+
     // We'll pass max values in data later, for now we use a heuristic or just pass it in node data
     const maxVal = (data as any).maxHeatmapVal || 1;
     const intensity = Math.min(metricValue / maxVal, 1) * 0.8;
 
-    const heatmapColor = data.overlayMode 
+    const heatmapColor = data.overlayMode
         ? `rgba(239, 68, 68, ${intensity})`
         : 'transparent';
 
@@ -107,14 +107,14 @@ const TableNode = memo(({ id, data }: NodeProps<TableNodeData>) => {
     return (
         <motion.div
             initial={{ opacity: 0, scale: 0.9, y: 15 }}
-            animate={{ 
-                opacity: data.isDimmed ? 0.25 : 1, 
-                scale: 1, 
+            animate={{
+                opacity: data.isDimmed ? 0.25 : 1,
+                scale: 1,
                 y: 0,
-                boxShadow: (data.isFocused || data.isSearchHighlighted) 
+                boxShadow: (data.isFocused || data.isSearchHighlighted)
                     ? `0 0 0 3px ${cat.borderLeft}40, 0 12px 24px -8px ${cat.borderLeft}60`
-                    : data.isHovered 
-                        ? `0 12px 24px -8px ${cat.borderLeft}50` 
+                    : data.isHovered
+                        ? `0 12px 24px -8px ${cat.borderLeft}50`
                         : `0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05)`
             }}
             whileHover={!data.isDimmed ? { scale: 1.03, y: -2 } : {}}
@@ -232,7 +232,7 @@ const CustomEdge = ({ id, source, target, sourceX, sourceY, targetX, targetY, so
         >
             <path d={edgePath} fill="none" strokeOpacity={0} strokeWidth={20} className="react-flow__edge-interaction cursor-pointer z-50" />
             <BaseEdge path={edgePath} markerEnd={markerEnd} style={edgeStyle} />
-            
+
             {liveTelemetryMode && !isDimmed && (
                 <path
                     d={edgePath}
@@ -248,7 +248,7 @@ const CustomEdge = ({ id, source, target, sourceX, sourceY, targetX, targetY, so
                     }}
                 />
             )}
-            
+
             <EdgeLabelRenderer>
                 <div
                     className="absolute pointer-events-none transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center z-40 transition-opacity duration-200"
@@ -337,9 +337,9 @@ const SchemaGraphContent = ({ connectionString }: { connectionString: string }) 
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ connection_string: connectionString, table_name: focusedNodeId }),
         })
-        .then(r => r.ok ? r.json() : null)
-        .then(data => { setInspectorData(data); setInspectorLoading(false); })
-        .catch(() => { setInspectorData(null); setInspectorLoading(false); });
+            .then(r => r.ok ? r.json() : null)
+            .then(data => { setInspectorData(data); setInspectorLoading(false); })
+            .catch(() => { setInspectorData(null); setInspectorLoading(false); });
     }, [focusedNodeId, connectionString]);
 
     // Focus / Pan to Node
@@ -428,7 +428,7 @@ const SchemaGraphContent = ({ connectionString }: { connectionString: string }) 
 
                 categorizedNodes.forEach((node: any) => {
                     const nodeWidth = 240;
-                    const nodeHeight = 160; 
+                    const nodeHeight = 160;
                     dagreGraph.setNode(node.id, { width: nodeWidth, height: nodeHeight });
                 });
 
@@ -785,7 +785,24 @@ const SchemaGraphContent = ({ connectionString }: { connectionString: string }) 
                 </div>
             </div>
 
-            <div className="w-full h-full absolute inset-0 z-0 bg-gray-50/30 dark:bg-white/[0.01]" style={{ backgroundImage: 'radial-gradient(circle, rgba(0,0,0,0.06) 1px, transparent 1px)', backgroundSize: '24px 24px' }}>
+            <div className="w-full h-full absolute inset-0 z-0 bg-gray-50/80 dark:bg-slate-950/80 overflow-hidden">
+                {/* 3D Moving Cyber Tron Floor */}
+                <div className="absolute inset-0 pointer-events-none opacity-40 dark:opacity-20" style={{ perspective: '800px' }}>
+                    <motion.div
+                        animate={{ backgroundPosition: ['0px 0px', '0px 60px'] }}
+                        transition={{ repeat: Infinity, duration: 3, ease: "linear" }}
+                        className="absolute -inset-x-[50%] bottom-0 h-[150%]"
+                        style={{
+                            backgroundImage: `linear-gradient(to right, rgba(139, 92, 246, 0.4) 1px, transparent 1px), linear-gradient(to bottom, rgba(139, 92, 246, 0.4) 1px, transparent 1px)`,
+                            backgroundSize: '60px 60px',
+                            transform: 'rotateX(75deg) translateY(100px) translateZ(-200px)',
+                            transformOrigin: 'bottom center',
+                            maskImage: 'linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 60%)',
+                            WebkitMaskImage: 'linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 60%)'
+                        }}
+                    />
+                </div>
+
                 <ReactFlow
                     nodes={nodes}
                     edges={edges}
@@ -803,100 +820,99 @@ const SchemaGraphContent = ({ connectionString }: { connectionString: string }) 
 
             {/* ── Table Intelligence Inspector Panel ─────────────────────────── */}
             <AnimatePresence>
-            {focusedNodeId && (
-                <motion.div
-                    key="inspector"
-                    initial={{ x: '100%', opacity: 0 }}
-                    animate={{ x: 0, opacity: 1 }}
-                    exit={{ x: '100%', opacity: 0 }}
-                    transition={{ type: 'spring', damping: 28, stiffness: 240 }}
-                    className="absolute top-0 right-0 bottom-0 w-[300px] z-30 flex flex-col bg-white dark:bg-slate-900 border-l border-gray-200 dark:border-white/[0.08] shadow-[-12px_0_40px_rgba(0,0,0,0.06)] overflow-hidden"
-                >
-                    {/* Header */}
-                    <div className="p-4 border-b border-gray-100 dark:border-white/[0.07] flex items-center justify-between shrink-0">
-                        <div>
-                            <div className="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-0.5">Table Inspector</div>
-                            <div className="text-[15px] font-bold text-gray-900 dark:text-slate-100 truncate max-w-[200px]">{focusedNodeId}</div>
-                        </div>
-                        <button onClick={handleClearFocus} className="w-8 h-8 rounded-lg bg-gray-50 dark:bg-white/[0.06] border border-gray-200 dark:border-white/[0.08] flex items-center justify-center text-gray-400 hover:text-gray-700 dark:hover:text-slate-200 transition-colors">
-                            <X size={14} />
-                        </button>
-                    </div>
-
-                    {inspectorLoading ? (
-                        <div className="flex-1 flex items-center justify-center">
-                            <Database size={18} className="animate-pulse text-violet-400" />
-                        </div>
-                    ) : inspectorData ? (
-                        <div className="flex-1 overflow-y-auto p-4 space-y-4 text-[12px]">
-
-                            {/* Quick Stats */}
-                            <div className="grid grid-cols-2 gap-2">
-                                {[
-                                    { label: 'Rows', value: (inspectorData.rows ?? 0).toLocaleString() },
-                                    { label: 'Size', value: inspectorData.size_bytes < 1048576 ? `${(inspectorData.size_bytes/1024).toFixed(1)} KB` : `${(inspectorData.size_bytes/1048576).toFixed(2)} MB` },
-                                    { label: 'Columns', value: inspectorData.columns?.length ?? 0 },
-                                    { label: 'Indexes', value: inspectorData.indexes?.length ?? 0 },
-                                ].map(s => (
-                                    <div key={s.label} className="bg-gray-50 dark:bg-white/[0.04] rounded-xl p-3 border border-gray-100 dark:border-white/[0.06]">
-                                        <div className="text-[13px] font-bold text-gray-800 dark:text-slate-100">{s.value}</div>
-                                        <div className="text-[10px] text-gray-400 uppercase tracking-wider mt-0.5">{s.label}</div>
-                                    </div>
-                                ))}
+                {focusedNodeId && (
+                    <motion.div
+                        key="inspector"
+                        initial={{ x: '100%', opacity: 0 }}
+                        animate={{ x: 0, opacity: 1 }}
+                        exit={{ x: '100%', opacity: 0 }}
+                        transition={{ type: 'spring', damping: 28, stiffness: 240 }}
+                        className="absolute top-0 right-0 bottom-0 w-[300px] z-30 flex flex-col bg-white dark:bg-slate-900 border-l border-gray-200 dark:border-white/[0.08] shadow-[-12px_0_40px_rgba(0,0,0,0.06)] overflow-hidden"
+                    >
+                        {/* Header */}
+                        <div className="p-4 border-b border-gray-100 dark:border-white/[0.07] flex items-center justify-between shrink-0">
+                            <div>
+                                <div className="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-0.5">Table Inspector</div>
+                                <div className="text-[15px] font-bold text-gray-900 dark:text-slate-100 truncate max-w-[200px]">{focusedNodeId}</div>
                             </div>
-
-                            {/* Index Health */}
-                            {inspectorData.indexes?.length > 0 && (
-                                <div>
-                                    <div className="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2 flex items-center gap-1.5">
-                                        <KeyRound size={10} /> Index Health
-                                    </div>
-                                    <div className="space-y-1.5">
-                                        {inspectorData.indexes.map((idx: any) => {
-                                            const health = idx.scans > 100 ? 'good' : idx.scans > 10 ? 'ok' : 'unused';
-                                            return (
-                                                <div key={idx.name} className="flex items-center justify-between bg-gray-50 dark:bg-white/[0.04] rounded-lg px-3 py-2 border border-gray-100 dark:border-white/[0.06] gap-2">
-                                                    <div className="min-w-0">
-                                                        <div className="font-medium text-gray-700 dark:text-slate-200 truncate text-[11px]">{idx.name}</div>
-                                                        <div className="text-[9px] text-gray-400 font-mono">{idx.type}{idx.is_unique ? ' · UNIQUE' : ''}</div>
-                                                    </div>
-                                                    <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full shrink-0 ${
-                                                        health === 'good' ? 'bg-emerald-50 text-emerald-700' :
-                                                        health === 'ok' ? 'bg-amber-50 text-amber-700' :
-                                                        'bg-rose-50 text-rose-600'
-                                                    }`}>
-                                                        {health === 'good' ? `${idx.scans} hits` : health === 'ok' ? 'low use' : 'unused'}
-                                                    </span>
-                                                </div>
-                                            );
-                                        })}
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* DDL Preview */}
-                            {inspectorData.ddl && (
-                                <div>
-                                    <div className="flex items-center justify-between mb-2">
-                                        <div className="text-[10px] uppercase tracking-widest text-gray-400 font-bold flex items-center gap-1.5">
-                                            <BarChart3 size={10} /> DDL
-                                        </div>
-                                        <button
-                                            onClick={() => { navigator.clipboard.writeText(inspectorData.ddl); setCopied(true); setTimeout(() => setCopied(false), 1500); }}
-                                            className="flex items-center gap-1 text-[9px] font-bold text-gray-400 hover:text-gray-700 dark:hover:text-slate-200 transition-colors"
-                                        >
-                                            {copied ? <><Check size={10} className="text-emerald-500" /> Copied</> : <><Copy size={10} /> Copy</>}
-                                        </button>
-                                    </div>
-                                    <pre className="bg-gray-50 dark:bg-white/[0.04] border border-gray-100 dark:border-white/[0.06] rounded-xl p-3 text-[10px] font-mono text-gray-700 dark:text-slate-300 overflow-x-auto whitespace-pre-wrap leading-relaxed max-h-48 overflow-y-auto">{inspectorData.ddl}</pre>
-                                </div>
-                            )}
+                            <button onClick={handleClearFocus} className="w-8 h-8 rounded-lg bg-gray-50 dark:bg-white/[0.06] border border-gray-200 dark:border-white/[0.08] flex items-center justify-center text-gray-400 hover:text-gray-700 dark:hover:text-slate-200 transition-colors">
+                                <X size={14} />
+                            </button>
                         </div>
-                    ) : (
-                        <div className="flex-1 flex items-center justify-center text-[11px] text-gray-400">No details available</div>
-                    )}
-                </motion.div>
-            )}
+
+                        {inspectorLoading ? (
+                            <div className="flex-1 flex items-center justify-center">
+                                <Database size={18} className="animate-pulse text-violet-400" />
+                            </div>
+                        ) : inspectorData ? (
+                            <div className="flex-1 overflow-y-auto p-4 space-y-4 text-[12px]">
+
+                                {/* Quick Stats */}
+                                <div className="grid grid-cols-2 gap-2">
+                                    {[
+                                        { label: 'Rows', value: (inspectorData.rows ?? 0).toLocaleString() },
+                                        { label: 'Size', value: inspectorData.size_bytes < 1048576 ? `${(inspectorData.size_bytes / 1024).toFixed(1)} KB` : `${(inspectorData.size_bytes / 1048576).toFixed(2)} MB` },
+                                        { label: 'Columns', value: inspectorData.columns?.length ?? 0 },
+                                        { label: 'Indexes', value: inspectorData.indexes?.length ?? 0 },
+                                    ].map(s => (
+                                        <div key={s.label} className="bg-gray-50 dark:bg-white/[0.04] rounded-xl p-3 border border-gray-100 dark:border-white/[0.06]">
+                                            <div className="text-[13px] font-bold text-gray-800 dark:text-slate-100">{s.value}</div>
+                                            <div className="text-[10px] text-gray-400 uppercase tracking-wider mt-0.5">{s.label}</div>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                {/* Index Health */}
+                                {inspectorData.indexes?.length > 0 && (
+                                    <div>
+                                        <div className="text-[10px] uppercase tracking-widest text-gray-400 font-bold mb-2 flex items-center gap-1.5">
+                                            <KeyRound size={10} /> Index Health
+                                        </div>
+                                        <div className="space-y-1.5">
+                                            {inspectorData.indexes.map((idx: any) => {
+                                                const health = idx.scans > 100 ? 'good' : idx.scans > 10 ? 'ok' : 'unused';
+                                                return (
+                                                    <div key={idx.name} className="flex items-center justify-between bg-gray-50 dark:bg-white/[0.04] rounded-lg px-3 py-2 border border-gray-100 dark:border-white/[0.06] gap-2">
+                                                        <div className="min-w-0">
+                                                            <div className="font-medium text-gray-700 dark:text-slate-200 truncate text-[11px]">{idx.name}</div>
+                                                            <div className="text-[9px] text-gray-400 font-mono">{idx.type}{idx.is_unique ? ' · UNIQUE' : ''}</div>
+                                                        </div>
+                                                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full shrink-0 ${health === 'good' ? 'bg-emerald-50 text-emerald-700' :
+                                                                health === 'ok' ? 'bg-amber-50 text-amber-700' :
+                                                                    'bg-rose-50 text-rose-600'
+                                                            }`}>
+                                                            {health === 'good' ? `${idx.scans} hits` : health === 'ok' ? 'low use' : 'unused'}
+                                                        </span>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* DDL Preview */}
+                                {inspectorData.ddl && (
+                                    <div>
+                                        <div className="flex items-center justify-between mb-2">
+                                            <div className="text-[10px] uppercase tracking-widest text-gray-400 font-bold flex items-center gap-1.5">
+                                                <BarChart3 size={10} /> DDL
+                                            </div>
+                                            <button
+                                                onClick={() => { navigator.clipboard.writeText(inspectorData.ddl); setCopied(true); setTimeout(() => setCopied(false), 1500); }}
+                                                className="flex items-center gap-1 text-[9px] font-bold text-gray-400 hover:text-gray-700 dark:hover:text-slate-200 transition-colors"
+                                            >
+                                                {copied ? <><Check size={10} className="text-emerald-500" /> Copied</> : <><Copy size={10} /> Copy</>}
+                                            </button>
+                                        </div>
+                                        <pre className="bg-gray-50 dark:bg-white/[0.04] border border-gray-100 dark:border-white/[0.06] rounded-xl p-3 text-[10px] font-mono text-gray-700 dark:text-slate-300 overflow-x-auto whitespace-pre-wrap leading-relaxed max-h-48 overflow-y-auto">{inspectorData.ddl}</pre>
+                                    </div>
+                                )}
+                            </div>
+                        ) : (
+                            <div className="flex-1 flex items-center justify-center text-[11px] text-gray-400">No details available</div>
+                        )}
+                    </motion.div>
+                )}
             </AnimatePresence>
         </div>
     );

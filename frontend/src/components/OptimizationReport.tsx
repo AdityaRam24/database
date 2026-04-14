@@ -12,6 +12,7 @@ import {
   Loader2, CheckCircle, RefreshCcw, ShieldCheck,
   Database, GitMerge, Table, AlertTriangle,
 } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 // ── Types ──────────────────────────────────────────────────
 interface Recommendation {
@@ -70,9 +71,24 @@ function ReportSkeleton() {
 // ── Empty / all-good state ─────────────────────────────────
 function AllGoodState({ schemaStats, onRescan }: { schemaStats: SchemaStats | null; onRescan: () => void }) {
   return (
-    <div className="rounded-2xl border border-emerald-200/70 dark:border-emerald-500/20 bg-emerald-50/50 dark:bg-emerald-500/5 overflow-hidden">
+    <div className="relative rounded-2xl border border-emerald-200/70 dark:border-emerald-500/20 bg-emerald-50/50 dark:bg-emerald-500/5 overflow-hidden group">
+      
+      {/* 3D Floating Elements inside AllGoodState */}
+      <motion.div 
+        animate={{ y: [0, -10, 0], rotate: [0, 5, 0], scale: [1, 1.05, 1] }} 
+        transition={{ repeat: Infinity, duration: 6, ease: "easeInOut" }}
+        className="absolute right-0 top-0 w-48 h-48 rounded-full border-[10px] border-emerald-500/10 pointer-events-none"
+        style={{ transformOrigin: 'center center', transformStyle: 'preserve-3d', transform: 'rotateX(60deg) rotateY(-20deg)' }}
+      />
+      <motion.div 
+        animate={{ y: [0, 10, 0], x: [0, -5, 0] }} 
+        transition={{ repeat: Infinity, duration: 8, ease: "easeInOut" }}
+        className="absolute right-32 top-8 w-12 h-12 rounded bg-emerald-400/20 pointer-events-none blur-sm"
+        style={{ transform: 'rotate(45deg)' }}
+      />
+      
       {/* Top accent line */}
-      <div className="h-0.5 w-full bg-gradient-to-r from-emerald-400 to-teal-400" />
+      <div className="relative z-10 h-0.5 w-full bg-gradient-to-r from-emerald-400 to-teal-400" />
 
       <div className="p-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5">
         <div className="flex items-start gap-4">
@@ -124,12 +140,12 @@ function AllGoodState({ schemaStats, onRescan }: { schemaStats: SchemaStats | nu
         )}
       </div>
 
-      <div className="px-6 pb-5">
+      <div className="relative z-10 px-6 pb-5">
         <Button
           variant="outline"
           size="sm"
           onClick={onRescan}
-          className="bg-white dark:bg-white/5 border-emerald-200 dark:border-emerald-500/20 text-slate-600 dark:text-slate-300 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 text-xs font-semibold rounded-lg shadow-sm"
+          className="bg-white dark:bg-white/5 border-emerald-200 dark:border-emerald-500/20 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-500/10 text-xs font-bold rounded-lg shadow-sm group-hover:shadow-md transition-shadow"
         >
           <RefreshCcw size={12} className="mr-1.5" /> Run deep scan
         </Button>
