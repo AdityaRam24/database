@@ -73,7 +73,7 @@ function UserChip({ user, onSignOut }: { user: any; onSignOut: () => void }) {
       {open && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 top-full mt-2 z-50 w-48 rounded-xl border border-black/[0.06] dark:border-white/[0.06] bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl shadow-xl p-1">
+          <div className="absolute right-0 top-full mt-2 z-50 w-48 rounded-xl border border-black/[0.06] dark:border-white/[0.06] bg-white dark:bg-slate-900 shadow-xl p-1">
             <div className="px-3 py-2 border-b border-black/[0.05] dark:border-white/[0.05] mb-1">
               <p className="text-[12px] font-semibold text-slate-700 dark:text-slate-200 truncate">
                 {user.displayName}

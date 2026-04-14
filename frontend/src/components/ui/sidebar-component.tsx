@@ -221,7 +221,7 @@ export function DualSidebar({ onProjectLoad }: SidebarProps) {
     <motion.div
       animate={{ width: collapsed ? 64 : 260 }}
       transition={{ duration: 0.25, ease: [0.25, 1, 0.4, 1] }}
-      className="flex flex-col h-full bg-white/60 dark:bg-white/[0.03] backdrop-blur-xl border-r border-slate-100/80 dark:border-white/[0.06] overflow-hidden"
+      className="flex flex-col h-full bg-white/60 dark:bg-[#141418] border-r border-slate-100/80 dark:border-white/[0.06] overflow-hidden"
       style={{ boxShadow: "2px 0 24px rgba(0,0,0,0.04)", minWidth: collapsed ? 64 : 260 }}
     >
       {/* ── Logo header with collapse toggle ── */}
@@ -442,7 +442,7 @@ export function DualSidebar({ onProjectLoad }: SidebarProps) {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 10 }}
-                className="absolute bottom-full mb-2 left-3 right-3 p-2 rounded-2xl backdrop-blur-xl bg-white/95 dark:bg-[#16161b]/95 border border-slate-200 dark:border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.12)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.5)] z-50 ring-1 ring-black/5 dark:ring-white/5"
+                className="absolute bottom-full mb-2 left-3 right-3 p-2 rounded-2xl bg-white dark:bg-[#16161b] border border-slate-200 dark:border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.12)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.5)] z-50 ring-1 ring-black/5 dark:ring-white/5"
               >
                 <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-2 py-1.5 mb-1">Theme Settings</p>
                 <div className="flex flex-col gap-0.5">
@@ -457,7 +457,7 @@ export function DualSidebar({ onProjectLoad }: SidebarProps) {
           {user ? (
             <div 
               onClick={() => setShowSettings(!showSettings)}
-              className="flex items-center gap-2.5 px-3 py-2.5 rounded-2xl bg-slate-50 dark:bg-white/[0.04] border border-slate-100 dark:border-white/[0.06] hover:bg-slate-100 dark:hover:bg-white/[0.07] transition-colors cursor-pointer group"
+              className="flex items-center gap-2.5 px-3 py-2.5 rounded-2xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors cursor-pointer group"
             >
               <Avatar user={user} />
               <div className="flex-1 min-w-0">
