@@ -6,7 +6,7 @@ import {
   Database, Trash2, FileCode, Sparkles, Table,
   Plus, ChevronDown, Search, Settings, Table2, Server,
   PanelLeftClose, PanelLeftOpen, ChevronsLeft, ChevronsRight,
-  RefreshCw
+  RefreshCw, Share2
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { getUserProjects, deleteProject, saveProject, Project } from "@/lib/projectStorage";
@@ -213,6 +213,7 @@ export function DualSidebar({ onProjectLoad }: SidebarProps) {
     if (p.connectionType === "file") return <FileCode size={13} className="text-amber-500 shrink-0" />;
     if (p.connectionType === "github") return <GithubIcon size={13} className="text-slate-500 shrink-0" />;
     if (p.connectionType === "ai") return <Sparkles size={13} className="text-rose-400 shrink-0" />;
+    if (p.connectionType === "neo4j") return <Share2 size={13} className="text-teal-500 shrink-0" />;
     return <Server size={13} className="text-violet-500 shrink-0" />;
   }
 

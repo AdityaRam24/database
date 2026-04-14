@@ -1,7 +1,7 @@
 export interface Project {
     id?: string;
     projectName: string;
-    connectionType: 'connection' | 'file' | 'ai' | 'github' | 'mongodb' | 'firebase';
+    connectionType: 'connection' | 'file' | 'ai' | 'github' | 'mongodb' | 'firebase' | 'neo4j';
     connectionString: string;
     sqlContent: string;
 

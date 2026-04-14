@@ -3,14 +3,15 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
-import { Database, FileCode2, Sparkles, Github, ArrowLeft, CheckCircle2, Loader2, Zap, Leaf, Flame } from "lucide-react";
+import { Database, FileCode2, Sparkles, Github, ArrowLeft, CheckCircle2, Loader2, Zap, Leaf, Flame, Share2 } from "lucide-react";
 import { saveProject } from "@/lib/projectStorage";
 
-type Tab = "connection" | "file" | "ai" | "github" | "mongodb" | "firebase";
+type Tab = "connection" | "file" | "ai" | "github" | "mongodb" | "firebase" | "neo4j";
 
 const TABS: { id: Tab; icon: React.ReactNode; label: string; desc: string }[] = [
     { id: "connection", icon: <Database size={18} />, label: "PostgreSQL", desc: "Live connection string" },
     { id: "mongodb", icon: <Leaf size={18} />, label: "MongoDB", desc: "MongoDB URI" },
+    { id: "neo4j", icon: <Share2 size={18} />, label: "Neo4j Graph", desc: "Graph DB Bolt URI" },
     { id: "firebase", icon: <Flame size={18} />, label: "Firebase", desc: "Firestore service account" },
     { id: "file", icon: <FileCode2 size={18} />, label: "SQL File", desc: "Upload a .sql schema" },
     { id: "ai", icon: <Sparkles size={18} />, label: "Generate AI", desc: "Describe your database" },
@@ -41,10 +42,16 @@ export default function ConnectPage() {
 
     const [mongoUri, setMongoUri] = useState("");
     const [firebaseJson, setFirebaseJson] = useState("");
+    
+    // Neo4j fields
+    const [neo4jUri, setNeo4jUri] = useState("bolt://localhost:7687");
+    const [neo4jUser, setNeo4jUser] = useState("neo4j");
+    const [neo4jPassword, setNeo4jPassword] = useState("");
 
     const defaultNames: Record<Tab, string> = {
         connection: "My PostgreSQL DB",
         mongodb: "My MongoDB",
+        neo4j: "My Neo4j Graph DB",
         firebase: "My Firestore",
         file: "SQL Schema",
         ai: "AI Generated DB",
@@ -79,6 +86,18 @@ export default function ConnectPage() {
                     body: JSON.stringify({
                         connection_string: mongoUri,
                         project_name: projectName || defaultNames.mongodb,
+                    }),
+                });
+            } else if (activeTab === "neo4j") {
+                if (!neo4jUri) throw new Error("Please enter your Neo4j Bolt URI.");
+                res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/connect-db/neo4j`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        uri: neo4jUri,
+                        user: neo4jUser,
+                        password: neo4jPassword,
+                        project_name: projectName || defaultNames.neo4j,
                     }),
                 });
             } else if (activeTab === "connection") {
@@ -126,7 +145,12 @@ export default function ConnectPage() {
             }
 
             const data = await res.json();
-            const finalConnStr = data.connection_string || (activeTab === "mongodb" ? mongoUri : activeTab === "firebase" ? firebaseJson : connectionString);
+            const finalConnStr = data.connection_string || (
+                activeTab === "mongodb" ? mongoUri : 
+                activeTab === "firebase" ? firebaseJson : 
+                activeTab === "neo4j" ? neo4jUri :
+                connectionString
+            );
             const finalName = projectName || defaultNames[activeTab];
 
             localStorage.setItem("db_connection_string", finalConnStr);
@@ -181,6 +205,11 @@ export default function ConnectPage() {
                     const u = new URL(finalConnStr);
                     dbHost = u.hostname;
                     dbName = u.pathname.replace(/^\//, "");
+                } catch { /* non-parseable URI — skip */ }
+            } else if (activeTab === "neo4j") {
+                try {
+                    const u = new URL(neo4jUri);
+                    dbHost = u.hostname;
                 } catch { /* non-parseable URI — skip */ }
             } else if (activeTab === "firebase") {
                 try {
@@ -295,6 +324,51 @@ export default function ConnectPage() {
                                 <p className="text-xs text-gray-500 mt-2 font-medium">
                                     Supports <code className="bg-gray-100 px-1 rounded">mongodb://</code> and <code className="bg-gray-100 px-1 rounded">mongodb+srv://</code> URIs.
                                 </p>
+                            </div>
+                        )}
+
+                        {activeTab === "neo4j" && (
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                                        Neo4j Bolt URI
+                                    </label>
+                                    <input
+                                        type="text"
+                                        placeholder="neo4j+s://xx.databases.neo4j.io"
+                                        value={neo4jUri}
+                                        onChange={(e) => setNeo4jUri(e.target.value)}
+                                        required
+                                        className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-colors font-mono shadow-sm"
+                                    />
+                                    <p className="text-xs text-gray-500 mt-2 font-medium">
+                                        Supports <code className="bg-gray-100 px-1 rounded">bolt://</code> and <code className="bg-gray-100 px-1 rounded">neo4j+s://</code> Aura URIs.
+                                    </p>
+                                </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Username</label>
+                                        <input
+                                            type="text"
+                                            placeholder="neo4j"
+                                            value={neo4jUser}
+                                            onChange={(e) => setNeo4jUser(e.target.value)}
+                                            required
+                                            className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 focus:outline-none focus:border-violet-500 transition-colors shadow-sm"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Password</label>
+                                        <input
+                                            type="password"
+                                            placeholder="••••••••"
+                                            value={neo4jPassword}
+                                            onChange={(e) => setNeo4jPassword(e.target.value)}
+                                            required
+                                            className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 focus:outline-none focus:border-violet-500 transition-colors shadow-sm"
+                                        />
+                                    </div>
+                                </div>
                             </div>
                         )}
 
@@ -445,10 +519,10 @@ export default function ConnectPage() {
                             {loading ? (
                                 <>
                                     <div className="w-4 h-4 border-2 border-violet-200 border-t-violet-500 rounded-full animate-spin" />
-                                    {["connection", "mongodb", "firebase"].includes(activeTab) ? "Connecting..." : "Creating Database..."}
+                                    {["connection", "mongodb", "firebase", "neo4j"].includes(activeTab) ? "Connecting..." : "Creating Database..."}
                                 </>
                             ) : (
-                                ["connection", "mongodb", "firebase"].includes(activeTab) ? "Connect Database" : "Create Database"
+                                ["connection", "mongodb", "firebase", "neo4j"].includes(activeTab) ? "Connect Database" : "Create Database"
                             )}
                         </button>
                     </form>
