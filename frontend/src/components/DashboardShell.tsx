@@ -42,6 +42,7 @@ const NAV_ITEMS = [
 // ── User avatar / initials ─────────────────────────────────
 function UserChip({ user, onSignOut }: { user: any; onSignOut: () => void }) {
   const [open, setOpen] = useState(false);
+  const { resolvedTheme } = useTheme();
   const initials = user.displayName
     ? user.displayName.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()
     : user.email?.[0].toUpperCase() ?? '?';
@@ -73,7 +74,7 @@ function UserChip({ user, onSignOut }: { user: any; onSignOut: () => void }) {
       {open && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 top-full mt-2 z-50 w-48 rounded-xl border border-black/[0.06] dark:border-white/[0.06] bg-white dark:bg-slate-900 shadow-xl p-1">
+          <div className="absolute right-0 top-full mt-2 z-50 w-48 rounded-xl border border-black/[0.06] dark:border-white/[0.06] shadow-xl p-1" style={{ backgroundColor: resolvedTheme === 'dark' ? '#0f172a' : '#ffffff' }}>
             <div className="px-3 py-2 border-b border-black/[0.05] dark:border-white/[0.05] mb-1">
               <p className="text-[12px] font-semibold text-slate-700 dark:text-slate-200 truncate">
                 {user.displayName}

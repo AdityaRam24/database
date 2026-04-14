@@ -442,7 +442,8 @@ export function DualSidebar({ onProjectLoad }: SidebarProps) {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 10 }}
-                className="absolute bottom-full mb-2 left-3 right-3 p-2 rounded-2xl bg-white dark:bg-[#16161b] border border-slate-200 dark:border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.12)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.5)] z-50 ring-1 ring-black/5 dark:ring-white/5"
+                className="absolute bottom-full mb-2 left-3 right-3 p-2 rounded-2xl border border-slate-200 dark:border-white/10 shadow-[0_8px_30px_rgb(0,0,0,0.12)] dark:shadow-[0_8px_30px_rgb(0,0,0,0.5)] z-50 ring-1 ring-black/5 dark:ring-white/5"
+                style={{ backgroundColor: theme === 'dark' ? '#16161b' : '#ffffff' }}
               >
                 <p className="text-[10px] font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest px-2 py-1.5 mb-1">Theme Settings</p>
                 <div className="flex flex-col gap-0.5">
