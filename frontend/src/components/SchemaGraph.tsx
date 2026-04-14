@@ -99,20 +99,29 @@ const TableNode = memo(({ id, data }: NodeProps<TableNodeData>) => {
         ? `rgba(239, 68, 68, ${intensity})`
         : 'transparent';
 
-    let containerClasses = `relative rounded-[10px] bg-white dark:bg-white/[0.05] border-t border-r border-b border-gray-200 dark:border-white/[0.08] px-3 py-2.5 min-w-[130px] cursor-pointer transition-all duration-150`;
+    let containerClasses = `relative rounded-xl bg-white/95 dark:bg-slate-900/90 backdrop-blur-md border-2 px-3.5 py-3 min-w-[160px] cursor-pointer`;
 
-    if (data.isDimmed) containerClasses += ` opacity-20`;
-    else containerClasses += ` shadow-sm hover:shadow-md`;
-
-    if (data.isFocused || data.isSearchHighlighted) {
-        containerClasses += ` ring-2 ring-violet-500 z-10`;
-    }
+    if (data.isDimmed) containerClasses += ` z-0`;
+    else containerClasses += ` z-10`;
 
     return (
-        <div
+        <motion.div
+            initial={{ opacity: 0, scale: 0.9, y: 15 }}
+            animate={{ 
+                opacity: data.isDimmed ? 0.25 : 1, 
+                scale: 1, 
+                y: 0,
+                boxShadow: (data.isFocused || data.isSearchHighlighted) 
+                    ? `0 0 0 3px ${cat.borderLeft}40, 0 12px 24px -8px ${cat.borderLeft}60`
+                    : data.isHovered 
+                        ? `0 12px 24px -8px ${cat.borderLeft}50` 
+                        : `0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05)`
+            }}
+            whileHover={!data.isDimmed ? { scale: 1.03, y: -2 } : {}}
+            transition={{ type: "spring", stiffness: 400, damping: 25 }}
             className={containerClasses}
             style={{
-                borderLeft: `3px solid ${cat.borderLeft}`,
+                borderColor: (data.isHovered || data.isFocused || data.isSearchHighlighted) ? cat.borderLeft : `${cat.borderLeft}50`,
                 backgroundColor: heatmapColor !== 'transparent' ? heatmapColor : undefined
             }}
             onClick={(e) => {
@@ -178,7 +187,7 @@ const TableNode = memo(({ id, data }: NodeProps<TableNodeData>) => {
                     ))}
                 </div>
             )}
-        </div>
+        </motion.div>
     );
 });
 TableNode.displayName = 'TableNode';
@@ -242,32 +251,20 @@ const CustomEdge = ({ id, source, target, sourceX, sourceY, targetX, targetY, so
             
             <EdgeLabelRenderer>
                 <div
-                    className="absolute pointer-events-none transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-1 z-40 transition-opacity duration-200"
+                    className="absolute pointer-events-none transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center z-40 transition-opacity duration-200"
                     style={{
                         left: labelX,
                         top: labelY,
                         opacity: isDimmed ? 0 : (isHovered || isFocused ? 1 : 0.85),
                     }}
                 >
-                    <div className="p-2.5 rounded-2xl bg-white/95 dark:bg-slate-900/90 backdrop-blur-md border shadow-lg flex flex-col items-center gap-1.5 text-center min-w-[160px]" style={{ borderColor: catEdgeColor }}>
-                        <div className="text-[11px] text-slate-700 dark:text-slate-200 leading-tight w-full">
-                            <div className="font-bold mb-1 text-[12px] truncate" style={{ color: catEdgeColor }}>{source}</div>
-                            <div className="flex flex-col items-center justify-center gap-0.5 text-slate-500 text-[10px]">
-                                <span>uses</span>
-                                <code className="bg-slate-100 text-slate-700 px-1.5 py-0.5 rounded font-mono border border-slate-200">{sourceCol || target}</code> 
-                                <span>to find its</span>
-                            </div>
-                            <div className="font-bold mt-1 text-[12px] truncate text-slate-800">{target}</div>
-                        </div>
-                        
+                    <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full bg-white/95 dark:bg-slate-900/95 shadow-sm border border-gray-200 dark:border-slate-700 backdrop-blur-sm pointer-events-auto hover:scale-105 transition-transform" style={{ color: catEdgeColor }}>
+                        <KeyRound size={10} className="shrink-0" />
+                        <span className="text-[10px] font-mono text-slate-700 dark:text-slate-300 font-medium leading-none">{sourceCol || target}</span>
                         {(isHovered || isFocused) && (
-                            <div className="bg-slate-50 px-2 py-1 rounded-lg text-[9px] flex items-center justify-center gap-1.5 font-bold uppercase tracking-widest text-slate-500 border border-slate-100 mt-0.5 w-full">
-                                <span className={`px-1 rounded ${sourceCategory === 'junction' ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-600'}`}>
-                                    {sourceCategory === 'junction' ? 'M:M' : (cardinality === '1:n' ? '1:M' : '1:1')}
-                                </span>
-                                <span>•</span>
-                                <span>{isTotal ? 'Required' : 'Optional'}</span>
-                            </div>
+                            <span className="text-[9px] font-bold uppercase tracking-wider text-slate-400 border-l border-slate-200 dark:border-slate-700 pl-1.5 ml-0.5 leading-none">
+                                {sourceCategory === 'junction' ? 'M:M' : (cardinality === '1:n' ? '1:M' : '1:1')}
+                            </span>
                         )}
                     </div>
                 </div>
@@ -798,6 +795,7 @@ const SchemaGraphContent = ({ connectionString }: { connectionString: string }) 
                     edgeTypes={edgeTypes}
                     minZoom={0.1}
                     maxZoom={1.5}
+                    onPaneClick={handleClearFocus}
                 >
                     <ZoomControls />
                 </ReactFlow>
