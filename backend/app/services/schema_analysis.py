@@ -315,3 +315,65 @@ class SchemaAnalysisService:
         except Exception as e:
             logger.error(f"Error inserting row into {table_name}: {e}")
             raise e
+
+    def patch_cell(self, table_name: str, pk_column: str, pk_value: Any, column: str, value: Any) -> Dict[str, Any]:
+        """
+        Safely updates a single cell (column) in a row identified by its primary key.
+        Uses fully parameterized queries to prevent SQL injection.
+        """
+        try:
+            with self.engine.begin() as conn:
+                safe_table  = table_name.replace('"', '""')
+                safe_col    = column.replace('"', '""')
+                safe_pk_col = pk_column.replace('"', '""')
+
+                # Treat empty string as NULL
+                real_value = None if value == "" else value
+
+                query = text(
+                    f'UPDATE "{safe_table}" SET "{safe_col}" = :value WHERE "{safe_pk_col}" = :pk_value'
+                )
+                result = conn.execute(query, {"value": real_value, "pk_value": pk_value})
+
+                if result.rowcount == 0:
+                    raise Exception(f"No row found with {pk_column} = {pk_value}")
+
+                return {"success": True, "message": f"Cell '{column}' updated successfully.", "rows_affected": result.rowcount}
+        except Exception as e:
+            logger.error(f"Error patching cell {column} in {table_name}: {e}")
+            raise e
+
+    def bulk_insert_rows(self, table_name: str, rows: List[Dict[str, Any]]) -> Dict[str, Any]:
+        """
+        Bulk-inserts rows from a CSV import using executemany for high performance.
+        Empty strings are treated as NULL. All rows must share the same CSV headers.
+        """
+        try:
+            with self.engine.begin() as conn:
+                safe_table = table_name.replace('"', '""')
+
+                # Use headers from the first row
+                all_keys = list(rows[0].keys())
+
+                # Build parameterized INSERT
+                columns      = [f'"{k.replace(chr(34), chr(34)+chr(34))}"' for k in all_keys]
+                placeholders = [f":{k}" for k in all_keys]
+                query_str    = f"INSERT INTO \"{safe_table}\" ({', '.join(columns)}) VALUES ({', '.join(placeholders)})"
+                query        = text(query_str)
+
+                # Normalise rows: convert empty strings → None
+                cleaned_rows = []
+                for row in rows:
+                    cleaned = {k: (None if row.get(k, None) == "" else row.get(k, None)) for k in all_keys}
+                    cleaned_rows.append(cleaned)
+
+                conn.execute(query, cleaned_rows)
+
+                return {
+                    "success": True,
+                    "message": f"Successfully imported {len(cleaned_rows)} rows into '{table_name}'.",
+                    "rows_imported": len(cleaned_rows)
+                }
+        except Exception as e:
+            logger.error(f"Error bulk-inserting into {table_name}: {e}")
+            raise e

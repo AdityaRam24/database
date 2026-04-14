@@ -1,9 +1,11 @@
-from fastapi import APIRouter, HTTPException, Body
+from fastapi import APIRouter, HTTPException, Body, UploadFile, File, Form
 from app.services.schema_analysis import SchemaAnalysisService
 from app.services.ai_service import AIService, safe_sql_check
 from pydantic import BaseModel
-from typing import Optional, List
+from typing import Optional, List, Any
 import logging
+import io
+import csv
 
 router = APIRouter()
 logger = logging.getLogger(__name__)
@@ -36,6 +38,14 @@ class InsertRowRequest(BaseModel):
     connection_string: str
     table_name: str
     row_data: dict
+
+class PatchCellRequest(BaseModel):
+    connection_string: str
+    table_name: str
+    pk_column: str
+    pk_value: Any
+    column: str
+    value: Any
 
 class SandboxGenerateRequest(BaseModel):
     connection_string: str
@@ -304,6 +314,44 @@ def insert_table_row(request: InsertRowRequest):
         return service.insert_row(request.table_name, request.row_data)
     except Exception as e:
         logger.error(f"Insert row failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/patch-cell")
+def patch_table_cell(request: PatchCellRequest):
+    try:
+        if _is_mongodb(request.connection_string) or _is_firebase(request.connection_string):
+            raise HTTPException(status_code=400, detail="Cell patch is only supported for relational SQL databases.")
+        service = SchemaAnalysisService(request.connection_string)
+        return service.patch_cell(request.table_name, request.pk_column, request.pk_value, request.column, request.value)
+    except Exception as e:
+        logger.error(f"Patch cell failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+@router.post("/import-csv")
+async def import_csv(
+    file: UploadFile = File(...),
+    connection_string: str = Form(...),
+    table_name: str = Form(...)
+):
+    try:
+        if _is_mongodb(connection_string) or _is_firebase(connection_string):
+            raise HTTPException(status_code=400, detail="CSV import is only supported for relational SQL databases.")
+        
+        contents = await file.read()
+        text = contents.decode("utf-8-sig")  # Handle BOM in Excel CSVs
+        reader = csv.DictReader(io.StringIO(text))
+        rows = [dict(row) for row in reader]
+        
+        if not rows:
+            raise HTTPException(status_code=400, detail="CSV file is empty or has no data rows.")
+        
+        service = SchemaAnalysisService(connection_string)
+        result = service.bulk_insert_rows(table_name, rows)
+        return result
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"CSV import failed: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/table-intelligence")

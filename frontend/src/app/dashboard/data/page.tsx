@@ -7,7 +7,7 @@ import {
     Database, Table, Zap, Network, ChevronRight, TerminalSquare,
     Box, ServerCrash, Loader2, GaugeCircle, Target, DatabaseZap,
     Search, Filter, ArrowDownToLine, Eye, X, Cpu, Globe, Layers, Activity,
-    RefreshCw
+    RefreshCw, Upload, CheckCircle2
 } from "lucide-react";
 import DashboardShell from "@/components/DashboardShell";
 import { motion, AnimatePresence } from "framer-motion";
@@ -45,6 +45,20 @@ export default function DataExplorerPage() {
     const [insertFormData, setInsertFormData] = useState<Record<string, any>>({});
     const [isInserting, setIsInserting] = useState(false);
     const [insertError, setInsertError] = useState<string | null>(null);
+
+    // CSV Import State
+    const [showCsvModal, setShowCsvModal] = useState(false);
+    const [csvFile, setCsvFile] = useState<File | null>(null);
+    const [csvPreview, setCsvPreview] = useState<{ headers: string[], rows: any[] } | null>(null);
+    const [isImporting, setIsImporting] = useState(false);
+    const [importError, setImportError] = useState<string | null>(null);
+    const [importSuccess, setImportSuccess] = useState<string | null>(null);
+    const [isDragOver, setIsDragOver] = useState(false);
+
+    // Cell Patch State
+    const [editingCell, setEditingCell] = useState<{ rowIdx: number; col: string; currentVal: any } | null>(null);
+    const [patchValue, setPatchValue] = useState("");
+    const [isSavingCell, setIsSavingCell] = useState(false);
 
     const fetchTablesList = async (connStr: string) => {
         setTablesLoading(true);
@@ -214,6 +228,102 @@ export default function DataExplorerPage() {
         }
     };
 
+    // Derive PK + FK column names from schema graph for the selected table
+    const selectedTableMeta = useMemo(() =>
+        tables.find((t: any) => t.data?.label === selectedTable),
+    [tables, selectedTable]);
+    const pkColumn: string | null = useMemo(() => {
+        const cols: any[] = selectedTableMeta?.data?.columns || [];
+        return cols.find((c: any) => c.is_pk)?.name ?? null;
+    }, [selectedTableMeta]);
+    const fkColumns: Set<string> = useMemo(() => {
+        const cols: any[] = selectedTableMeta?.data?.columns || [];
+        return new Set(cols.filter((c: any) => c.is_fk).map((c: any) => c.name));
+    }, [selectedTableMeta]);
+
+    // CSV file parsing + preview
+    const parseCsvFile = (file: File) => {
+        setCsvFile(file);
+        setImportError(null);
+        setImportSuccess(null);
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const text = e.target?.result as string;
+            const lines = text.trim().split("\n");
+            if (lines.length < 2) { setImportError("CSV has no data rows."); return; }
+            const headers = lines[0].split(",").map(h => h.trim().replace(/^"|"$/g, ""));
+            const previewRows = lines.slice(1, 6).map(line => {
+                const vals = line.split(",").map(v => v.trim().replace(/^"|"$/g, ""));
+                return Object.fromEntries(headers.map((h, i) => [h, vals[i] ?? ""]));
+            });
+            setCsvPreview({ headers, rows: previewRows });
+        };
+        reader.readAsText(file);
+    };
+
+    const handleCsvImport = async () => {
+        if (!csvFile || !selectedTable || !connectionString) return;
+        setIsImporting(true);
+        setImportError(null);
+        setImportSuccess(null);
+        try {
+            const formData = new FormData();
+            formData.append("file", csvFile);
+            formData.append("connection_string", connectionString);
+            formData.append("table_name", selectedTable);
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/analysis/import-csv`, {
+                method: "POST",
+                body: formData,
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.detail || "Import failed");
+            setImportSuccess(data.message);
+            await fetchTableData(connectionString, selectedTable);
+            setTimeout(() => { setShowCsvModal(false); setCsvFile(null); setCsvPreview(null); setImportSuccess(null); }, 2000);
+        } catch (e: any) {
+            setImportError(e.message);
+        } finally {
+            setIsImporting(false);
+        }
+    };
+
+    const handlePatchCell = async () => {
+        if (!editingCell || !selectedTable || !connectionString || !pkColumn) return;
+        const row = filteredRows[editingCell.rowIdx];
+        if (!row || row[pkColumn] == null) return;
+        setIsSavingCell(true);
+        try {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/analysis/patch-cell`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    connection_string: connectionString,
+                    table_name: selectedTable,
+                    pk_column: pkColumn,
+                    pk_value: row[pkColumn],
+                    column: editingCell.col,
+                    value: patchValue,
+                }),
+            });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.detail || "Update failed");
+            // Optimistic local update
+            setTableData(prev => {
+                if (!prev) return prev;
+                const newRows = prev.rows.map((r, i) => {
+                    if (r[pkColumn!] === row[pkColumn!]) return { ...r, [editingCell.col]: patchValue === "" ? null : patchValue };
+                    return r;
+                });
+                return { ...prev, rows: newRows };
+            });
+            setEditingCell(null);
+        } catch (e: any) {
+            alert(`Save failed: ${e.message}`);
+        } finally {
+            setIsSavingCell(false);
+        }
+    };
+
     const renderDataBadge = (val: any) => {
         if (val === null || val === undefined) {
             return <span className="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-black uppercase tracking-widest bg-slate-100 dark:bg-white/[0.05] text-slate-400 dark:text-slate-500 border border-slate-200 dark:border-white/10">NULL</span>;
@@ -280,6 +390,16 @@ export default function DataExplorerPage() {
                                 className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-violet-600 border border-violet-500 text-white text-xs font-black uppercase tracking-widest transition-all hover:bg-violet-700 shadow-sm active:scale-95"
                             >
                                 <DatabaseZap size={13} /> Insert Row
+                            </button>
+                            <button
+                                onClick={() => {
+                                    setCsvFile(null); setCsvPreview(null);
+                                    setImportError(null); setImportSuccess(null);
+                                    setShowCsvModal(true);
+                                }}
+                                className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-emerald-600 border border-emerald-500 text-white text-xs font-black uppercase tracking-widest transition-all hover:bg-emerald-700 shadow-sm active:scale-95"
+                            >
+                                <Upload size={13} /> Import CSV
                             </button>
                             <button
                                 onClick={exportToCSV}
@@ -458,21 +578,65 @@ export default function DataExplorerPage() {
                                                     layout
                                                     initial={{ opacity: 0, y: 15 }}
                                                     animate={{ opacity: 1, y: 0 }}
-                                                    whileHover={{ scale: 1.01, zIndex: 10 }}
-                                                    whileTap={{ scale: 0.99 }}
+                                                    whileHover={{ scale: 1.005, zIndex: 10 }}
                                                     transition={{ duration: 0.2, delay: i < 30 ? i * 0.02 : 0 }}
-                                                    onClick={() => setInspectedRow(row)}
-                                                    className="bg-white dark:bg-white/[0.03] border border-slate-200 dark:border-white/10 hover:border-violet-300 dark:hover:border-violet-500/50 hover:shadow-lg rounded-xl p-3 px-6 transition-all cursor-pointer group flex flex-col relative"
+                                                    className="bg-white dark:bg-white/[0.03] border border-slate-200 dark:border-white/10 hover:border-violet-300 dark:hover:border-violet-500/50 hover:shadow-lg rounded-xl p-3 px-6 transition-all group flex flex-col relative"
                                                 >
                                                     <div
                                                         className="grid gap-4 items-center"
                                                         style={{ gridTemplateColumns: `repeat(${tableData.columns.length}, minmax(180px, 1fr))` }}
                                                     >
-                                                        {tableData.columns.map((col, idx) => (
-                                                            <div key={col} className="flex items-center overflow-hidden">
-                                                                {renderDataBadge(row[col])}
-                                                            </div>
-                                                        ))}
+                                                        {tableData.columns.map((col) => {
+                                                            const isPk = col === pkColumn;
+                                                            const isFk = fkColumns.has(col);
+                                                            const isEditing = editingCell?.rowIdx === i && editingCell?.col === col;
+                                                            const isLocked = isPk || isFk;
+
+                                                            return (
+                                                                <div
+                                                                    key={col}
+                                                                    className="flex items-center gap-1 overflow-hidden relative"
+                                                                >
+                                                                    {isEditing ? (
+                                                                        <div className="flex items-center gap-1 w-full" onClick={e => e.stopPropagation()}>
+                                                                            <input
+                                                                                autoFocus
+                                                                                value={patchValue}
+                                                                                onChange={e => setPatchValue(e.target.value)}
+                                                                                onKeyDown={e => { if (e.key === 'Enter') handlePatchCell(); if (e.key === 'Escape') setEditingCell(null); }}
+                                                                                className="flex-1 min-w-0 bg-white border-2 border-violet-400 rounded-lg px-2 py-1 text-xs font-bold text-slate-800 outline-none shadow-[0_0_12px_rgba(139,92,246,0.2)]"
+                                                                            />
+                                                                            <button onClick={e => { e.stopPropagation(); handlePatchCell(); }} disabled={isSavingCell}
+                                                                                className="w-6 h-6 rounded-md bg-emerald-500 text-white flex items-center justify-center flex-shrink-0 hover:bg-emerald-400 transition-all">
+                                                                                {isSavingCell ? <Loader2 size={10} className="animate-spin" /> : <CheckCircle2 size={10} />}
+                                                                            </button>
+                                                                            <button onClick={e => { e.stopPropagation(); setEditingCell(null); }}
+                                                                                className="w-6 h-6 rounded-md bg-slate-200 text-slate-600 flex items-center justify-center flex-shrink-0 hover:bg-slate-300 transition-all">
+                                                                                <X size={10} />
+                                                                            </button>
+                                                                        </div>
+                                                                    ) : (
+                                                                        <>
+                                                                            <div
+                                                                                className={`flex-1 flex items-center overflow-hidden ${!isLocked ? 'cursor-pointer' : ''}`}
+                                                                                onClick={e => {
+                                                                                    if (!isLocked) {
+                                                                                        e.stopPropagation();
+                                                                                        setEditingCell({ rowIdx: i, col, currentVal: row[col] });
+                                                                                        setPatchValue(row[col] == null ? "" : String(row[col]));
+                                                                                    } else {
+                                                                                        setInspectedRow(row);
+                                                                                    }
+                                                                                }}
+                                                                            >
+                                                                                {renderDataBadge(row[col])}
+                                                                            </div>
+
+                                                                        </>
+                                                                    )}
+                                                                </div>
+                                                            );
+                                                        })}
                                                     </div>
                                                 </motion.div>
                                             ))}
@@ -656,10 +820,113 @@ export default function DataExplorerPage() {
                         </>
                     )}
                 </AnimatePresence>
+
+                {/* ── CSV Import Modal ── */}
+                <AnimatePresence>
+                    {showCsvModal && (
+                        <>
+                            <motion.div
+                                initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                                onClick={() => setShowCsvModal(false)}
+                                className="fixed inset-0 bg-slate-900/30 backdrop-blur-sm z-[60] cursor-pointer"
+                            />
+                            <motion.div
+                                initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
+                                transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                                className="fixed bottom-0 left-0 right-0 h-[70vh] max-h-[700px] bg-white rounded-t-3xl shadow-[0_-20px_50px_rgba(0,0,0,0.15)] z-[70] flex flex-col overflow-hidden"
+                            >
+                                {/* Header */}
+                                <div className="p-6 border-b border-slate-100 bg-white sticky top-0 z-10 flex items-center justify-between">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-xl bg-emerald-100 flex items-center justify-center border border-emerald-200 text-emerald-600 shadow-inner">
+                                            <Upload size={18} />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-sm font-black text-slate-800 tracking-tight uppercase">Import CSV</h3>
+                                            <p className="text-[9px] font-black text-slate-400 tracking-[0.2em] uppercase mt-0.5">Bulk inject into {selectedTable}</p>
+                                        </div>
+                                    </div>
+                                    <button onClick={() => setShowCsvModal(false)} className="w-10 h-10 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-500 transition-all">
+                                        <X size={18} />
+                                    </button>
+                                </div>
+
+                                <div className="flex-1 overflow-y-auto custom-scrollbar p-6">
+                                    {/* Error / Success */}
+                                    {importError && <div className="mb-4 p-4 bg-rose-50 border border-rose-200 rounded-xl text-rose-700 text-xs font-bold">{importError}</div>}
+                                    {importSuccess && (
+                                        <div className="mb-4 p-4 bg-emerald-50 border border-emerald-200 rounded-xl text-emerald-700 text-xs font-bold flex items-center gap-2">
+                                            <CheckCircle2 size={16} /> {importSuccess}
+                                        </div>
+                                    )}
+
+                                    {/* Drop Zone */}
+                                    {!csvPreview && (
+                                        <div
+                                            onDragOver={e => { e.preventDefault(); setIsDragOver(true); }}
+                                            onDragLeave={() => setIsDragOver(false)}
+                                            onDrop={e => { e.preventDefault(); setIsDragOver(false); const f = e.dataTransfer.files[0]; if (f) parseCsvFile(f); }}
+                                            className={`border-2 border-dashed rounded-2xl p-12 text-center transition-all cursor-pointer ${isDragOver ? 'border-emerald-400 bg-emerald-50' : 'border-slate-200 bg-slate-50 hover:border-emerald-300 hover:bg-emerald-50/50'}`}
+                                            onClick={() => { const inp = document.createElement('input'); inp.type='file'; inp.accept='.csv'; inp.onchange=(e:any)=>{ if(e.target.files[0]) parseCsvFile(e.target.files[0]); }; inp.click(); }}
+                                        >
+                                            <Upload size={36} className={`mx-auto mb-4 transition-colors ${isDragOver ? 'text-emerald-500' : 'text-slate-300'}`} />
+                                            <p className="text-sm font-black text-slate-600 mb-1">Drop your CSV file here</p>
+                                            <p className="text-[11px] text-slate-400 font-bold uppercase tracking-widest">or click to browse</p>
+                                            <p className="text-[10px] text-slate-300 font-bold mt-3 uppercase tracking-wider">Headers must match column names exactly</p>
+                                        </div>
+                                    )}
+
+                                    {/* Preview */}
+                                    {csvPreview && (
+                                        <div>
+                                            <div className="flex items-center justify-between mb-4">
+                                                <p className="text-xs font-black text-slate-700 uppercase tracking-widest flex items-center gap-2">
+                                                    <CheckCircle2 size={14} className="text-emerald-500" />
+                                                    {csvFile?.name} — Preview (first 5 rows)
+                                                </p>
+                                                <button onClick={() => { setCsvFile(null); setCsvPreview(null); }} className="text-[10px] font-black text-slate-400 hover:text-rose-500 uppercase tracking-widest transition-colors flex items-center gap-1">
+                                                    <X size={10} /> Change File
+                                                </button>
+                                            </div>
+                                            <div className="overflow-x-auto rounded-xl border border-slate-200 shadow-sm">
+                                                <table className="w-full text-xs">
+                                                    <thead className="bg-slate-50 border-b border-slate-200">
+                                                        <tr>
+                                                            {csvPreview.headers.map(h => (
+                                                                <th key={h} className="px-4 py-2 text-left text-[10px] font-black uppercase tracking-widest text-slate-500">{h}</th>
+                                                            ))}
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody className="divide-y divide-slate-100">
+                                                        {csvPreview.rows.map((r, i) => (
+                                                            <tr key={i} className="hover:bg-slate-50 transition-colors">
+                                                                {csvPreview.headers.map(h => (
+                                                                    <td key={h} className="px-4 py-2 text-slate-700 font-medium whitespace-nowrap max-w-[200px] overflow-hidden text-ellipsis">{r[h] || <span className="text-slate-300 italic text-[10px]">NULL</span>}</td>
+                                                                ))}
+                                                            </tr>
+                                                        ))}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="p-6 border-t border-slate-100 bg-slate-50">
+                                    <button
+                                        onClick={handleCsvImport}
+                                        disabled={!csvFile || isImporting}
+                                        className="w-full py-4 rounded-xl bg-emerald-500 text-slate-900 text-[11px] font-black uppercase tracking-widest hover:bg-emerald-400 transition-all shadow-md active:scale-[0.98] disabled:opacity-40 flex items-center justify-center gap-2"
+                                    >
+                                        {isImporting ? <Loader2 size={16} className="animate-spin" /> : <Upload size={16} />}
+                                        {isImporting ? `Importing...` : csvFile ? `Import ${csvFile.name}` : 'Select a CSV file first'}
+                                    </button>
+                                </div>
+                            </motion.div>
+                        </>
+                    )}
+                </AnimatePresence>
             </div>
         </DashboardShell>
     );
 }
-
-// Simple Icon re-imports
-// import { RefreshCw } from "lucide-react";
