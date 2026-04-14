@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { Database, FileCode2, Sparkles, Github, ArrowLeft, CheckCircle2, Loader2, Zap, Leaf, Flame, Share2 } from "lucide-react";
 import { saveProject } from "@/lib/projectStorage";
+import { motion, AnimatePresence } from "framer-motion";
 
 type Tab = "connection" | "file" | "ai" | "github" | "mongodb" | "firebase" | "neo4j";
 
@@ -248,54 +249,101 @@ export default function ConnectPage() {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4 relative overflow-hidden">
-            {/* Background glow */}
-            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[300px] bg-violet-600/5 blur-[120px] rounded-full pointer-events-none" />
+        <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4 relative overflow-hidden">
+            {/* Ambient Background Glows */}
+            <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-violet-600/10 blur-[120px] rounded-full pointer-events-none" />
+            <div className="absolute bottom-0 right-1/4 w-[400px] h-[300px] bg-indigo-500/10 blur-[100px] rounded-full pointer-events-none" />
 
             {/* Back button */}
             <button
                 onClick={() => router.push("/dashboard")}
-                className="absolute top-6 left-6 flex items-center gap-2 text-gray-500 hover:text-gray-900 font-medium text-sm transition-colors"
+                className="absolute top-6 left-6 flex items-center gap-2 text-slate-500 hover:text-slate-900 font-medium text-sm transition-colors z-20"
             >
                 <ArrowLeft size={16} /> Dashboard
             </button>
 
-            <div className="w-full max-w-lg relative z-10">
+            <motion.div 
+                className="w-full max-w-2xl relative z-10"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+            >
                 {/* Header */}
-                <div className="mb-8 text-center">
-                    <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-violet-50 border border-violet-100 mb-4">
-                        <Database size={22} className="text-violet-600" />
-                    </div>
-                    <h1 className="text-2xl font-bold text-gray-900 mb-1">Connect a Database</h1>
-                    <p className="text-gray-500 text-sm">Choose how you want to add your database to Lighthouse.</p>
+                <div className="mb-10 text-center flex flex-col items-center">
+                    <motion.div 
+                        initial={{ scale: 0.8, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        transition={{ delay: 0.1, type: "spring", bounce: 0.4 }}
+                        className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-br from-white to-violet-50 border border-violet-100 shadow-sm mb-5 text-violet-600"
+                    >
+                        <Database size={26} />
+                    </motion.div>
+                    <motion.h1 
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.2 }}
+                        className="text-3xl font-extrabold text-slate-900 mb-2 tracking-tight"
+                    >
+                        Connect a Database
+                    </motion.h1>
+                    <motion.p 
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.3 }}
+                        className="text-slate-500 font-medium"
+                    >
+                        Choose your data source to initialize the Lighthouse core.
+                    </motion.p>
                 </div>
 
                 {/* Tab pills */}
-                <div className="grid grid-cols-6 gap-2 mb-6">
-                    {TABS.map((t) => (
-                        <button
-                            key={t.id}
-                            type="button"
-                            onClick={() => { setActiveTab(t.id); setError(null); }}
-                            className={`flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl border text-xs font-medium transition-all duration-200
-                                ${activeTab === t.id
-                                    ? "bg-violet-50 border-violet-200 text-violet-700 shadow-sm"
-                                    : "bg-white border-gray-200 text-gray-500 hover:text-gray-900 hover:bg-gray-50"
-                                }`}
-                        >
-                            <span className={activeTab === t.id ? "text-violet-600" : ""}>{t.icon}</span>
-                            <span>{t.label}</span>
-                        </button>
-                    ))}
-                </div>
+                <motion.div 
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.4 }}
+                    className="flex flex-wrap items-center justify-center gap-3 mb-8"
+                >
+                    {TABS.map((t) => {
+                        const isActive = activeTab === t.id;
+                        return (
+                            <button
+                                key={t.id}
+                                type="button"
+                                onClick={() => { setActiveTab(t.id); setError(null); }}
+                                className={`relative flex items-center gap-2 py-3 px-5 rounded-2xl text-[13px] font-semibold transition-all duration-300
+                                    ${isActive
+                                        ? "text-violet-700"
+                                        : "text-slate-500 hover:text-slate-900 hover:bg-slate-200/50"
+                                    }`}
+                            >
+                                {isActive && (
+                                    <motion.div
+                                        layoutId="activeTabPill"
+                                        className="absolute inset-0 bg-white rounded-2xl shadow-sm border border-slate-200/60"
+                                        transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                                    />
+                                )}
+                                <span className={`relative z-10 transition-transform duration-300 ${isActive ? "scale-110" : ""}`}>
+                                    {t.icon}
+                                </span>
+                                <span className="relative z-10">{t.label}</span>
+                            </button>
+                        );
+                    })}
+                </motion.div>
 
                 {/* Card */}
-                <div className="bg-white border border-gray-200 rounded-3xl p-6 shadow-xl shadow-gray-200/50">
-                    <form onSubmit={handleConnect} className="space-y-5">
+                <motion.div 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.5 }}
+                    className="bg-white/90 backdrop-blur-xl border border-white/50 rounded-[32px] p-8 shadow-[0_8px_40px_rgba(0,0,0,0.04)] ring-1 ring-slate-900/5"
+                >
+                    <form onSubmit={handleConnect} className="space-y-6">
 
                         {/* Project Name */}
                         <div>
-                            <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                            <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2 pl-1">
                                 Project Name
                             </label>
                             <input
@@ -303,11 +351,20 @@ export default function ConnectPage() {
                                 placeholder={defaultNames[activeTab]}
                                 value={projectName}
                                 onChange={(e) => setProjectName(e.target.value)}
-                                className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-colors shadow-sm"
+                                className="w-full bg-slate-50/50 border border-slate-200 rounded-2xl px-5 py-3.5 text-[14px] text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-violet-500 focus:ring-4 focus:ring-violet-500/10 transition-all shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)]"
                             />
                         </div>
 
-                        {/* Dynamic field */}
+                        {/* Dynamic field container with animation */}
+                        <AnimatePresence mode="wait">
+                            <motion.div
+                                key={activeTab}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.98 }}
+                                transition={{ duration: 0.2 }}
+                                className="space-y-6"
+                            >
                         {activeTab === "mongodb" && (
                             <div>
                                 <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
@@ -501,33 +558,42 @@ export default function ConnectPage() {
                             </div>
                         )}
 
+                            </motion.div>
+                        </AnimatePresence>
+
                         {error && (
-                            <div className="flex items-center gap-2 px-4 py-3 bg-red-50 border border-red-200 rounded-xl text-red-600 text-sm font-medium">
+                            <motion.div 
+                                initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }}
+                                className="flex items-center gap-2 px-4 py-3 bg-red-50/80 border border-red-200 rounded-2xl text-red-600 text-[13px] font-semibold"
+                            >
                                 {error}
-                            </div>
+                            </motion.div>
                         )}
+                        
                         {/* Submit Button */}
-                        <button
+                        <motion.button
+                            whileHover={{ scale: 1.01 }}
+                            whileTap={{ scale: 0.98 }}
                             type="submit"
                             disabled={loading}
-                            className={`w-full py-3.5 rounded-xl font-semibold text-sm transition-all flex items-center justify-center gap-2 mt-4
+                            className={`w-full py-4 rounded-2xl font-bold text-[14px] transition-all flex items-center justify-center gap-2 mt-2
                                 ${loading
-                                    ? "bg-violet-100 text-violet-400 cursor-wait"
-                                    : "bg-gray-900 hover:bg-gray-800 text-white shadow-lg shadow-gray-900/20 hover:shadow-gray-900/30"
+                                    ? "bg-violet-100 text-violet-400 cursor-wait shadow-inner"
+                                    : "bg-slate-900 hover:bg-slate-800 text-white shadow-[0_4px_14px_rgba(0,0,0,0.1)] hover:shadow-[0_6px_20px_rgba(0,0,0,0.15)]"
                                 }`}
                         >
                             {loading ? (
                                 <>
-                                    <div className="w-4 h-4 border-2 border-violet-200 border-t-violet-500 rounded-full animate-spin" />
+                                    <div className="w-5 h-5 border-2 border-violet-200 border-t-violet-500 rounded-full animate-spin" />
                                     {["connection", "mongodb", "firebase", "neo4j"].includes(activeTab) ? "Connecting..." : "Creating Database..."}
                                 </>
                             ) : (
                                 ["connection", "mongodb", "firebase", "neo4j"].includes(activeTab) ? "Connect Database" : "Create Database"
                             )}
-                        </button>
+                        </motion.button>
                     </form>
-                </div>
-            </div>
+                </motion.div>
+            </motion.div>
         </div>
     );
 }
