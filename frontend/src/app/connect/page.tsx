@@ -249,7 +249,7 @@ export default function ConnectPage() {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4 relative overflow-hidden">
+        <div className="min-h-screen bg-slate-50 dark:bg-[#0B0A0F] flex flex-col items-center justify-center p-4 relative overflow-hidden">
             {/* Ambient Background Glows */}
             <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-violet-600/10 blur-[120px] rounded-full pointer-events-none" />
             <div className="absolute bottom-0 right-1/4 w-[400px] h-[300px] bg-indigo-500/10 blur-[100px] rounded-full pointer-events-none" />
@@ -257,7 +257,7 @@ export default function ConnectPage() {
             {/* Back button */}
             <button
                 onClick={() => router.push("/dashboard")}
-                className="absolute top-6 left-6 flex items-center gap-2 text-slate-500 hover:text-slate-900 font-medium text-sm transition-colors z-20"
+                className="absolute top-6 left-6 flex items-center gap-2 text-slate-500 hover:text-slate-900 dark:hover:text-slate-200 font-medium text-sm transition-colors z-20"
             >
                 <ArrowLeft size={16} /> Dashboard
             </button>
@@ -282,7 +282,7 @@ export default function ConnectPage() {
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.2 }}
-                        className="text-3xl font-extrabold text-slate-900 mb-2 tracking-tight"
+                        className="text-3xl font-extrabold text-slate-900 dark:text-white mb-2 tracking-tight"
                     >
                         Connect a Database
                     </motion.h1>
@@ -290,7 +290,7 @@ export default function ConnectPage() {
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.3 }}
-                        className="text-slate-500 font-medium"
+                        className="text-slate-500 dark:text-slate-400 font-medium"
                     >
                         Choose your data source to initialize the Lighthouse core.
                     </motion.p>
@@ -313,13 +313,13 @@ export default function ConnectPage() {
                                 className={`relative flex items-center gap-2 py-3 px-5 rounded-2xl text-[13px] font-semibold transition-all duration-300
                                     ${isActive
                                         ? "text-violet-700"
-                                        : "text-slate-500 hover:text-slate-900 hover:bg-slate-200/50"
+                                        : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200/50 dark:hover:bg-white/5"
                                     }`}
                             >
                                 {isActive && (
                                     <motion.div
                                         layoutId="activeTabPill"
-                                        className="absolute inset-0 bg-white rounded-2xl shadow-sm border border-slate-200/60"
+                                        className="absolute inset-0 bg-white dark:bg-white/[0.03] rounded-2xl shadow-sm border border-slate-200/60 dark:border-white/10"
                                         transition={{ type: "spring", stiffness: 400, damping: 30 }}
                                     />
                                 )}
@@ -337,13 +337,13 @@ export default function ConnectPage() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.5 }}
-                    className="bg-white/90 backdrop-blur-xl border border-white/50 rounded-[32px] p-8 shadow-[0_8px_40px_rgba(0,0,0,0.04)] ring-1 ring-slate-900/5"
+                    className="bg-white/90 dark:bg-[#0B0A0F]/80 backdrop-blur-xl border border-white/50 dark:border-white/10 rounded-[32px] p-8 shadow-[0_8px_40px_rgba(0,0,0,0.04)] ring-1 ring-slate-900/5 dark:ring-white/10"
                 >
                     <form onSubmit={handleConnect} className="space-y-6">
 
                         {/* Project Name */}
                         <div>
-                            <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2 pl-1">
+                            <label className="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-2 pl-1">
                                 Project Name
                             </label>
                             <input
@@ -351,7 +351,7 @@ export default function ConnectPage() {
                                 placeholder={defaultNames[activeTab]}
                                 value={projectName}
                                 onChange={(e) => setProjectName(e.target.value)}
-                                className="w-full bg-slate-50/50 border border-slate-200 rounded-2xl px-5 py-3.5 text-[14px] text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-violet-500 focus:ring-4 focus:ring-violet-500/10 transition-all shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)]"
+                                className="w-full bg-slate-50/50 dark:bg-white/[0.03] border border-slate-200 dark:border-white/10 rounded-2xl px-5 py-3.5 text-[14px] text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-violet-500 focus:ring-4 focus:ring-violet-500/10 transition-all shadow-[inset_0_2px_4px_rgba(0,0,0,0.02)]"
                             />
                         </div>
 
@@ -367,7 +367,7 @@ export default function ConnectPage() {
                             >
                         {activeTab === "mongodb" && (
                             <div>
-                                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
                                     MongoDB URI
                                 </label>
                                 <input
@@ -376,7 +376,7 @@ export default function ConnectPage() {
                                     value={mongoUri}
                                     onChange={(e) => setMongoUri(e.target.value)}
                                     required
-                                    className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-colors font-mono shadow-sm"
+                                    className="w-full bg-white dark:bg-white/[0.03] border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-colors font-mono shadow-sm"
                                 />
                                 <p className="text-xs text-gray-500 mt-2 font-medium">
                                     Supports <code className="bg-gray-100 px-1 rounded">mongodb://</code> and <code className="bg-gray-100 px-1 rounded">mongodb+srv://</code> URIs.
@@ -387,7 +387,7 @@ export default function ConnectPage() {
                         {activeTab === "neo4j" && (
                             <div className="space-y-4">
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                                    <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
                                         Neo4j Bolt URI
                                     </label>
                                     <input
@@ -396,7 +396,7 @@ export default function ConnectPage() {
                                         value={neo4jUri}
                                         onChange={(e) => setNeo4jUri(e.target.value)}
                                         required
-                                        className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-colors font-mono shadow-sm"
+                                        className="w-full bg-white dark:bg-white/[0.03] border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-colors font-mono shadow-sm"
                                     />
                                     <p className="text-xs text-gray-500 mt-2 font-medium">
                                         Supports <code className="bg-gray-100 px-1 rounded">bolt://</code> and <code className="bg-gray-100 px-1 rounded">neo4j+s://</code> Aura URIs.
@@ -404,25 +404,25 @@ export default function ConnectPage() {
                                 </div>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Username</label>
+                                        <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Username</label>
                                         <input
                                             type="text"
                                             placeholder="neo4j"
                                             value={neo4jUser}
                                             onChange={(e) => setNeo4jUser(e.target.value)}
                                             required
-                                            className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 focus:outline-none focus:border-violet-500 transition-colors shadow-sm"
+                                            className="w-full bg-white dark:bg-white/[0.03] border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-violet-500 transition-colors shadow-sm"
                                         />
                                     </div>
                                     <div>
-                                        <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">Password</label>
+                                        <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Password</label>
                                         <input
                                             type="password"
                                             placeholder="••••••••"
                                             value={neo4jPassword}
                                             onChange={(e) => setNeo4jPassword(e.target.value)}
                                             required
-                                            className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 focus:outline-none focus:border-violet-500 transition-colors shadow-sm"
+                                            className="w-full bg-white dark:bg-white/[0.03] border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-violet-500 transition-colors shadow-sm"
                                         />
                                     </div>
                                 </div>
@@ -431,7 +431,7 @@ export default function ConnectPage() {
 
                         {activeTab === "firebase" && (
                             <div>
-                                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
                                     Service Account JSON
                                 </label>
                                 <textarea
@@ -440,7 +440,7 @@ export default function ConnectPage() {
                                     value={firebaseJson}
                                     onChange={(e) => setFirebaseJson(e.target.value)}
                                     required
-                                    className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-xs text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-colors font-mono resize-none shadow-sm"
+                                    className="w-full bg-white dark:bg-white/[0.03] border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-xs text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-colors font-mono resize-none shadow-sm"
                                 />
                                 <p className="text-xs text-gray-500 mt-2 font-medium">
                                     Paste the full contents of your Firebase{" "}
@@ -452,7 +452,7 @@ export default function ConnectPage() {
 
                         {activeTab === "connection" && (
                             <div>
-                                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
                                     PostgreSQL Connection String
                                 </label>
                                 <input
@@ -461,7 +461,7 @@ export default function ConnectPage() {
                                     value={connectionString}
                                     onChange={(e) => setConnectionString(e.target.value)}
                                     required
-                                    className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-colors font-mono shadow-sm"
+                                    className="w-full bg-white dark:bg-white/[0.03] border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-colors font-mono shadow-sm"
                                 />
                                 <p className="text-xs text-gray-500 mt-2 font-medium">The connection string and DB name are saved securely to your account.</p>
                             </div>
@@ -471,7 +471,7 @@ export default function ConnectPage() {
                             <div className="space-y-4">
                                 {/* File picker */}
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                                    <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
                                         SQL Schema File
                                     </label>
                                     <label className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-xl cursor-pointer transition-colors ${file ? "border-violet-400 bg-violet-50" : "border-gray-300 hover:border-gray-400 bg-gray-50 hover:bg-gray-100"}`}>
@@ -495,14 +495,14 @@ export default function ConnectPage() {
 
                                 {/* Dialect selector */}
                                 <div>
-                                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                                    <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
                                         SQL Dialect
                                     </label>
                                     <div className="grid grid-cols-1 gap-2">
                                         <select
                                             value={sqlDialect}
                                             onChange={(e) => setSqlDialect(e.target.value)}
-                                            className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 focus:outline-none focus:border-violet-500 transition-colors appearance-none cursor-pointer shadow-sm"
+                                            className="w-full bg-white dark:bg-white/[0.03] border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-sm text-gray-900 dark:text-white focus:outline-none focus:border-violet-500 transition-colors appearance-none cursor-pointer shadow-sm"
                                             style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238b8fa8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`, backgroundRepeat: 'no-repeat', backgroundPosition: 'right 16px center' }}
                                         >
                                             {SQL_DIALECTS.map((d) => (
@@ -527,7 +527,7 @@ export default function ConnectPage() {
 
                         {activeTab === "ai" && (
                             <div>
-                                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
                                     Describe Your Database
                                 </label>
                                 <textarea
@@ -536,14 +536,14 @@ export default function ConnectPage() {
                                     value={aiDescription}
                                     onChange={(e) => setAiDescription(e.target.value)}
                                     required
-                                    className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-colors resize-none shadow-sm"
+                                    className="w-full bg-white dark:bg-white/[0.03] border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-colors resize-none shadow-sm"
                                 />
                             </div>
                         )}
 
                         {activeTab === "github" && (
                             <div>
-                                <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2">
+                                <label className="block text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
                                     GitHub File URL
                                 </label>
                                 <input
@@ -552,7 +552,7 @@ export default function ConnectPage() {
                                     value={githubUrl}
                                     onChange={(e) => setGithubUrl(e.target.value)}
                                     required
-                                    className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-colors font-mono shadow-sm"
+                                    className="w-full bg-white dark:bg-white/[0.03] border border-gray-200 dark:border-white/10 rounded-xl px-4 py-3 text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-gray-500 focus:outline-none focus:border-violet-500 focus:ring-1 focus:ring-violet-500 transition-colors font-mono shadow-sm"
                                 />
                                 <p className="text-xs text-gray-500 mt-2 font-medium">Both blob and raw GitHub URLs are supported.</p>
                             </div>
@@ -579,7 +579,7 @@ export default function ConnectPage() {
                             className={`w-full py-4 rounded-2xl font-bold text-[14px] transition-all flex items-center justify-center gap-2 mt-2
                                 ${loading
                                     ? "bg-violet-100 text-violet-400 cursor-wait shadow-inner"
-                                    : "bg-slate-900 hover:bg-slate-800 text-white shadow-[0_4px_14px_rgba(0,0,0,0.1)] hover:shadow-[0_6px_20px_rgba(0,0,0,0.15)]"
+                                    : "bg-slate-900 dark:bg-violet-600 hover:bg-slate-800 dark:hover:bg-violet-500 text-white shadow-[0_4px_14px_rgba(0,0,0,0.1)] dark:shadow-[0_4px_24px_rgba(124,58,237,0.3)] hover:shadow-[0_6px_20px_rgba(0,0,0,0.15)]"
                                 }`}
                         >
                             {loading ? (

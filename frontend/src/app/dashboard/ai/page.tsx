@@ -694,7 +694,7 @@ export default function AskAIPage() {
                             animate={{ width: 280, opacity: 1 }}
                             exit={{ width: 0, opacity: 0 }}
                             transition={{ duration: 0.25, ease: [0.25, 0.1, 0.25, 1] }}
-                            className="shrink-0 flex flex-col border-r overflow-hidden"
+                            className="shrink-0 flex flex-col border-r overflow-hidden dark:!bg-none dark:bg-[#0B0A0F] dark:border-white/5"
                             style={{
                                 background: 'linear-gradient(160deg, #f5f3ff 0%, #ede9fe 100%)',
                                 borderColor: 'rgba(139,92,246,0.15)',
@@ -707,7 +707,7 @@ export default function AskAIPage() {
                                         style={{ background: 'linear-gradient(135deg, #7c3aed, #4f46e5)' }}>
                                         <Wand2 size={13} color="white" />
                                     </div>
-                                    <span className="text-[13px] font-black tracking-tight" style={{ color: '#4c1d95' }}>Lumina AI</span>
+                                    <span className="text-[13px] font-black tracking-tight dark:!text-violet-200" style={{ color: '#4c1d95' }}>Lumina AI</span>
                                 </div>
                                 <button
                                     onClick={startNewChat}
@@ -728,7 +728,7 @@ export default function AskAIPage() {
                                             style={{ background: 'rgba(139,92,246,0.1)', border: '1px solid rgba(139,92,246,0.2)' }}>
                                             <MessageSquare size={18} color="#7c3aed" />
                                         </div>
-                                        <p className="text-[11px] font-bold" style={{ color: 'rgba(76,29,149,0.5)' }}>Your conversations will appear here</p>
+                                        <p className="text-[11px] font-bold dark:!text-violet-400" style={{ color: 'rgba(76,29,149,0.5)' }}>Your conversations will appear here</p>
                                     </div>
                                 ) : (
                                     <>
@@ -746,7 +746,7 @@ export default function AskAIPage() {
 
                                             return groups.map(group => (
                                                 <div key={group.label} className="mb-2">
-                                                    <p className="text-[9px] font-black uppercase tracking-widest px-3 py-1.5 mb-0.5"
+                                                    <p className="text-[9px] font-black uppercase tracking-widest px-3 py-1.5 mb-0.5 dark:!text-violet-500"
                                                         style={{ color: 'rgba(109,40,217,0.55)' }}>{group.label}</p>
                                                     {group.items.map(session => (
                                                         <motion.div
@@ -757,16 +757,18 @@ export default function AskAIPage() {
                                                             role="button"
                                                             tabIndex={0}
                                                             onKeyDown={(e) => e.key === 'Enter' && loadSession(session.id)}
-                                                            className="group w-full text-left flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-all relative cursor-pointer"
+                                                            className={"group w-full text-left flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-all relative cursor-pointer " + (activeSessionId === session.id ? "dark:bg-violet-500/20" : "")}
                                                             style={{
-                                                                background: activeSessionId === session.id
+                                                                background: activeSessionId === session.id ? 'var(--tw-gradient-from)' : 'transparent',
+                                                                /* Tailwind class override */
+                                                                backgroundImage: activeSessionId === session.id
                                                                     ? 'linear-gradient(90deg, rgba(124,58,237,0.12), rgba(79,70,229,0.08))'
                                                                     : 'transparent',
                                                                 borderLeft: activeSessionId === session.id ? '2px solid #7c3aed' : '2px solid transparent',
                                                             }}
                                                         >
                                                             <MessageCircle size={12} style={{ color: activeSessionId === session.id ? '#7c3aed' : 'rgba(109,40,217,0.4)', flexShrink: 0 }} />
-                                                            <span className="flex-1 text-[12px] font-bold truncate"
+                                                            <span className="flex-1 text-[12px] font-bold truncate dark:!text-slate-300 group-hover:dark:!text-white"
                                                                 style={{ color: activeSessionId === session.id ? '#4c1d95' : 'rgba(76,29,149,0.65)' }}>
                                                                 {session.title}
                                                             </span>
@@ -789,7 +791,7 @@ export default function AskAIPage() {
 
                             {/* Sidebar footer */}
                             <div className="shrink-0 px-4 py-3 border-t text-center" style={{ borderColor: 'rgba(139,92,246,0.15)' }}>
-                                <p className="text-[9px] font-bold" style={{ color: 'rgba(76,29,149,0.35)' }}>Powered by Ollama · DB-Lighthouse</p>
+                                <p className="text-[9px] font-bold dark:!text-violet-500" style={{ color: 'rgba(76,29,149,0.35)' }}>Powered by Ollama · DB-Lighthouse</p>
                             </div>
                         </motion.aside>
                     )}
@@ -847,7 +849,7 @@ export default function AskAIPage() {
                             {/* TTS toggle */}
                             <button onClick={() => { setTtsEnabled(t => !t); if (ttsEnabled) window.speechSynthesis?.cancel(); }}
                                 title={ttsEnabled ? 'Disable voice' : 'Enable AI voice'}
-                                className={`p-2.5 rounded-xl transition-all ${ttsEnabled ? 'bg-violet-100 text-violet-700 shadow-sm' : 'text-slate-400 hover:bg-slate-100'}`}>
+                                className={`p-2.5 rounded-xl transition-all ${ttsEnabled ? 'bg-violet-100 dark:bg-violet-500/20 text-violet-700 dark:text-violet-400 shadow-sm' : 'text-slate-400 hover:bg-slate-100 dark:hover:bg-white/[0.08]'}`}>
                                 {ttsEnabled ? <Volume2 size={15} /> : <VolumeX size={15} />}
                             </button>
 
@@ -877,7 +879,7 @@ export default function AskAIPage() {
 
                             {/* Clear */}
                             <button onClick={clearChat} title="Clear chat"
-                                className="p-2.5 rounded-xl text-slate-400 hover:text-rose-500 hover:bg-rose-50 transition-all">
+                                className="p-2.5 rounded-xl text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10 transition-all">
                                 <Trash2 size={15} />
                             </button>
                         </div>
@@ -918,7 +920,7 @@ export default function AskAIPage() {
                                                 onClick={() => handleSend(s.text)}
                                                 className="text-left px-4 py-4 rounded-2xl border border-slate-200 dark:border-white/[0.08] bg-white dark:bg-white/[0.05] hover:border-violet-300 dark:hover:border-violet-400 hover:shadow-md transition-all cursor-pointer group">
                                                 <span className="text-2xl mb-3 block">{s.emoji}</span>
-                                                <span className="text-[13px] font-bold text-slate-700 group-hover:text-violet-700 transition-colors leading-snug">{s.text}</span>
+                                                <span className="text-[13px] font-bold text-slate-700 dark:text-slate-200 group-hover:text-violet-700 dark:group-hover:text-violet-400 transition-colors leading-snug">{s.text}</span>
                                             </motion.button>
                                         ))}
                                     </div>
@@ -941,7 +943,7 @@ export default function AskAIPage() {
                                         </div>
 
                                         <div className="flex flex-col gap-2 min-w-0 flex-1">
-                                            <span className={`text-[10px] font-black uppercase tracking-widest ${msg.role === 'user' ? 'text-right text-slate-400' : 'text-violet-500'}`}>
+                                            <span className={`text-[10px] font-black uppercase tracking-widest ${msg.role === 'user' ? 'text-right text-slate-400' : 'text-violet-500 dark:text-violet-400'}`}>
                                                 {msg.role === 'ai' ? '✦ Lumina' : 'You'}
                                             </span>
 
@@ -1138,7 +1140,7 @@ export default function AskAIPage() {
                                                 ? 'bg-violet-100 text-violet-400'
                                                 : useWhisperFallback
                                                     ? 'bg-amber-100 text-amber-600 hover:bg-amber-200'
-                                                    : 'bg-slate-100 text-slate-500 hover:bg-violet-100 hover:text-violet-600 hover:shadow-md'
+                                                    : 'bg-slate-100 dark:bg-white/[0.08] text-slate-500 dark:text-slate-300 hover:bg-violet-100 dark:hover:bg-violet-500/20 hover:text-violet-600 dark:hover:text-violet-400 hover:shadow-md'
                                         }`}>
                                     {isListening ? <MicOff size={16} /> : isTranscribing ? <Loader2 size={16} className="animate-spin" /> : <Mic size={16} />}
                                 </motion.button>
@@ -1169,7 +1171,7 @@ export default function AskAIPage() {
                                 </AnimatePresence>
                             </div>
 
-                            <p className="text-center text-[10px] text-slate-400 font-bold">
+                            <p className="text-center text-[10px] text-slate-400 dark:text-slate-500 font-bold">
                                 {speechSupported
                                     ? '🎤 Voice-to-text ready  ·  Always review changes before approving  ·  Powered by Ollama'
                                     : 'Always review database changes before approving  ·  Powered by Ollama'}
