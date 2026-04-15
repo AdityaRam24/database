@@ -2,7 +2,7 @@
 
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import dynamic from "next/dynamic";
 import {
@@ -153,6 +153,12 @@ export default function Home() {
     const { user, signInWithGoogle } = useAuth();
     const router = useRouter();
     const [openFaq, setOpenFaq] = useState<number | null>(null);
+
+    useEffect(() => {
+        if (user) {
+            router.push('/dashboard');
+        }
+    }, [user, router]);
 
     const ctaAction = user ? () => router.push('/dashboard') : signInWithGoogle;
     const ctaLabel = user ? 'Go to Dashboard' : 'Get Started Free';
