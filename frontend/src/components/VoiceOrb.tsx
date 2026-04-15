@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Mic, X, Loader2, Sparkles, BarChart2, Table2, Database, Send } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface QueryResult {
   sql: string;
@@ -15,31 +16,36 @@ interface QueryResult {
 }
 
 function OrbRings({ listening, volume }: { listening: boolean; volume: number }) {
+  const scale = listening ? 1 + volume * 0.3 : 1;
   return (
     <>
-      {[1, 2, 3].map((i) => (
-        <div
-          key={i}
-          className="absolute inset-0 rounded-full"
-          style={{
-            border: `${2 / i}px solid rgba(139,92,246,${listening ? 0.6 / i : 0.2 / i})`,
-            transform: `scale(${1 + i * 0.28 + (listening ? volume * 0.25 : 0)})`,
-            transition: 'transform 0.1s ease-out',
-            animation: listening ? `pulse-orb-${i} ${1 + i * 0.3}s ease-in-out infinite` : 'none',
-          }}
-        />
-      ))}
+      <div
+        className="absolute inset-0 rounded-full flex items-center justify-center transition-transform duration-100 ease-out"
+        style={{ transform: `scale(${scale})` }}
+      >
+        <svg viewBox="0 0 100 100" className={`w-full h-full ${listening ? 'animate-spin-slow' : ''}`} style={{ animationDuration: '8s' }}>
+          {/* Inner solid glow */}
+          <circle cx="50" cy="50" r="32" fill={listening ? 'rgba(6, 182, 212, 0.4)' : 'rgba(8, 145, 178, 0.15)'} stroke={listening ? '#22d3ee' : 'rgba(8, 145, 178, 0.4)'} strokeWidth="2" filter="drop-shadow(0 0 8px rgba(6, 182, 212, 0.6))" />
+          {/* Arc segments */}
+          <path d="M 50 10 A 40 40 0 0 1 84.6 30" fill="none" stroke={listening ? '#67e8f9' : 'rgba(8,145,178,0.3)'} strokeWidth="3" strokeLinecap="round" />
+          <path d="M 90 50 A 40 40 0 0 1 70 84.6" fill="none" stroke={listening ? '#67e8f9' : 'rgba(8,145,178,0.3)'} strokeWidth="3" strokeLinecap="round" />
+          <path d="M 50 90 A 40 40 0 0 1 15.4 70" fill="none" stroke={listening ? '#67e8f9' : 'rgba(8,145,178,0.3)'} strokeWidth="3" strokeLinecap="round" />
+          <path d="M 10 50 A 40 40 0 0 1 30 15.4" fill="none" stroke={listening ? '#67e8f9' : 'rgba(8,145,178,0.3)'} strokeWidth="3" strokeLinecap="round" />
+          
+          {/* Outer dashed ring */}
+          <circle cx="50" cy="50" r="46" fill="none" stroke={listening ? 'rgba(34, 211, 238, 0.6)' : 'rgba(8, 145, 178, 0.2)'} strokeWidth="1.5" strokeDasharray="4 6" className={listening ? 'animate-reverse-spin' : ''} style={{ animationDuration: '15s', transformOrigin: 'center' }} />
+        </svg>
+      </div>
       <div
         className="absolute inset-0 rounded-full"
         style={{
           background: listening
-            ? 'radial-gradient(circle at 40% 35%, rgba(196,167,251,0.9), rgba(139,92,246,0.95) 50%, rgba(88,28,220,1))'
-            : 'radial-gradient(circle at 40% 35%, rgba(165,148,255,0.7), rgba(109,40,217,0.9) 60%, rgba(67,20,180,1))',
-          transform: `scale(${listening ? 1 + volume * 0.5 : 1})`,
-          transition: 'transform 0.1s ease-out, background 0.5s ease',
+            ? 'radial-gradient(circle at 50% 50%, rgba(6,182,212,0.7), transparent 70%)'
+            : 'radial-gradient(circle at 50% 50%, rgba(6,182,212,0.3), transparent 70%)',
           boxShadow: listening
-            ? '0 0 40px rgba(139,92,246,0.8), 0 0 80px rgba(139,92,246,0.4)'
-            : '0 0 20px rgba(139,92,246,0.45), 0 0 40px rgba(139,92,246,0.15)',
+            ? '0 0 50px rgba(6,182,212,0.9), inset 0 0 20px rgba(103,232,249,0.8)'
+            : '0 0 20px rgba(6,182,212,0.4), inset 0 0 10px rgba(6,182,212,0.2)',
+          transition: 'all 0.3s ease',
         }}
       />
     </>
@@ -78,20 +84,28 @@ export default function VoiceOrb() {
   const [inlineConn, setInlineConn] = useState('');
   const [showConnInput, setShowConnInput] = useState(false);
   const [councilMode, setCouncilMode] = useState(false);
+  const [conversationHistory, setConversationHistory] = useState<{role: string, content: string}[]>([]);
   const councilModeRef = useRef(councilMode);       // ← fixes stale closure
+  const conversationRef = useRef(conversationHistory);
+  const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const recognitionRef = useRef<any>(null);
   const audioCtxRef = useRef<AudioContext | null>(null);
   const animFrameRef = useRef<number>(0);
   const streamRef = useRef<MediaStream | null>(null);
 
-  // Keep ref in sync so handleQuery always reads the latest value
   useEffect(() => { councilModeRef.current = councilMode; }, [councilMode]);
+  useEffect(() => { conversationRef.current = conversationHistory; }, [conversationHistory]);
 
   // Jarvis Voice Engine
   const speak = useCallback((text: string) => {
     if (!window.speechSynthesis) return;
+    window.speechSynthesis.resume(); // Fixes windows speech engine getting inexplicably stuck
     window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
+    
+    // Add JARVIS personality flavor if the explanation lacks it
+    let script = text;
+    
+    const utterance = new SpeechSynthesisUtterance(script);
     const voices = window.speechSynthesis.getVoices();
     const jarvisVoice = voices.find(v =>
       v.name.includes('UK') || v.name.includes('David') || v.name.includes('Arthur') || v.name.includes('Google UK English Male')
@@ -237,23 +251,18 @@ export default function VoiceOrb() {
     setVolume(0);
   }, []);
 
-  const startVolumeMonitor = useCallback(async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      streamRef.current = stream;
-      const ctx = new AudioContext();
-      audioCtxRef.current = ctx;
-      const analyser = ctx.createAnalyser();
-      analyser.fftSize = 64;
-      ctx.createMediaStreamSource(stream).connect(analyser);
-      const buf = new Uint8Array(analyser.frequencyBinCount);
-      const tick = () => {
-        analyser.getByteFrequencyData(buf);
-        setVolume(buf.reduce((a, b) => a + b, 0) / buf.length / 128);
-        animFrameRef.current = requestAnimationFrame(tick);
-      };
-      tick();
-    } catch { /* microphone permission denied — silently ignore */ }
+  const startSimulatedVisualizer = useCallback(() => {
+    let lastTime = performance.now();
+    const tick = (time: number) => {
+      // Throttle React state updates to 10 FPS
+      if (time - lastTime > 100) {
+        // Create an organic looking random volume fluctuation for the UI
+        setVolume(0.15 + Math.random() * 0.65);
+        lastTime = time;
+      }
+      animFrameRef.current = requestAnimationFrame(tick);
+    };
+    animFrameRef.current = requestAnimationFrame(tick);
   }, []);
 
   // ── Core query handler ───────────────────────────────────────────────────
@@ -261,15 +270,16 @@ export default function VoiceOrb() {
     const conn = connOverride ?? activeConn;
     if (!text.trim() || !conn) return;
 
-    const isCouncil = councilModeRef.current;   // read from ref — never stale
+    const isCouncil = councilModeRef.current;
+    const history = conversationRef.current;
 
     setLoading(true);
     setResult(null);
-    speak(isCouncil ? 'Convening the AI council, please wait.' : 'Analyzing data, please stand by.');
+    speak(isCouncil ? 'Convening the AI council, please wait.' : 'Processing your request, Sir.');
 
     try {
       if (isCouncil) {
-        // ── Council mode: deliberate → then execute the final SQL ────────
+        // ── Council mode ────────
         const councilRes = await fetch(`${API_BASE}/council/deliberate`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -279,14 +289,13 @@ export default function VoiceOrb() {
 
         if (!councilRes.ok) {
           setResult({ sql: '', rows: [], columns: [], error: councilData.detail || `Error ${councilRes.status}`, chart_type: null, explanation: null });
-          speak('The Council encountered an error.');
+          speak('The Council encountered an error, Sir.');
           return;
         }
 
         const finalSql: string = councilData.final_sql || '';
         const transcript: { agent: string; message: string }[] = councilData.transcript || [];
-
-        // Now execute the final SQL the council agreed on
+        
         let rows: any[][] = [];
         let columns: string[] = [];
         let execError: string | null = null;
@@ -310,17 +319,17 @@ export default function VoiceOrb() {
         setResult({ sql: finalSql, rows, columns, error: execError, chart_type: columns.length === 2 && rows.length <= 20 ? 'bar' : null, explanation: null, council_transcript: transcript });
         speak('The Council has reached a consensus on your request.');
       } else {
-        // ── Standard voice query ─────────────────────────────────────────
+        // ── Standard voice query with Context Memory ────────────────────────
         const res = await fetch(`${API_BASE}/voice/query`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ connection_string: conn, question: text }),
+          body: JSON.stringify({ connection_string: conn, question: text, conversation_history: history }),
         });
         const data = await res.json();
 
         if (!res.ok) {
           setResult({ sql: '', rows: [], columns: [], error: data.detail || `Error ${res.status}`, chart_type: null, explanation: null });
-          speak('I encountered an error accessing the database core.');
+          speak('I encountered an error accessing the database core, Sir.');
           return;
         }
 
@@ -333,13 +342,15 @@ export default function VoiceOrb() {
           explanation: data.explanation || null,
         });
 
-        if (data.explanation) {
-          speak(data.explanation);
-        } else if (data.rows && data.rows.length > 0) {
-          speak(`Query complete. I've retrieved ${data.rows.length} relevant entries.`);
-        } else {
-          speak('The query returned no results.');
-        }
+        const replySpeech = data.explanation || (data.rows?.length > 0 ? `I have retrieved ${data.rows.length} relevant entries for you, Sir.` : 'The query returned no results, Sir.');
+        speak(replySpeech);
+
+        // Update Context History
+        setConversationHistory(prev => [
+          ...prev, 
+          { role: 'user', content: text },
+          { role: 'assistant', content: replySpeech }
+        ].slice(-8)); // keep last 8 interactions
       }
     } catch {
       setResult({ sql: '', rows: [], columns: [], error: 'Could not reach Jarvis backend. Is the server running?', chart_type: null, explanation: null });
@@ -349,9 +360,33 @@ export default function VoiceOrb() {
     }
   }, [activeConn, speak]);   // councilMode intentionally excluded — read via ref
 
+  const stopListening = useCallback((shouldSubmit: boolean = true) => {
+    if (debounceTimeoutRef.current) clearTimeout(debounceTimeoutRef.current);
+    if (recognitionRef.current) {
+      try { recognitionRef.current.stop(); } catch {}
+      recognitionRef.current = null;
+    }
+    setListening(false);
+    playSound('stop');
+    stopMic();
+    setTranscript(prev => {
+      if (shouldSubmit && prev.trim()) setTimeout(() => handleQuery(prev), 50);
+      return shouldSubmit ? prev : '';
+    });
+  }, [stopMic, handleQuery, playSound]);
+
   const startListening = useCallback(() => {
     const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SR) { alert('Web Speech API not supported in this browser. Try Chrome.'); return; }
+    
+    // Resume audio context just in case we are stuck
+    if (window.speechSynthesis) window.speechSynthesis.resume();
+
+    // Kill any existing instance
+    if (recognitionRef.current) {
+        try { recognitionRef.current.stop(); } catch {}
+    }
+
     const r = new SR();
     r.continuous = true;
     r.interimResults = true;
@@ -361,50 +396,52 @@ export default function VoiceOrb() {
     r.onresult = (e: any) => {
       const t = Array.from(e.results).map((x: any) => x[0].transcript).join('');
       setTranscript(t);
+      
+      // Auto-submit after 1.5s silence
+      if (debounceTimeoutRef.current) clearTimeout(debounceTimeoutRef.current);
+      debounceTimeoutRef.current = setTimeout(() => {
+        if (t.trim().length > 0) {
+          stopListening(true);
+        }
+      }, 1500);
     };
 
     r.onend = () => {
-      if (recognitionRef.current?._shouldRestart) {
-        try { r.start(); } catch {}
-        return;
+      if (recognitionRef.current === r) {
+        setListening(false);
+        stopMic();
       }
-      setListening(false);
-      stopMic();
     };
 
     r.onerror = (e: any) => {
-      if (e.error === 'no-speech') {
-        try { r.start(); } catch {}
-        return;
+      if (e.error === 'no-speech' || e.error === 'aborted') return;
+      
+      let errorMsg = `Microphone Error: ${e.error}`;
+      if (e.error === 'audio-capture' || e.error === 'not-allowed') {
+        errorMsg = "Hardware Error: Microphone access was denied or the device is in use by another application.";
+      } else if (e.error === 'network') {
+        errorMsg = "Network Error: Google Chrome's speech transcription servers actively refused the connection. You may have been rate-limited or are using a firewall/ad-blocker.";
       }
+      
+      setResult({ sql: '', rows: [], columns: [], chart_type: null, explanation: null, error: errorMsg });
       setListening(false);
       stopMic();
     };
 
-    r._shouldRestart = true;
-    r.start();
-    setListening(true);
-    playSound('start');
-    setTranscript('');
-    setResult(null);
-    setManualInput('');
-    startVolumeMonitor();
-  }, [stopMic, startVolumeMonitor, playSound]);
-
-  const stopListening = useCallback((shouldSubmit: boolean = true) => {
-    if (recognitionRef.current) {
-      recognitionRef.current._shouldRestart = false;
-      recognitionRef.current.stop();
+    try {
+      r.start();
+      setListening(true);
+      playSound('start');
+      setTranscript('');
+      setResult(null);
+      setManualInput('');
+      startSimulatedVisualizer();
+    } catch (e: any) {
+      setResult({ sql: '', rows: [], columns: [], chart_type: null, explanation: null, error: "Critical failure connecting to local audio hardware." });
+      setListening(false);
+      stopMic();
     }
-    setListening(false);
-    playSound('stop');
-    stopMic();
-    setTranscript(prev => {
-      // Don't auto-submit if user is just cancelling/closing the orb
-      if (shouldSubmit && prev.trim()) setTimeout(() => handleQuery(prev), 100);
-      return shouldSubmit ? prev : '';
-    });
-  }, [stopMic, handleQuery, playSound]);
+  }, [stopMic, startSimulatedVisualizer, playSound, stopListening]);
 
   const handleManualSubmit = () => {
     if (!manualInput.trim()) return;
@@ -429,6 +466,10 @@ export default function VoiceOrb() {
   return (
     <>
       <style>{`
+        @keyframes spin-slow { 100% { transform: rotate(360deg); } }
+        @keyframes reverse-spin { 100% { transform: rotate(-360deg); } }
+        .animate-spin-slow { animation: spin-slow linear infinite; transform-origin: 50px 50px; }
+        .animate-reverse-spin { animation: reverse-spin linear infinite; transform-origin: 50px 50px; }
         @keyframes float-orb { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-5px)} }
         @keyframes pulse-orb-1 { 0%,100%{opacity:.4} 50%{opacity:.9} }
         @keyframes pulse-orb-2 { 0%,100%{opacity:.25} 50%{opacity:.7} }
@@ -436,11 +477,12 @@ export default function VoiceOrb() {
         .orb-float { animation: float-orb 3s ease-in-out infinite; }
         .jarvis-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
         .jarvis-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .jarvis-scrollbar::-webkit-scrollbar-thumb { background: rgba(139,92,246,0.3); border-radius: 10px; }
-        .jarvis-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(139,92,246,0.5); }
+        .jarvis-scrollbar::-webkit-scrollbar-thumb { background: rgba(6,182,212,0.3); border-radius: 10px; }
+        .jarvis-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(6,182,212,0.5); }
       `}</style>
 
       {/* ── Slide-up panel — positioned relative to orb ── */}
+      <AnimatePresence>
       {open && pos.x > -100 && (() => {
         const PANEL_W = 440;
         const PANEL_H = 500;
@@ -449,22 +491,26 @@ export default function VoiceOrb() {
         const panelLeft = Math.min(Math.max(8, pos.x + ORB_SIZE / 2 - PANEL_W / 2), window.innerWidth - PANEL_W - 8);
         const panelTop  = openAbove ? pos.y - PANEL_H - GAP : pos.y + ORB_SIZE + GAP;
         return (
-          <div
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9, y: openAbove ? 20 : -20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.9, y: openAbove ? 20 : -20 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 300 }}
             className="fixed z-[9999] w-[440px] max-w-[calc(100vw-2.5rem)] rounded-3xl shadow-2xl overflow-hidden flex flex-col"
             style={{
               left: panelLeft, top: panelTop,
-              background: 'rgba(8,8,18,0.98)',
-              border: '1px solid rgba(139,92,246,0.3)',
+              background: 'rgba(8,12,18,0.98)',
+              border: '1px solid rgba(6,182,212,0.3)',
               backdropFilter: 'blur(30px)',
               maxHeight: '82vh',
-              boxShadow: '0 20px 50px rgba(0,0,0,0.5), 0 0 20px rgba(139,92,246,0.1)'
+              boxShadow: '0 20px 50px rgba(0,0,0,0.6), 0 0 30px rgba(6,182,212,0.15)'
             }}
           >
             {/* Header */}
-            <div className="flex items-center justify-between px-5 py-3.5 border-b border-white/[0.07] shrink-0">
+            <div className="flex items-center justify-between px-5 py-3.5 border-b border-cyan-500/[0.1] shrink-0">
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-violet-400 animate-pulse" />
-                <span className="text-[11px] font-black uppercase tracking-widest text-violet-300">Jarvis · Voice SQL</span>
+                <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
+                <span className="text-[11px] font-black uppercase tracking-widest text-cyan-300">J.A.R.V.I.S. Core</span>
               </div>
               <div className="flex items-center gap-2">
                 <button
@@ -500,10 +546,10 @@ export default function VoiceOrb() {
                     value={inlineConn}
                     onChange={e => setInlineConn(e.target.value)}
                     placeholder="postgresql://user:pass@host/db"
-                    className="flex-1 bg-slate-900 border border-slate-800 text-slate-200 text-[11px] font-mono rounded-lg px-3 py-2 outline-none focus:border-violet-500 placeholder-slate-700"
+                    className="flex-1 bg-slate-900 border border-slate-800 text-slate-200 text-[11px] font-mono rounded-lg px-3 py-2 outline-none focus:border-cyan-500 placeholder-slate-700"
                     onKeyDown={e => e.key === 'Enter' && handleSaveConn()}
                   />
-                  <button onClick={handleSaveConn} className="px-3 py-2 bg-violet-600 hover:bg-violet-500 text-white text-[11px] font-black rounded-lg transition-colors">
+                  <button onClick={handleSaveConn} className="px-3 py-2 bg-cyan-600 hover:bg-cyan-500 text-white text-[11px] font-black rounded-lg transition-colors">
                     Set
                   </button>
                 </div>
@@ -523,9 +569,9 @@ export default function VoiceOrb() {
                     <p className="text-slate-500 text-[11px]">Click a project in the sidebar, or tap the <span className="text-amber-400">⬛</span> database icon above to enter a connection string.</p>
                   </div>
                 ) : listening ? (
-                  <p className="text-white text-[14px] font-medium leading-relaxed animate-pulse min-h-[20px]">{transcript || 'Listening… speak now'}</p>
+                  <p className="text-white text-[14px] font-medium leading-relaxed animate-pulse min-h-[20px]">{transcript || 'Monitoring frequencies, Sir…'}</p>
                 ) : loading ? (
-                  <div className="flex items-center gap-2 text-violet-300"><Loader2 size={14} className="animate-spin" /><span className="text-[12px] font-bold">Generating SQL…</span></div>
+                  <div className="flex items-center gap-2 text-cyan-300"><Loader2 size={14} className="animate-spin" /><span className="text-[12px] font-bold">Processing…</span></div>
                 ) : transcript ? (
                   <p className="text-slate-300 text-[13px] italic leading-relaxed">"{transcript}"</p>
                 ) : (
@@ -543,7 +589,7 @@ export default function VoiceOrb() {
                         <div className="space-y-2 mb-3">
                           <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 border-b border-white/[0.05] pb-1 mb-2 flex items-center gap-2"><Sparkles size={11} className="text-amber-400" /> Council Deliberation</p>
                           {result.council_transcript.map((t, idx) => (
-                             <div key={idx} className={`p-3 rounded-xl border flex flex-col gap-1.5 ${t.agent === 'Architect' ? 'bg-blue-500/10 border-blue-500/20 text-blue-200' : t.agent === 'Guardian' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-200' : 'bg-violet-500/10 border-violet-500/30 text-violet-200'}`}>
+                             <div key={idx} className={`p-3 rounded-xl border flex flex-col gap-1.5 ${t.agent === 'Architect' ? 'bg-blue-500/10 border-blue-500/20 text-blue-200' : t.agent === 'Guardian' ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-200' : 'bg-cyan-500/10 border-cyan-500/30 text-cyan-200'}`}>
                                <span className="text-[9px] uppercase tracking-widest font-black opacity-80">The {t.agent}</span>
                                <span className="text-[12px] leading-relaxed">"{t.message}"</span>
                              </div>
@@ -551,14 +597,14 @@ export default function VoiceOrb() {
                         </div>
                       )}
                       {result.explanation && (
-                        <div className="flex items-start gap-2 bg-violet-500/10 border border-violet-500/20 rounded-xl p-3">
-                          <Sparkles size={11} className="text-violet-400 shrink-0 mt-0.5" />
-                          <p className="text-[11px] text-violet-200 leading-relaxed">{result.explanation}</p>
+                        <div className="flex items-start gap-2 bg-cyan-500/10 border border-cyan-500/20 rounded-xl p-3">
+                          <Sparkles size={11} className="text-cyan-400 shrink-0 mt-0.5" />
+                          <p className="text-[11px] text-cyan-200 leading-relaxed">{result.explanation}</p>
                         </div>
                       )}
                       {result.sql && (
                         <div className="bg-slate-950 rounded-xl p-3 border border-slate-800">
-                          <p className="text-[9px] font-black uppercase tracking-widest text-slate-600 mb-1.5 flex items-center gap-1"><Table2 size={9} />SQL</p>
+                          <p className="text-[9px] font-black uppercase tracking-widest text-slate-600 mb-1.5 flex items-center gap-1"><Table2 size={9} />Execution Query</p>
                           <code className="text-[11px] font-mono text-emerald-400 whitespace-pre-wrap break-all leading-relaxed">{result.sql}</code>
                         </div>
                       )}
@@ -604,18 +650,19 @@ export default function VoiceOrb() {
                   onKeyDown={e => e.key === 'Enter' && handleManualSubmit()}
                   placeholder={activeConn ? 'Type a question about your database…' : 'Connect a DB first (see sidebar or DB icon above)'}
                   disabled={!activeConn || loading}
-                  className="flex-1 bg-slate-900/80 border border-slate-800 text-slate-200 text-[12px] rounded-xl px-3 py-2 outline-none focus:border-violet-500 placeholder-slate-700 disabled:opacity-40"
+                  className="flex-1 bg-slate-900/80 border border-slate-800 text-slate-200 text-[12px] rounded-xl px-3 py-2 outline-none focus:border-cyan-500 placeholder-slate-700 disabled:opacity-40"
                 />
-                <button onClick={handleManualSubmit} disabled={!manualInput.trim() || !activeConn || loading} className="w-9 h-9 rounded-xl bg-violet-600 hover:bg-violet-500 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center transition-colors"><Send size={14} className="text-white" /></button>
+                <button onClick={handleManualSubmit} disabled={!manualInput.trim() || !activeConn || loading} className="w-9 h-9 rounded-xl bg-cyan-600 hover:bg-cyan-500 disabled:opacity-30 disabled:cursor-not-allowed flex items-center justify-center transition-colors"><Send size={14} className="text-white" /></button>
               </div>
               <div className="flex items-center justify-between">
-                <button onClick={listening ? () => stopListening(true) : startListening} disabled={!activeConn || loading} className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-violet-400 hover:text-violet-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"><Mic size={11} /> {listening ? 'Stop' : 'Speak'}</button>
+                <button onClick={listening ? () => stopListening(true) : startListening} disabled={!activeConn || loading} className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-cyan-400 hover:text-cyan-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"><Mic size={11} /> {listening ? 'Standby' : 'Initialize Audio'}</button>
                 {(transcript || result) && !listening && <button onClick={() => { setTranscript(''); setResult(null); setManualInput(''); }} className="text-[10px] font-black text-slate-700 hover:text-rose-400 uppercase tracking-widest transition-colors">Clear</button>}
               </div>
             </div>
-          </div>
+          </motion.div>
         );
       })()}
+      </AnimatePresence>
 
       {/* ── Floating Orb — draggable ── */}
       {pos.x > -100 && (
@@ -629,12 +676,12 @@ export default function VoiceOrb() {
           {/* Label tooltip */}
           {!open && (
             <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-              <div className="px-3 py-2 rounded-xl flex flex-col items-center gap-1 shadow-xl" style={{ background: 'rgba(8,8,18,0.95)', border: '1px solid rgba(139,92,246,0.4)', backdropFilter: 'blur(10px)' }}>
+              <div className="px-3 py-2 rounded-xl flex flex-col items-center gap-1 shadow-xl" style={{ background: 'rgba(8,12,18,0.95)', border: '1px solid rgba(6,182,212,0.4)', backdropFilter: 'blur(10px)' }}>
                 <span className="text-[10px] font-black uppercase tracking-widest text-white whitespace-nowrap">
-                  {activeConn ? 'Ask your database anything' : 'Connect a database first'}
+                  {activeConn ? 'System Ready' : 'Database Offline'}
                 </span>
-                <span className="text-[9px] font-bold text-violet-400 whitespace-nowrap uppercase tracking-wider">
-                  Press Ctrl + J to open
+                <span className="text-[9px] font-bold text-cyan-400 whitespace-nowrap uppercase tracking-wider">
+                  Press Ctrl + J
                 </span>
               </div>
             </div>

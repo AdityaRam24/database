@@ -329,7 +329,7 @@ export default function Home() {
                 {/* Fade edges */}
                 <div className="absolute inset-y-0 left-0 w-32 bg-gradient-to-r from-background to-transparent z-10" />
                 <div className="absolute inset-y-0 right-0 w-32 bg-gradient-to-l from-background to-transparent z-10" />
-                
+
                 <div className="max-w-6xl mx-auto px-4 flex flex-col items-center">
                     <p className="text-[11px] font-bold uppercase tracking-[0.2em] text-muted-foreground mb-8">Works seamlessly with your stack</p>
                     <div className="flex gap-16 items-center flex-wrap justify-center opacity-70">
@@ -354,19 +354,19 @@ export default function Home() {
             <section className="py-32 px-4 sm:px-6 relative overflow-hidden">
                 <div className="absolute top-0 right-0 -mr-40 -mt-40 w-[600px] h-[600px] bg-violet-600/5 rounded-full blur-[120px] pointer-events-none" />
                 <div className="absolute bottom-0 left-0 -ml-40 -mb-40 w-[600px] h-[600px] bg-purple-600/5 rounded-full blur-[100px] pointer-events-none" />
-                
+
                 <div className="max-w-6xl mx-auto">
                     <div className="grid lg:grid-cols-2 gap-16 items-center">
                         <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={FADE_UP}>
                             <p className="text-violet-600 dark:text-violet-400 text-xs font-bold uppercase tracking-widest mb-3">Neural Core</p>
                             <h2 className="text-3xl sm:text-5xl font-extrabold text-foreground tracking-tight mb-6 leading-[1.1]">
-                                It doesn't just read data.<br/>
+                                It doesn't just read data.<br />
                                 <span className="text-muted-foreground">It understands architecture.</span>
                             </h2>
                             <p className="text-lg text-muted-foreground leading-relaxed mb-8">
                                 Our bespoke AI incident engine constantly evaluates relationships, query patterns, and resource bottlenecks. It's like having a Senior DBA monitoring your systems 24/7.
                             </p>
-                            
+
                             <div className="flex flex-col gap-5">
                                 {[
                                     { title: "Z-Score Anomaly Detection", desc: "Detects weird latency spikes before users complain." },
@@ -385,8 +385,8 @@ export default function Home() {
                                 ))}
                             </div>
                         </motion.div>
-                        
-                        <motion.div 
+
+                        <motion.div
                             initial={{ opacity: 0, x: 40 }}
                             whileInView={{ opacity: 1, x: 0 }}
                             transition={{ duration: 0.8, ease: "easeOut" }}
@@ -420,7 +420,7 @@ export default function Home() {
                                         </span>
                                     </div>
                                 </div>
-                                
+
                                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
                             </div>
                         </motion.div>

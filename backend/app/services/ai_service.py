@@ -304,16 +304,19 @@ Rules:
                 return "ALTER TABLE \"Customer\" ADD COLUMN \"DemoFeature\" VARCHAR(50);"
             raise e
 
-    async def explain_sql(self, sql: str) -> str:
-        """Translate a SQL query into plain English."""
+    async def explain_sql(self, sql: str, conversation_history: list = None) -> str:
+        """Translate a SQL query into plain English with J.A.R.V.I.S. persona."""
         try:
+            system_msg = "You are J.A.R.V.I.S., a highly advanced, ultra-intelligent database AI assistant. Explain what the SQL query does or summarize the action in one or two plain English sentences. Adopt a highly professional, mildly formal tone, addressing the user as 'Sir' or 'Ma'am'. Be concise, confident, and avoid sounding robotic."
             messages = [
-                {"role": "system", "content": "You are a helpful database assistant. Explain what a SQL query does in one or two plain English sentences. Be concise and clear."},
-                {"role": "user", "content": f"Explain this SQL query in plain English:\n\n{sql}"}
+                {"role": "system", "content": system_msg}
             ]
+            if conversation_history:
+                messages.extend(conversation_history[-4:])
+            messages.append({"role": "user", "content": f"Explain this SQL query in plain English:\n\n{sql}"})
             return await self._call_ai(messages, max_tokens=200, temperature=0.3)
         except Exception as e:
-            return f"Could not generate explanation: {e}"
+            return f"I seem to be experiencing a minor glitch in my cognitive matrix: {e}"
 
     async def generate_and_heal_sql(self, question: str, schema_context: str, connection_string: str, conversation_history: list = None, language: str = "english", business_rules: str = "", max_retries: int = 3, initial_sql: str = None) -> dict:
         # Prompt firewall check
@@ -338,7 +341,7 @@ Rules:
         import sqlalchemy.exc
 
         # Build system message with multi-language + business rules
-        system_msg = f"""You are an expert PostgreSQL database assistant. 
+        system_msg = f"""You are J.A.R.V.I.S., an expert PostgreSQL database assistant. 
 The user may write in any language (current: {language}). Always understand their intent and generate valid PostgreSQL SQL.
 
 {f"Business Rules: {business_rules}" if business_rules else ""}
@@ -404,7 +407,7 @@ Generate ONLY the PostgreSQL SELECT query (no markdown, no explanations):"""
 
                 # Get explanation
                 try:
-                    explanation = await self.explain_sql(sql)
+                    explanation = await self.explain_sql(sql, conversation_history)
                 except:
                     explanation = None
 
@@ -588,11 +591,11 @@ Rules:
         from app.services.prompt_firewall import scan_prompt
         firewall_result = scan_prompt(question)
         if not firewall_result["is_safe"]:
-            return f"🛡️ Your prompt was blocked by the security firewall. Reason: {firewall_result['threat_detail']}. Please rephrase your question."
+            return f"I must respectfully decline, Sir. The security firewall has blocked this prompt: {firewall_result['threat_detail']}."
         """Enhanced conversational Q&A with multi-language, history, and execute actions."""
         try:
-            system_msg = f"""You are a helpful PostgreSQL database assistant called Lumina.
-Always respond clearly and concisely. Always respond in English.
+            system_msg = f"""You are J.A.R.V.I.S., a highly advanced, ultra-intelligent database AI assistant.
+Always respond clearly and concisely in a professional, formal tone, addressing the user as 'Sir' or 'Ma'am'. Always respond in English unless specifically told otherwise.
 
 {business_rules if business_rules else ""}
 
@@ -601,22 +604,22 @@ CRITICAL INSTRUCTION: If the user mentions a concept from the CRITICAL DOMAIN KN
 
 ## RULE 1 — DATA READS (SELECT queries)
 When the user asks to view, fetch, list, show, or analyze data:
-1. Give a short conversational explanation (1-2 sentences).
+1. Give a short, sophisticated conversational explanation as J.A.R.V.I.S. (1-2 sentences).
 2. Then place the SQL query at the very end using EXACTLY this format on its own line:
    [QUERY: SELECT ... FROM ... LIMIT 100]
 
 Example:
-   Here are the latest invoices from your database.
+   I have located the most recent invoices in the database for you, Sir.
    [QUERY: SELECT * FROM invoices ORDER BY created_at DESC LIMIT 100]
 
 ## RULE 2 — DATA MODIFICATIONS (INSERT / UPDATE / DELETE / DDL)
 When the user asks to insert, add, update, change, delete, remove, or create/drop tables:
-1. Briefly explain what you will do.
+1. Briefly but formally explain the modification.
 2. Then place the SQL at the very end using EXACTLY this format on its own line:
    [EXECUTE: INSERT INTO ... / UPDATE ... / DELETE FROM ... / CREATE TABLE ...]
 
 Example:
-   I'll insert a new record into the customers table.
+   I shall process the new client entry immediately, Sir.
    [EXECUTE: INSERT INTO customers (name, email) VALUES ('John', 'john@example.com')]
 
 ## CRITICAL RULES
@@ -624,8 +627,8 @@ Example:
 - NEVER say "you can run this manually" or "here is a query you could use" — just output the tag directly.
 - NEVER include both [QUERY:] and [EXECUTE:] in the same response.
 - For SELECT always add LIMIT 100 unless user specifies a different limit.
-- DROP DATABASE is forbidden — refuse and explain why.
-- For DROP TABLE or DELETE, warn the user briefly but still provide the [EXECUTE:] block so they can review and approve it."""
+- DROP DATABASE is forbidden — calmly refuse due to safety protocols.
+- For DROP TABLE or DELETE, give a brief, polite warning prior to providing the [EXECUTE:] block so they can review and approve it."""
 
             msgs = [{"role": "system", "content": system_msg}]
             
@@ -642,7 +645,7 @@ User Question: {question}"""
             return await self._call_ai(msgs, max_tokens=1000)
         except Exception as e:
             logger.warning(f"AI error: {e}. Using offline fallback.")
-            return f"The AI system ({self.ai_mode}) is having trouble responding: {str(e)[:100]}. Please check your model or connection."
+            return f"I apologize, Sir. My cognitive systems ({self.ai_mode}) are temporarily impaired: {str(e)[:100]}."
 
     async def heal_oracle_statement(self, oracle_sql: str, error_message: str, line_number: int) -> str:
         """

@@ -16,7 +16,7 @@ class VoiceQueryRequest(BaseModel):
     connection_string: str
     question: str
     sql_override: Optional[str] = None   # pre-built SQL (e.g. from council mode) — skips AI generation
-
+    conversation_history: Optional[List[dict]] = None
 
 
 KEYWORD_PATTERNS = [
@@ -226,7 +226,7 @@ async def voice_query(req: VoiceQueryRequest):
                 question=req.question,
                 schema_context=schema_context,
                 connection_string=req.connection_string,
-                conversation_history=[],
+                conversation_history=req.conversation_history or [],
             )
             if result.get('error') is None and result.get('sql'):
                 return result  # AI worked fully — return directly
