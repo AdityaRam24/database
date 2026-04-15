@@ -925,7 +925,7 @@
       }
     },
     {
-      "timestamp": "2026-04-14T18:25:32.564453",
+      "timestamp": "2026-04-14T18:47:57.228714",
       "metrics": {
         "queries": [],
         "query_stats": {
@@ -946,26 +946,26 @@
           "genre": 24576,
           "mediatype": 24576
         },
-        "connection_count": 2,
+        "connection_count": 3,
         "table_seq_scans": {
-          "customer": 3044,
-          "employee": 3004,
-          "invoice": 1733,
-          "track": 866,
-          "artist": 533,
-          "album": 455,
-          "genre": 431,
-          "mediatype": 431,
-          "playlist": 430,
+          "customer": 3289,
+          "employee": 3249,
+          "invoice": 1873,
+          "track": 936,
+          "artist": 582,
+          "album": 490,
+          "genre": 466,
+          "mediatype": 466,
+          "playlist": 465,
           "invoiceline": 13,
           "playlisttrack": 6
         },
-        "total_seq_scans": 10946,
-        "xact_rollback": 21466
+        "total_seq_scans": 11835,
+        "xact_rollback": 22690
       }
     }
   ],
-  "last_updated": "2026-04-14T18:25:32.564453",
+  "last_updated": "2026-04-14T18:47:57.228714",
   "incident_history": [
     {
       "id": "INC-1775479611-3409",

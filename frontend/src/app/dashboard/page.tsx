@@ -393,7 +393,7 @@ function EmptyState({ onConnect }: { onConnect: () => void }) {
       >
         <Plus size={18} /> Connect My Database
       </motion.button>
-      <p className="text-[11px] text-slate-400 font-bold -mt-4">Supports PostgreSQL, MySQL, SQLite, MongoDB &amp; more</p>
+      <p className="text-[11px] text-slate-400 font-bold -mt-4">Supports PostgreSQL, MySQL, SQLite, MongoDB, Neo4j, Firebase &amp; more</p>
     </motion.div>
   );
 }

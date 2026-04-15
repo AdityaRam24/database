@@ -111,7 +111,7 @@ const FAQ_ITEMS = [
     },
     {
         question: "Which databases are supported?",
-        answer: "We support a wide range of SQL databases including PostgreSQL, MySQL, SQLite, SQL Server, and Oracle.",
+        answer: "We support a wide range of databases including PostgreSQL, MySQL, SQLite, SQL Server, and Oracle, as well as NoSQL and Graph databases like MongoDB, Firebase, and Neo4j.",
     },
     {
         question: "How does the AI work?",
@@ -330,9 +330,10 @@ export default function Home() {
                         {[
                             { name: "PostgreSQL", icon: "🐘" },
                             { name: "MySQL", icon: "🐬" },
+                            { name: "MongoDB", icon: "🍃" },
+                            { name: "Neo4j", icon: "🕸️" },
                             { name: "SQLite", icon: "🪶" },
-                            { name: "SQL Server", icon: "🪟" },
-                            { name: "Oracle", icon: "🔴" }
+                            { name: "Firebase", icon: "🔥" }
                         ].map((db) => (
                             <div key={db.name} className="flex items-center gap-2 grayscale hover:grayscale-0 transition-all duration-300 transform hover:scale-110 cursor-default">
                                 <span className="text-2xl">{db.icon}</span>
