@@ -43,6 +43,7 @@ interface TableNodeData {
     isDimmed: boolean;
     isHovered: boolean;
     isSearchHighlighted: boolean;
+    isTimeMachineHighlighted?: boolean;
     overlayMode: boolean;
     heatmapMode: 'size' | 'rows' | 'scans';
     liveTelemetryMode: boolean;

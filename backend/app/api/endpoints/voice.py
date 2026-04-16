@@ -1,12 +1,15 @@
 """
 Voice SQL endpoint — takes a natural language question and executes against the DB.
 Works fully offline: uses keyword-matching when Ollama is unavailable.
+Includes a server-side speech-to-text proxy that bypasses browser-level network blocks.
 """
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, UploadFile, File
 from pydantic import BaseModel
 from typing import Optional, List
 import re
+import io
 import logging
+import speech_recognition as sr
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
@@ -265,3 +268,36 @@ async def voice_query(req: VoiceQueryRequest):
     except Exception as db_err:
         raise HTTPException(status_code=500, detail=str(db_err))
 
+
+@router.post("/transcribe")
+async def transcribe_audio(audio: UploadFile = File(...)):
+    """
+    Server-side speech-to-text proxy.
+    Accepts raw audio (WAV) from the browser's MediaRecorder,
+    transcribes it using Google's free public STT API from the server side,
+    completely bypassing browser-level ad-blocker/firewall blocks.
+    """
+    try:
+        audio_bytes = await audio.read()
+        
+        recognizer = sr.Recognizer()
+        # Wrap the uploaded bytes into an AudioFile-compatible stream
+        audio_file = sr.AudioFile(io.BytesIO(audio_bytes))
+        
+        with audio_file as source:
+            recognizer.adjust_for_ambient_noise(source, duration=0.3)
+            audio_data = recognizer.record(source)
+        
+        # Use Google's free public STT (no API key required, server-side call)
+        text = recognizer.recognize_google(audio_data, language="en-US")
+        
+        return {"text": text, "error": None}
+    
+    except sr.UnknownValueError:
+        return {"text": "", "error": "Could not understand the audio. Please speak clearly and try again."}
+    except sr.RequestError as e:
+        logger.error(f"Google STT server error: {e}")
+        return {"text": "", "error": f"Speech recognition service unavailable: {str(e)}"}
+    except Exception as e:
+        logger.error(f"Transcription error: {e}")
+        raise HTTPException(status_code=500, detail=f"Transcription failed: {str(e)}")
