@@ -520,7 +520,7 @@ export default function GovernancePage() {
                                         <motion.div
                                             initial={{ scale: 0 }}
                                             animate={{ scale: 1, rotate: [0, 10, -10, 0] }}
-                                            transition={{ type: 'spring', damping: 10, stiffness: 200, delay: 0.1 }}
+                                            transition={{ type: 'spring', damping: 10, stiffness: 200, delay: 0.1, rotate: { type: 'keyframes', duration: 0.4 } }}
                                             className="w-20 h-20 rounded-full bg-emerald-100 flex items-center justify-center shadow-inner ring-4 ring-emerald-50 mb-5 relative z-10"
                                         >
                                             <CheckCircle size={40} className="text-emerald-500" />
