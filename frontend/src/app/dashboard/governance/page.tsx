@@ -39,6 +39,7 @@ interface HistoryItem {
 
 const EXAMPLE_PATCHES = [
     { category: 'Guaranteed Safe Operations', items: [
+        { label: 'Construct new entity', sql: 'CREATE TABLE new_table (\n  id SERIAL PRIMARY KEY,\n  created_at TIMESTAMP DEFAULT NOW()\n);' },
         { label: 'Append structural column',     sql: 'ALTER TABLE users ADD COLUMN last_login TIMESTAMP;' },
         { label: 'Deploy optimal lookup',   sql: 'CREATE INDEX idx_orders_user_id ON orders (user_id);' },
         { label: 'Establish relationship constraint', sql: 'ALTER TABLE orders ADD CONSTRAINT fk_user FOREIGN KEY (user_id) REFERENCES users(id);' },
@@ -496,6 +497,53 @@ export default function GovernancePage() {
                                 </div>
                             </motion.div>
                         )}
+                        </AnimatePresence>
+
+                        {/* Success Validation Card */}
+                        <AnimatePresence>
+                            {applySuccess && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: 30, scale: 0.95 }}
+                                    animate={{ opacity: 1, y: 0, scale: 1, transition: { type: 'spring', damping: 20, stiffness: 300 } }}
+                                    exit={{ opacity: 0, scale: 0.95, y: -20 }}
+                                    className="mt-6 border-2 border-emerald-500/30 rounded-[24px] overflow-hidden shadow-2xl bg-white relative"
+                                >
+                                    <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-400 to-teal-500" />
+                                    <div className="p-8 flex flex-col items-center justify-center text-center relative overflow-hidden">
+                                        {/* Animated Background Glow */}
+                                        <motion.div 
+                                            animate={{ scale: [1, 1.2, 1], opacity: [0.1, 0.2, 0.1] }}
+                                            transition={{ repeat: Infinity, duration: 3, ease: 'easeInOut' }}
+                                            className="absolute w-64 h-64 bg-emerald-500 rounded-full blur-3xl pointer-events-none" 
+                                        />
+
+                                        <motion.div
+                                            initial={{ scale: 0 }}
+                                            animate={{ scale: 1, rotate: [0, 10, -10, 0] }}
+                                            transition={{ type: 'spring', damping: 10, stiffness: 200, delay: 0.1 }}
+                                            className="w-20 h-20 rounded-full bg-emerald-100 flex items-center justify-center shadow-inner ring-4 ring-emerald-50 mb-5 relative z-10"
+                                        >
+                                            <CheckCircle size={40} className="text-emerald-500" />
+                                        </motion.div>
+
+                                        <h2 className="text-2xl font-black text-slate-800 tracking-tight relative z-10 mb-2">
+                                            Telemetry Deployment Successful!
+                                        </h2>
+                                        <p className="text-slate-500 font-medium max-w-md relative z-10">
+                                            The structural changes have been successfully applied to your database. Your timeline state has been automatically updated.
+                                        </p>
+
+                                        <div className="mt-8 relative z-10">
+                                            <Button
+                                                onClick={() => { setApplySuccess(false); setShowHistory(true); }}
+                                                className="bg-slate-900 hover:bg-slate-800 text-white font-black uppercase tracking-widest text-xs px-8 h-12 shadow-md rounded-xl transition-transform active:scale-95"
+                                            >
+                                                View Deployment Ledger
+                                            </Button>
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            )}
                         </AnimatePresence>
                     </motion.div>
 

@@ -138,8 +138,8 @@ function StatCard({
       style={{ background: gradient, boxShadow: `0 10px 40px -10px ${color}80, inset 0 2px 0 rgba(255,255,255,0.2)` }}
     >
       {/* 3D Floating Isometric Cube Element */}
-      <motion.div 
-        animate={{ y: [0, -12, 0], rotateX: [30, 40, 30], rotateZ: [15, 25, 15] }} 
+      <motion.div
+        animate={{ y: [0, -12, 0], rotateX: [30, 40, 30], rotateZ: [15, 25, 15] }}
         transition={{ repeat: Infinity, duration: 4 + index * 0.5, ease: "easeInOut" }}
         className="absolute -right-4 -top-6 w-24 h-24 rounded-2xl opacity-20 pointer-events-none"
         style={{
@@ -149,10 +149,10 @@ function StatCard({
           backdropFilter: 'blur(4px)'
         }}
       />
-      
+
       {/* Small 3D Floating Orb */}
-      <motion.div 
-        animate={{ y: [0, 10, 0], scale: [1, 1.1, 1] }} 
+      <motion.div
+        animate={{ y: [0, 10, 0], scale: [1, 1.1, 1] }}
         transition={{ repeat: Infinity, duration: 5 + index * 0.3, ease: "easeInOut" }}
         className="absolute right-4 top-14 w-8 h-8 rounded-full opacity-30 pointer-events-none"
         style={{
@@ -205,14 +205,14 @@ function HealthHero({ score }: { score: number }) {
       }}
     >
       {/* 3D Floating Torus / Rings */}
-      <motion.div 
-        animate={{ rotateZ: 360, rotateX: [20, 40, 20], rotateY: [10, -10, 10] }} 
+      <motion.div
+        animate={{ rotateZ: 360, rotateX: [20, 40, 20], rotateY: [10, -10, 10] }}
         transition={{ repeat: Infinity, duration: 15, ease: "linear" }}
         className="absolute -right-8 -top-8 w-44 h-44 rounded-full border-[12px] border-white/5 pointer-events-none"
         style={{ transformOrigin: 'center center', transformStyle: 'preserve-3d' }}
       />
-      <motion.div 
-        animate={{ y: [0, -15, 0], x: [0, 5, 0] }} 
+      <motion.div
+        animate={{ y: [0, -15, 0], x: [0, 5, 0] }}
         transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
         className="absolute right-10 top-10 w-16 h-16 rounded-full opacity-40 pointer-events-none"
         style={{
@@ -226,11 +226,11 @@ function HealthHero({ score }: { score: number }) {
         <div>
           <p className="text-[10px] font-black text-white/80 uppercase tracking-widest mb-2 drop-shadow-sm">Overall Health</p>
           <div className="flex items-center gap-2">
-            <motion.div 
+            <motion.div
               whileHover={{ scale: 1.1, rotate: -2 }}
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl shadow-lg cursor-default border"
-              style={{ 
-                background: `linear-gradient(to bottom, ${health.bg}, ${health.border})`, 
+              style={{
+                background: `linear-gradient(to bottom, ${health.bg}, ${health.border})`,
                 color: health.color,
                 borderColor: health.bg,
                 boxShadow: `0 4px 0 ${health.shadow}, 0 10px 20px -5px ${health.shadow}80`,
@@ -242,23 +242,23 @@ function HealthHero({ score }: { score: number }) {
             </motion.div>
           </div>
         </div>
-        
+
         {/* 3D Looking Score Ring */}
         <div className="relative hover:scale-110 transition-transform duration-500 ease-out">
           <svg width="84" height="84" viewBox="0 0 84 84" className="drop-shadow-2xl z-10 relative">
             <defs>
               <filter id="glow">
-                <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                <feGaussianBlur stdDeviation="3" result="coloredBlur" />
                 <feMerge>
-                  <feMergeNode in="coloredBlur"/>
-                  <feMergeNode in="SourceGraphic"/>
+                  <feMergeNode in="coloredBlur" />
+                  <feMergeNode in="SourceGraphic" />
                 </feMerge>
               </filter>
             </defs>
             {/* Background Track with inner shadow illusion */}
             <circle cx="42" cy="42" r="36" fill="rgba(0,0,0,0.15)" />
             <circle cx="42" cy="42" r="36" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="6" />
-            
+
             <circle
               cx="42" cy="42" r="36" fill="none"
               stroke="#ffffff" strokeWidth="7"
@@ -277,9 +277,9 @@ function HealthHero({ score }: { score: number }) {
 
       <p className="relative z-10 text-[13px] text-white/70 font-bold leading-snug">
         {score >= 95 ? "🚀 Your database is running perfectly! Everything looks great." :
-         score >= 80 ? "✅ Good health. A few small improvements could make it even better." :
-         score >= 60 ? "⚠️ Some issues detected. Check the AI recommendations below." :
-         "🔴 Attention needed — AI has found things that need fixing soon."}
+          score >= 80 ? "✅ Good health. A few small improvements could make it even better." :
+            score >= 60 ? "⚠️ Some issues detected. Check the AI recommendations below." :
+              "🔴 Attention needed — AI has found things that need fixing soon."}
       </p>
     </motion.div>
   );
@@ -293,20 +293,20 @@ function ActionCard({ action, onClick, index }: { action: typeof QUICK_ACTIONS[0
     <motion.button
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
-      whileHover={{ 
-        y: -6, 
+      whileHover={{
+        y: -6,
         scale: 1.02,
         boxShadow: `0 16px 40px ${action.color}22`
       }}
-      transition={{ 
+      transition={{
         duration: 0.3,
         delay: 0.15 + index * 0.05,
       }}
       whileTap={{ scale: 0.96, y: 0, transition: { duration: 0.1 } }}
       onClick={onClick}
       className="group text-left rounded-2xl p-4 transition-all duration-300 ease-out cursor-pointer relative overflow-hidden flex flex-col h-full"
-      style={{ 
-        background: resolvedTheme === 'dark' ? 'rgba(255,255,255,0.03)' : `${action.bg}99`, 
+      style={{
+        background: resolvedTheme === 'dark' ? 'rgba(255,255,255,0.03)' : `${action.bg}99`,
         borderTop: `1px solid ${resolvedTheme === 'dark' ? 'rgba(255,255,255,0.1)' : action.border}`,
         borderLeft: `1px solid ${resolvedTheme === 'dark' ? 'rgba(255,255,255,0.1)' : action.border}`,
         borderRight: `1px solid ${resolvedTheme === 'dark' ? 'rgba(255,255,255,0.1)' : action.border}`,
@@ -314,9 +314,9 @@ function ActionCard({ action, onClick, index }: { action: typeof QUICK_ACTIONS[0
       }}
     >
       <div className="absolute inset-0 bg-white/0 group-hover:bg-white/40 dark:group-hover:bg-white/5 transition-colors duration-300 pointer-events-none" />
-      
+
       <div className="relative z-10 flex items-start justify-between mb-3 w-full">
-        <motion.div 
+        <motion.div
           whileHover={{ rotateZ: 5, rotateX: 15, scale: 1.1 }}
           className="w-10 h-10 rounded-xl flex items-center justify-center text-xl shadow-sm transition-transform duration-300" style={{ background: `${action.color}20`, boxShadow: `inset 0 2px 4px rgba(255,255,255,0.5), 0 2px 4px ${action.color}30` }}>
           {action.emoji}
@@ -325,7 +325,7 @@ function ActionCard({ action, onClick, index }: { action: typeof QUICK_ACTIONS[0
       </div>
       <p className="relative z-10 text-[13px] font-black text-slate-900 dark:text-white leading-tight mb-1">{action.label}</p>
       <p className="relative z-10 text-[11px] font-bold leading-snug" style={{ color: `${action.color}cc` }}>{action.whatItDoes}</p>
-      
+
       <div className="relative z-10 overflow-hidden transition-all duration-500 max-h-0 group-hover:max-h-20 opacity-0 group-hover:opacity-100 mt-0 group-hover:mt-2">
         <p className="text-[10px] text-slate-500 font-medium leading-relaxed italic border-l-2 pl-2" style={{ borderColor: `${action.color}50` }}>
           {action.desc}
@@ -554,8 +554,8 @@ export default function DashboardPage() {
               {stats
                 ? "Everything your database is doing, at a glance"
                 : connectionString
-                ? "Loading your database health…"
-                : "Connect a database to see its full picture"}
+                  ? "Loading your database health…"
+                  : "Connect a database to see its full picture"}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -603,8 +603,8 @@ export default function DashboardPage() {
                     {stats.optimization_score >= 95
                       ? "All systems running perfectly!"
                       : stats.optimization_score >= 80
-                      ? "Database is healthy — minor improvements available below"
-                      : "Some improvements recommended — check AI suggestions below"}
+                        ? "Database is healthy — minor improvements available below"
+                        : "Some improvements recommended — check AI suggestions below"}
                   </p>
                   <p className="text-[11px] font-bold text-slate-500">
                     Database: <span className="font-black text-slate-700 dark:text-slate-300">{dbName || connectionString?.split("@")[1]?.split("/")[0] || "Connected"}</span>

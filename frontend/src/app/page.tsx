@@ -2,7 +2,7 @@
 
 import { useAuth } from "@/context/AuthContext";
 import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import dynamic from "next/dynamic";
 import {
@@ -147,7 +147,81 @@ const FADE_IN = {
     }),
 };
 
-// ─── Component ─────────────────────────────────────────────────────────────────
+// ─── Sub-Components ────────────────────────────────────────────────────────────
+
+function FeatureCardSpotlight({ feature, index }: { feature: any; index: number }) {
+    const cardRef = useRef<HTMLDivElement>(null);
+    const [mousePos, setMousePos] = useState({ x: -1000, y: -1000 });
+
+    return (
+        <motion.div
+            ref={cardRef}
+            onMouseMove={(e) => {
+                if (!cardRef.current) return;
+                const rect = cardRef.current.getBoundingClientRect();
+                setMousePos({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+            }}
+            onMouseLeave={() => setMousePos({ x: -1000, y: -1000 })}
+            custom={index}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={FADE_UP}
+            className="relative bg-card border border-border rounded-3xl p-7 hover:shadow-2xl hover:-translate-y-1 hover:border-white/20 transition-all duration-500 group overflow-hidden cursor-default"
+        >
+            {/* Spotlight */}
+            <motion.div
+                className="pointer-events-none absolute -inset-px rounded-3xl opacity-0 transition-opacity duration-700 group-hover:opacity-100 mix-blend-screen"
+                style={{ background: `radial-gradient(400px circle at ${mousePos.x}px ${mousePos.y}px, rgba(255,255,255,0.03), transparent 50%)` }}
+            />
+            {/* Minimal Border Spotlight */}
+            <motion.div
+                className="pointer-events-none absolute -inset-px rounded-3xl opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+                style={{ border: `1px solid rgba(255,255,255,0.4)`, maskImage: `radial-gradient(250px circle at ${mousePos.x}px ${mousePos.y}px, black, transparent)` }}
+            />
+
+            {/* Tag */}
+            <div className="relative z-10 flex items-center justify-between mb-6">
+                <div className="w-10 h-10 rounded-2xl flex items-center justify-center bg-white/[0.02] border border-white/5 group-hover:bg-white/[0.05] group-hover:scale-105 transition-all duration-300">
+                    <feature.icon size={18} className="text-white/60 group-hover:text-white transition-colors" strokeWidth={1.5} />
+                </div>
+                <span className="text-[10px] font-bold uppercase tracking-widest text-white/40 group-hover:text-white/70 transition-colors">
+                    {feature.tag}
+                </span>
+            </div>
+            <h3 className="relative z-10 font-bold text-foreground mb-3 text-[17px] group-hover:text-white transition-colors">{feature.title}</h3>
+            <p className="relative z-10 text-[14px] text-muted-foreground leading-relaxed">{feature.desc}</p>
+        </motion.div>
+    );
+}
+
+function MagneticCTAButton({ onClick, label }: { onClick: () => void; label: string }) {
+    const btnRef = useRef<HTMLButtonElement>(null);
+    const [mousePos, setMousePos] = useState({ x: -1000, y: -1000 });
+
+    return (
+        <button
+            ref={btnRef}
+            onMouseMove={(e) => {
+                if (!btnRef.current) return;
+                const rect = btnRef.current.getBoundingClientRect();
+                setMousePos({ x: e.clientX - rect.left, y: e.clientY - rect.top });
+            }}
+            onMouseLeave={() => setMousePos({ x: -1000, y: -1000 })}
+            onClick={onClick}
+            className="group relative inline-flex items-center gap-2.5 px-8 py-4 rounded-xl bg-violet-600 border border-violet-500 hover:border-violet-400 text-white font-bold text-base transition-all duration-300 shadow-2xl shadow-violet-500/40 hover:shadow-violet-500/60 hover:-translate-y-1 overflow-hidden cursor-pointer"
+        >
+            <motion.div
+                className="pointer-events-none absolute -inset-px opacity-0 transition-opacity duration-300 group-hover:opacity-100 mix-blend-overlay"
+                style={{ background: `radial-gradient(150px circle at ${mousePos.x}px ${mousePos.y}px, rgba(255,255,255,0.8), transparent 50%)` }}
+            />
+            {label}
+            <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
+        </button>
+    );
+}
+
+// ─── Main Component ────────────────────────────────────────────────────────────
 
 export default function Home() {
     const { user, signInWithGoogle } = useAuth();
@@ -707,15 +781,8 @@ export default function Home() {
                         </p>
 
                         <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                            <button
-                                onClick={ctaAction}
-                                className="group relative inline-flex items-center gap-2.5 px-9 py-4 rounded-2xl bg-violet-600 hover:bg-violet-500 text-white font-bold text-lg transition-all duration-200 shadow-2xl shadow-violet-500/30 hover:shadow-violet-500/50 hover:-translate-y-0.5 cursor-pointer overflow-hidden"
-                            >
-                                <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-                                {ctaLabel}
-                                <ArrowRight size={18} className="group-hover:translate-x-0.5 transition-transform" />
-                            </button>
-                            <a href="#how-it-works" className="text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors cursor-pointer underline underline-offset-4 decoration-muted-foreground/30 hover:decoration-foreground/40">
+                            <MagneticCTAButton onClick={ctaAction} label={ctaLabel} />
+                            <a href="#how-it-works" className="mt-2 sm:mt-0 px-6 py-4 text-sm font-bold text-muted-foreground hover:text-foreground transition-colors cursor-pointer border border-transparent hover:border-border rounded-xl">
                                 See how it works →
                             </a>
                         </div>

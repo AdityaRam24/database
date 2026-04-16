@@ -108,12 +108,12 @@ function OrbitingNode({ radius, speed, phase, size, color, vAmp, vOff }: NodeCon
 }
 
 const NODES: NodeConfig[] = [
-    { radius: 2.15, speed: 0.50, phase: 0,              size: 0.165, color: '#a855f7', vAmp: 0.55, vOff: 0 },
-    { radius: 2.55, speed: 0.35, phase: Math.PI * 0.65, size: 0.12,  color: '#8b5cf6', vAmp: 0.45, vOff: 0.2 },
-    { radius: 2.25, speed: 0.58, phase: Math.PI * 1.3,  size: 0.185, color: '#7c3aed', vAmp: 0.65, vOff: -0.15 },
-    { radius: 3.05, speed: 0.26, phase: Math.PI * 0.28, size: 0.10,  color: '#c084fc', vAmp: 0.4,  vOff: 0.35 },
-    { radius: 2.85, speed: 0.43, phase: Math.PI,        size: 0.14,  color: '#6d28d9', vAmp: 0.5,  vOff: -0.3 },
-    { radius: 3.2,  speed: 0.32, phase: Math.PI * 1.65, size: 0.115, color: '#a855f7', vAmp: 0.35, vOff: 0.1 },
+    { radius: 2.15, speed: 0.50, phase: 0, size: 0.165, color: '#a855f7', vAmp: 0.55, vOff: 0 },
+    { radius: 2.55, speed: 0.35, phase: Math.PI * 0.65, size: 0.12, color: '#8b5cf6', vAmp: 0.45, vOff: 0.2 },
+    { radius: 2.25, speed: 0.58, phase: Math.PI * 1.3, size: 0.185, color: '#7c3aed', vAmp: 0.65, vOff: -0.15 },
+    { radius: 3.05, speed: 0.26, phase: Math.PI * 0.28, size: 0.10, color: '#c084fc', vAmp: 0.4, vOff: 0.35 },
+    { radius: 2.85, speed: 0.43, phase: Math.PI, size: 0.14, color: '#6d28d9', vAmp: 0.5, vOff: -0.3 },
+    { radius: 3.2, speed: 0.32, phase: Math.PI * 1.65, size: 0.115, color: '#a855f7', vAmp: 0.35, vOff: 0.1 },
 ];
 
 // ─── Ambient particle field ────────────────────────────────────────────────────
@@ -125,7 +125,7 @@ function ParticleField() {
             const theta = Math.random() * Math.PI * 2;
             const phi = Math.acos(2 * Math.random() - 1);
             const r = 4.5 + Math.random() * 7;
-            arr[i * 3]     = r * Math.sin(phi) * Math.cos(theta);
+            arr[i * 3] = r * Math.sin(phi) * Math.cos(theta);
             arr[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta) * 0.58;
             arr[i * 3 + 2] = r * Math.cos(phi) - 1.5;
         }
@@ -181,9 +181,9 @@ export default function HeroScene3D() {
             style={{ background: 'transparent', width: '100%', height: '100%' }}
         >
             <ambientLight intensity={0.38} />
-            <pointLight position={[4, 5, 4]}   color="#7c3aed" intensity={12} />
+            <pointLight position={[4, 5, 4]} color="#7c3aed" intensity={12} />
             <pointLight position={[-4, -4, -2]} color="#a855f7" intensity={5} />
-            <pointLight position={[0, 0, 6]}    color="#ffffff"  intensity={0.8} />
+            <pointLight position={[0, 0, 6]} color="#ffffff" intensity={0.8} />
             <Scene />
         </Canvas>
     );

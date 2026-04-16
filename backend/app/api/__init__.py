@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 from app.api.endpoints import db_connection, analysis, optimization, performance, governance
 from app.api.endpoints import anomaly, security, mcp, semantic_rules, incidents, projects, voice, github, council, vision, lab
+from app.api.endpoints import snapshots
 
 api_router = APIRouter()
 
@@ -20,4 +21,5 @@ api_router.include_router(github.router, prefix="/github", tags=["github"])
 api_router.include_router(council.router, prefix="/council", tags=["council"])
 api_router.include_router(vision.router, prefix="/vision", tags=["vision"])
 api_router.include_router(lab.router, prefix="/lab", tags=["lab"])
+api_router.include_router(snapshots.router, prefix="/snapshots", tags=["snapshots"])
 

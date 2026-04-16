@@ -111,17 +111,19 @@ const TableNode = memo(({ id, data }: NodeProps<TableNodeData>) => {
                 opacity: data.isDimmed ? 0.25 : 1,
                 scale: 1,
                 y: 0,
-                boxShadow: (data.isFocused || data.isSearchHighlighted)
-                    ? `0 0 0 3px ${cat.borderLeft}40, 0 12px 24px -8px ${cat.borderLeft}60`
-                    : data.isHovered
-                        ? `0 12px 24px -8px ${cat.borderLeft}50`
-                        : `0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05)`
+                boxShadow: data.isTimeMachineHighlighted
+                    ? `0 0 0 4px rgba(244, 63, 94, 0.4), 0 12px 30px -8px rgba(244, 63, 94, 0.6)`
+                    : (data.isFocused || data.isSearchHighlighted)
+                        ? `0 0 0 3px ${cat.borderLeft}40, 0 12px 24px -8px ${cat.borderLeft}60`
+                        : data.isHovered
+                            ? `0 12px 24px -8px ${cat.borderLeft}50`
+                            : `0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05)`
             }}
             whileHover={!data.isDimmed ? { scale: 1.03, y: -2 } : {}}
             transition={{ type: "spring", stiffness: 400, damping: 25 }}
             className={containerClasses}
             style={{
-                borderColor: (data.isHovered || data.isFocused || data.isSearchHighlighted) ? cat.borderLeft : `${cat.borderLeft}50`,
+                borderColor: data.isTimeMachineHighlighted ? '#f43f5e' : (data.isHovered || data.isFocused || data.isSearchHighlighted) ? cat.borderLeft : `${cat.borderLeft}50`,
                 backgroundColor: heatmapColor !== 'transparent' ? heatmapColor : undefined
             }}
             onClick={(e) => {
@@ -293,7 +295,7 @@ const ZoomControls = () => {
 
 // ─── SchemaGraphContent ─────────────────────────────────────────────────────
 
-const SchemaGraphContent = ({ connectionString }: { connectionString: string }) => {
+const SchemaGraphContent = ({ connectionString, snapshotData, highlightNodeIds }: { connectionString: string; snapshotData?: { nodes: any[]; edges: any[] } | null; highlightNodeIds?: string[] }) => {
     const [nodes, setNodes, onNodesChange] = useNodesState([]);
     const [edges, setEdges, onEdgesChange] = useEdgesState([]);
     const [loading, setLoading] = useState(true);
@@ -392,12 +394,19 @@ const SchemaGraphContent = ({ connectionString }: { connectionString: string }) 
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/analysis/graph`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ connection_string: connectionString }),
-                });
-                const data = await response.json();
+                let data: any;
+
+                if (snapshotData) {
+                    // Use pre-loaded snapshot data directly
+                    data = snapshotData;
+                } else {
+                    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/analysis/graph`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ connection_string: connectionString }),
+                    });
+                    data = await response.json();
+                }
 
                 if (!Array.isArray(data?.nodes) || !Array.isArray(data?.edges)) {
                     setLoading(false);
@@ -465,8 +474,6 @@ const SchemaGraphContent = ({ connectionString }: { connectionString: string }) 
                 setEdges(flowEdges);
                 setLoading(false);
 
-                setTimeout(() => fitView({ padding: 0.2, duration: 800 }), 100);
-
             } catch (error) {
                 console.error('Failed to fetch graph data:', error);
                 setLoading(false);
@@ -477,7 +484,7 @@ const SchemaGraphContent = ({ connectionString }: { connectionString: string }) 
             setLoading(true);
             fetchData();
         } else setLoading(false);
-    }, [connectionString]);
+    }, [connectionString, snapshotData]);
 
     // Update Nodes State
     useEffect(() => {
@@ -527,10 +534,12 @@ const SchemaGraphContent = ({ connectionString }: { connectionString: string }) 
             }
 
             const isFocused = node.id === focusedNodeId;
-            const isSearchHighlighted = searchQuery.length > 1 && (
+            const isSearchHighlighted = (searchQuery.length > 1 && (
                 node.data.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
                 node.data.columns?.some((c: any) => c.name.toLowerCase().includes(searchQuery.toLowerCase()))
-            );
+            ));
+
+            const isTimeMachineHighlighted = highlightNodeIds && highlightNodeIds.includes(node.id);
 
             const isHovered = node.id === hoveredNodeId;
 
@@ -542,6 +551,7 @@ const SchemaGraphContent = ({ connectionString }: { connectionString: string }) 
                 isHovered,
                 isDimmed,
                 isSearchHighlighted,
+                isTimeMachineHighlighted,
                 overlayMode,
                 heatmapMode,
                 maxHeatmapVal: maxVal,
@@ -549,13 +559,13 @@ const SchemaGraphContent = ({ connectionString }: { connectionString: string }) 
                 hasIndexWarning: (node.data.seq_scan || 0) > 500 && (node.data.idx_scan || 0) < (node.data.seq_scan || 0) * 0.5,
             };
 
-            const isChanged = node.data.isFocused !== newData.isFocused || node.data.isHovered !== newData.isHovered || node.data.isDimmed !== newData.isDimmed ||
+            const isChanged = node.data.isFocused !== newData.isFocused || node.data.isHovered !== newData.isHovered || node.data.isDimmed !== newData.isDimmed || node.data.isTimeMachineHighlighted !== newData.isTimeMachineHighlighted ||
                 node.data.isSearchHighlighted !== newData.isSearchHighlighted || node.data.overlayMode !== newData.overlayMode || node.data.heatmapMode !== newData.heatmapMode || node.data.liveTelemetryMode !== newData.liveTelemetryMode;
 
             if (!isChanged) return node;
             return { ...node, data: newData };
         }));
-    }, [focusedNodeId, hoveredNodeId, hoveredEdgeScope, searchQuery, overlayMode, heatmapMode, activeFilter, graphData, setNodes, handleFocusNode, handleNodeHover]);
+    }, [focusedNodeId, hoveredNodeId, hoveredEdgeScope, searchQuery, highlightNodeIds, overlayMode, heatmapMode, activeFilter, graphData, setNodes, handleFocusNode, handleNodeHover]);
 
     // Update Edges State
     useEffect(() => {
@@ -813,6 +823,8 @@ const SchemaGraphContent = ({ connectionString }: { connectionString: string }) 
                     minZoom={0.1}
                     maxZoom={1.5}
                     onPaneClick={handleClearFocus}
+                    fitView
+                    fitViewOptions={{ padding: 0.05, maxZoom: 1.0 }}
                 >
                     <ZoomControls />
                 </ReactFlow>
@@ -878,8 +890,8 @@ const SchemaGraphContent = ({ connectionString }: { connectionString: string }) 
                                                             <div className="text-[9px] text-gray-400 font-mono">{idx.type}{idx.is_unique ? ' · UNIQUE' : ''}</div>
                                                         </div>
                                                         <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full shrink-0 ${health === 'good' ? 'bg-emerald-50 text-emerald-700' :
-                                                                health === 'ok' ? 'bg-amber-50 text-amber-700' :
-                                                                    'bg-rose-50 text-rose-600'
+                                                            health === 'ok' ? 'bg-amber-50 text-amber-700' :
+                                                                'bg-rose-50 text-rose-600'
                                                             }`}>
                                                             {health === 'good' ? `${idx.scans} hits` : health === 'ok' ? 'low use' : 'unused'}
                                                         </span>
@@ -918,7 +930,7 @@ const SchemaGraphContent = ({ connectionString }: { connectionString: string }) 
     );
 };
 
-export default function SchemaGraph(props: { connectionString: string }) {
+export default function SchemaGraph(props: { connectionString: string; snapshotData?: { nodes: any[]; edges: any[] } | null; highlightNodeIds?: string[] }) {
     return (
         <ReactFlowProvider>
             <SchemaGraphContent {...props} />
