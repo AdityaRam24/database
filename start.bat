@@ -1,4 +1,5 @@
 @echo off
+cd /d "%~dp0"
 echo Starting Backend Server...
 start "Backend Server" cmd /k "cd backend && call venv\scripts\activate.bat && uvicorn app.main:app --reload --port 8000"
 
