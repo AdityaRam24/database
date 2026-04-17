@@ -1,0 +1,12 @@
+{
+  "6c241eb8-fb09-485e-a752-1820b371651d": {
+    "owner_uid": "Q9rW0qwL6SQQeoCqk6d8irZ1gPr2",
+    "project_id": "local_1775905154692",
+    "project_name": "idk",
+    "connection_string": "postgresql://postgres:root@127.0.0.1:5432/idk_2f179c3d",
+    "connection_type": "file",
+    "invited_email": "vrp.aditya@gmail.com",
+    "status": "active",
+    "created_at": "2026-04-17T18:09:10.661611Z"
+  }
+}

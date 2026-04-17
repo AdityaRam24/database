@@ -6,13 +6,15 @@ import {
   Database, Trash2, FileCode, Sparkles, Table,
   Plus, ChevronDown, Search, Settings, Table2, Server,
   PanelLeftClose, PanelLeftOpen, ChevronsLeft, ChevronsRight,
-  RefreshCw, Share2
+  RefreshCw, Share2, Users, Clock, AlertTriangle
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
-import { getUserProjects, deleteProject, saveProject, Project } from "@/lib/projectStorage";
+import { getUserProjects, deleteProject, saveProject, Project, getSharedProjects, SharedProject, getPendingCount } from "@/lib/projectStorage";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTheme } from "next-themes";
+import CollaborateModal from "@/components/CollaborateModal";
+import PendingApprovalsPanel from "@/components/PendingApprovalsPanel";
 
 
 /* ─── Logo ──────────────────────────────────────────────────── */
@@ -100,12 +102,20 @@ export function DualSidebar({ onProjectLoad }: SidebarProps) {
   const { theme, setTheme } = useTheme();
   const [showSettings, setShowSettings] = useState(false);
   const [projects, setProjects] = useState<Project[]>([]);
+  const [sharedProjects, setSharedProjects] = useState<SharedProject[]>([]);
   const [activeConn, setActiveConn] = useState<string | null>(null);
   const [activeProject, setActiveProject] = useState<string>("");
   const [tables, setTables] = useState<string[]>([]);
   const [tablesExpanded, setTablesExpanded] = useState(true);
   const [searchVal, setSearchVal] = useState("");
   const [collapsed, setCollapsed] = useState(false);
+  const [pendingCount, setPendingCount] = useState(0);
+  // Collaborate modal state
+  const [collaborateModalOpen, setCollaborateModalOpen] = useState(false);
+  const [collaborateProject, setCollaborateProject] = useState<Project | null>(null);
+  // Pending approvals panel state
+  const [pendingPanelOpen, setPendingPanelOpen] = useState(false);
+  const [pendingPanelProject, setPendingPanelProject] = useState<{ id: string; name: string; ownerUid: string } | null>(null);
 
   useEffect(() => {
     setActiveConn(localStorage.getItem("db_connection_string"));
@@ -134,18 +144,35 @@ export function DualSidebar({ onProjectLoad }: SidebarProps) {
     getUserProjects(user?.uid || null).then(setProjects);
   };
 
+  // Load projects shared with this user
+  const fetchSharedProjects = () => {
+    if (user?.email) {
+      getSharedProjects(user.uid, user.email).then(setSharedProjects);
+    }
+  };
+
+  // Refresh pending approvals count (owner badge)
+  const refreshPendingCount = () => {
+    if (user?.uid) {
+      getPendingCount(user.uid).then(setPendingCount);
+    }
+  };
+
   useEffect(() => {
     fetchProjects();
+    fetchSharedProjects();
+    refreshPendingCount();
 
     const handleSync = () => {
       fetchProjects();
+      fetchSharedProjects();
     };
 
     // Safety Pulse: re-fetch at 500ms and 1500ms after mount to handle cross-page
     // navigation races where the 'projects-updated' event fires before the sidebar
     // is mounted (e.g. navigating from /connect → /dashboard immediately after saving).
-    const timer1 = setTimeout(fetchProjects, 500);
-    const timer2 = setTimeout(fetchProjects, 1500);
+    const timer1 = setTimeout(() => { fetchProjects(); fetchSharedProjects(); }, 500);
+    const timer2 = setTimeout(() => { fetchProjects(); fetchSharedProjects(); refreshPendingCount(); }, 1500);
 
     window.addEventListener('projects-updated', handleSync);
     return () => {
@@ -186,6 +213,9 @@ export function DualSidebar({ onProjectLoad }: SidebarProps) {
     }
     localStorage.setItem("db_connection_string", project.connectionString);
     localStorage.setItem("project_name", project.projectName);
+    // Clear any shared-project (collaboration) context since this is an owned project
+    localStorage.removeItem("project_owner_uid");
+    localStorage.removeItem("project_id");
     setActiveConn(project.connectionString);
     setActiveProject(project.projectName);
     onProjectLoad(project.connectionString, project.projectName, project.connectionType);
@@ -363,6 +393,24 @@ export function DualSidebar({ onProjectLoad }: SidebarProps) {
                           </p>
                         </div>
                         {isActive && <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_4px_rgba(52,211,153,0.7)] shrink-0 mr-1" />}
+                        {/* Collaborate button — always visible for owned projects */}
+                        {p.id && (
+                          <button
+                            id={`collab-btn-${p.id}`}
+                            onClick={e => {
+                              e.stopPropagation();
+                              setCollaborateProject(p);
+                              setCollaborateModalOpen(true);
+                            }}
+                            className="p-1.5 rounded-lg text-violet-400 hover:text-white hover:bg-violet-500 dark:hover:bg-violet-500 transition-all shrink-0"
+                            title="Manage collaborators"
+                            style={{ opacity: 0.75 }}
+                            onMouseEnter={e => { (e.currentTarget as HTMLElement).style.opacity = '1'; }}
+                            onMouseLeave={e => { (e.currentTarget as HTMLElement).style.opacity = '0.75'; }}
+                          >
+                            <Users size={12} />
+                          </button>
+                        )}
                         <DeleteBtn project={p} onDeleted={() => handleProjectDelete(p)} />
                       </motion.div>
                     );
@@ -389,7 +437,92 @@ export function DualSidebar({ onProjectLoad }: SidebarProps) {
               </div>
               <span className="text-[12px] font-black">Connect Database</span>
             </motion.button>
+
+            {/* ── Pending Approvals Badge (owner only) ── */}
+            {pendingCount > 0 && (
+              <motion.button
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+                onClick={() => {
+                  const activeP = projects.find(p => p.connectionString === activeConn);
+                  if (activeP?.id) {
+                    setPendingPanelProject({ id: activeP.id, name: activeP.projectName, ownerUid: user?.uid || '' });
+                    setPendingPanelOpen(true);
+                  }
+                }}
+                className="w-full mt-2 flex items-center gap-2 px-3 py-2.5 rounded-xl border border-amber-300/40 text-amber-600 dark:text-amber-400 bg-amber-50/60 dark:bg-amber-500/10 hover:bg-amber-100 dark:hover:bg-amber-500/15 transition-all cursor-pointer group"
+              >
+                <div className="relative shrink-0">
+                  <Clock size={14} />
+                  <div className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 rounded-full bg-rose-500 border border-white dark:border-slate-900 flex items-center justify-center text-[8px] font-black text-white">
+                    {pendingCount > 9 ? '9+' : pendingCount}
+                  </div>
+                </div>
+                <span className="text-[11px] font-black">
+                  {pendingCount === 1 ? '1 Pending Approval' : `${pendingCount} Pending Approvals`}
+                </span>
+              </motion.button>
+            )}
           </div>
+
+          {/* ── Shared With Me ── */}
+          {sharedProjects.length > 0 && (
+            <>
+              <div className="h-px bg-slate-100 dark:bg-white/[0.06] mx-2 my-3" />
+              <div className="mb-1">
+                <div className="flex items-center gap-2 px-2 mb-1.5">
+                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Shared With Me</p>
+                  <span className="text-[9px] font-black text-indigo-500 bg-indigo-50 dark:bg-indigo-500/10 px-1.5 py-0.5 rounded-full">{sharedProjects.length}</span>
+                </div>
+                <div className="space-y-0.5">
+                  {sharedProjects
+                    .filter(sp => !searchVal || sp.project_name.toLowerCase().includes(searchVal.toLowerCase()))
+                    .map(sp => {
+                      const isActive = sp.connection_string === activeConn;
+                      return (
+                        <motion.div
+                          key={sp.invite_id}
+                          initial={{ opacity: 0, x: -8 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          className={`group w-full flex items-center gap-2 px-3 py-2.5 rounded-xl transition-all cursor-pointer ${
+                            isActive
+                              ? 'bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/30'
+                              : 'hover:bg-slate-50 dark:hover:bg-white/[0.04] border border-transparent'
+                          }`}
+                          onClick={() => {
+                            localStorage.setItem('db_connection_string', sp.connection_string);
+                            localStorage.setItem('project_name', sp.project_name);
+                            // Store collaboration context so other pages know this is a shared project
+                            localStorage.setItem('project_owner_uid', sp.owner_uid);
+                            localStorage.setItem('project_id', sp.project_id);
+                            setActiveConn(sp.connection_string);
+                            setActiveProject(sp.project_name);
+                            onProjectLoad(sp.connection_string, sp.project_name, sp.connection_type);
+                          }}
+                        >
+                          <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${
+                            isActive ? 'bg-indigo-100 dark:bg-indigo-500/20' : 'bg-slate-100 dark:bg-white/[0.06]'
+                          }`}>
+                            <Users size={13} className={isActive ? 'text-indigo-500' : 'text-slate-400'} />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className={`text-[12px] font-black truncate ${
+                              isActive ? 'text-indigo-800 dark:text-indigo-300' : 'text-slate-700 dark:text-slate-200'
+                            }`}>
+                              {sp.project_name}
+                            </p>
+                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                              Shared
+                            </p>
+                          </div>
+                          {isActive && <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_4px_rgba(52,211,153,0.7)] shrink-0 mr-1" />}
+                        </motion.div>
+                      );
+                    })}
+                </div>
+              </div>
+            </>
+          )}
 
           {/* ── Tables (if connected) ── */}
           {activeConn && filteredTables.length > 0 && (
@@ -431,6 +564,25 @@ export function DualSidebar({ onProjectLoad }: SidebarProps) {
           )}
 
         </div>
+      )}
+
+      {/* ── Modals & Panels ── */}
+      {collaborateModalOpen && collaborateProject && (
+        <CollaborateModal
+          open={collaborateModalOpen}
+          onClose={() => { setCollaborateModalOpen(false); setCollaborateProject(null); }}
+          project={collaborateProject}
+        />
+      )}
+      {pendingPanelOpen && pendingPanelProject && (
+        <PendingApprovalsPanel
+          open={pendingPanelOpen}
+          onClose={() => { setPendingPanelOpen(false); setPendingPanelProject(null); }}
+          ownerUid={pendingPanelProject.ownerUid}
+          projectId={pendingPanelProject.id}
+          projectName={pendingPanelProject.name}
+          onCountChange={refreshPendingCount}
+        />
       )}
 
       {/* ── User footer (hidden when collapsed) ── */}
