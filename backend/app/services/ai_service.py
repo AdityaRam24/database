@@ -318,6 +318,33 @@ Rules:
         except Exception as e:
             return f"I seem to be experiencing a minor glitch in my cognitive matrix: {e}"
 
+    async def generate_natural_response(self, question: str, sql: str, rows: list, columns: list, conversation_history: list = None) -> str:
+        """Takes the user's question and the actual database results, and answers the question naturally."""
+        try:
+            system_msg = "You are J.A.R.V.I.S., a highly advanced, ultra-intelligent database AI assistant. Your task is to directly answer the user's question using the provided database results. Adopt a highly professional, mildly formal tone, addressing the user as 'Sir' or 'Ma'am'. Be concise. Do not read out massive lists if there are many rows; summarize them intelligently (e.g. 'There are 54 total users, Sir.')."
+            
+            # Format rows safely
+            if not rows:
+                data_str = "No results found."
+            else:
+                formatted_rows = [dict(zip(columns, row)) for row in rows[:10]]
+                data_str = str(formatted_rows)
+                if len(rows) > 10:
+                    data_str += f"\n... and {len(rows)-10} more rows."
+
+            prompt = f"User Question: {question}\nExecuted SQL: {sql}\nQuery Results: {data_str}\n\nPlease provide a natural formulation to answer the user."
+            
+            messages = [
+                {"role": "system", "content": system_msg}
+            ]
+            if conversation_history:
+                messages.extend(conversation_history[-4:])
+            messages.append({"role": "user", "content": prompt})
+            
+            return await self._call_ai(messages, max_tokens=300, temperature=0.3)
+        except Exception as e:
+            return f"I have retrieved the results, Sir, but encountered an error formulating my response: {e}"
+
     async def generate_and_heal_sql(self, question: str, schema_context: str, connection_string: str, conversation_history: list = None, language: str = "english", business_rules: str = "", max_retries: int = 3, initial_sql: str = None) -> dict:
         # Prompt firewall check
         from app.services.prompt_firewall import scan_prompt
@@ -405,10 +432,11 @@ Generate ONLY the PostgreSQL SELECT query (no markdown, no explanations):"""
                 elif len(columns) == 2 and len(rows) <= 20:
                     chart_type = "bar"
 
-                # Get explanation
+                # Get natural language response from LLM using the actual data
                 try:
-                    explanation = await self.explain_sql(sql, conversation_history)
-                except:
+                    explanation = await self.generate_natural_response(question, sql, rows, columns, conversation_history)
+                except Exception as ex:
+                    logger.error(f"Error generating natural response: {ex}")
                     explanation = None
 
                 return {"sql": sql, "rows": rows, "columns": columns, "error": None, "attempts": attempts, "chart_type": chart_type, "explanation": explanation}

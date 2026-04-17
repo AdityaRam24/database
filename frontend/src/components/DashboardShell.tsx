@@ -14,8 +14,9 @@ import { useRouter, usePathname } from 'next/navigation';
 import { useTheme } from 'next-themes';
 import {
   LogOut, LogIn, Zap, GitMerge, Database,
-  BookOpen, Activity, Shield, ShieldAlert, Bot, ChevronDown, FlaskConical, History, Terminal
+  BookOpen, Activity, Shield, ShieldAlert, Bot, ChevronDown, FlaskConical, History, Terminal, Bell, Check, X
 } from 'lucide-react';
+import { getPendingInvites, acceptInvite, rejectInvite, PendingInvite } from '@/lib/projectStorage';
 import { Button } from '@/components/ui/button';
 import { NavBar } from '@/components/ui/tubelight-navbar';
 import { EtheralShadow } from '@/components/ui/etheral-shadow';
@@ -43,15 +44,44 @@ const NAV_ITEMS = [
 function UserChip({ user, onSignOut }: { user: any; onSignOut: () => void }) {
   const [open, setOpen] = useState(false);
   const { resolvedTheme } = useTheme();
+  const [invites, setInvites] = useState<PendingInvite[]>([]);
+
+  useEffect(() => {
+    if (user?.email) {
+      getPendingInvites(user.email).then(setInvites);
+      const interval = setInterval(() => {
+        getPendingInvites(user.email).then(setInvites);
+      }, 10000); // poll every 10s
+      return () => clearInterval(interval);
+    }
+  }, [user?.email]);
+
   const initials = user.displayName
     ? user.displayName.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()
     : user.email?.[0].toUpperCase() ?? '?';
+
+  const handleAccept = async (e: React.MouseEvent, inviteId: string) => {
+    e.stopPropagation();
+    const success = await acceptInvite(inviteId);
+    if (success) {
+      setInvites(prev => prev.filter(i => i.invite_id !== inviteId));
+      window.dispatchEvent(new CustomEvent('projects-updated'));
+    }
+  };
+
+  const handleReject = async (e: React.MouseEvent, inviteId: string) => {
+    e.stopPropagation();
+    const success = await rejectInvite(inviteId);
+    if (success) {
+      setInvites(prev => prev.filter(i => i.invite_id !== inviteId));
+    }
+  };
 
   return (
     <div className="relative">
       <button
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-2 px-2 py-1.5 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors"
+        className="flex items-center gap-2 px-2 py-1.5 rounded-xl hover:bg-black/5 dark:hover:bg-white/5 transition-colors relative"
       >
         {user.photoURL ? (
           <img
@@ -69,18 +99,48 @@ function UserChip({ user, onSignOut }: { user: any; onSignOut: () => void }) {
           {user.displayName ?? user.email}
         </span>
         <ChevronDown size={12} className="hidden xl:block text-slate-400" />
+        
+        {invites.length > 0 && (
+          <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full flex items-center justify-center text-[9px] font-bold text-white border-2 border-white dark:border-slate-900 pointer-events-none">
+            {invites.length}
+          </div>
+        )}
       </button>
 
       {open && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 top-full mt-2 z-50 w-48 rounded-xl border border-black/[0.06] dark:border-white/[0.06] shadow-xl p-1" style={{ backgroundColor: resolvedTheme === 'dark' ? '#0f172a' : '#ffffff' }}>
+          <div className="absolute right-0 top-full mt-2 z-50 w-64 rounded-xl border border-black/[0.06] dark:border-white/[0.06] shadow-xl p-1" style={{ backgroundColor: resolvedTheme === 'dark' ? '#0f172a' : '#ffffff' }}>
             <div className="px-3 py-2 border-b border-black/[0.05] dark:border-white/[0.05] mb-1">
               <p className="text-[12px] font-semibold text-slate-700 dark:text-slate-200 truncate">
                 {user.displayName}
               </p>
               <p className="text-[11px] text-slate-400 dark:text-slate-500 truncate">{user.email}</p>
             </div>
+            
+            {invites.length > 0 && (
+              <div className="px-1 py-1 mb-1 border-b border-black/[0.05] dark:border-white/[0.05]">
+                <p className="px-2 py-1 text-[10px] font-semibold text-slate-500 uppercase tracking-wider">
+                  Pending Invites
+                </p>
+                {invites.map(invite => (
+                  <div key={invite.invite_id} className="flex flex-col gap-1.5 p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                    <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-tight">
+                      <span className="font-semibold">{invite.invited_email}</span> you were invited to <span className="font-semibold text-violet-500">{invite.project_name}</span>
+                    </p>
+                    <div className="flex gap-1.5 mt-1">
+                      <Button size="sm" onClick={(e) => handleAccept(e, invite.invite_id)} className="h-6 flex-1 text-[10px] bg-indigo-500 hover:bg-indigo-600 text-white gap-1 rounded-md">
+                        <Check size={11} /> Accept
+                      </Button>
+                      <Button size="sm" onClick={(e) => handleReject(e, invite.invite_id)} variant="outline" className="h-6 flex-1 text-[10px] gap-1 rounded-md">
+                        <X size={11} /> Reject
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
             <button
               onClick={onSignOut}
               className="w-full flex items-center gap-2 px-3 py-2 text-[12px] font-medium text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-lg transition-colors"

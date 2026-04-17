@@ -6,12 +6,15 @@ import {
     Loader2, ShieldCheck, ShieldAlert, AlertTriangle,
     GitMerge, CheckCircle, XCircle, Shield,
     Database, Wand2, Clock, ChevronDown, ChevronRight, Trash2,
-    Link2, Zap, Eye, Settings, Terminal, Bot, Cpu, CornerDownRight, PlaySquare, Github
+    Link2, Zap, Eye, Settings, Terminal, Bot, Cpu, CornerDownRight, PlaySquare, Github, Users
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import DashboardShell from '@/components/DashboardShell';
 import VisionUploader from '@/components/VisionUploader';
+import AuditLogPanel from '@/components/AuditLogPanel';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useAuth } from '@/context/AuthContext';
+import { submitPendingChange } from '@/lib/projectStorage';
 
 interface SafetyResult {
     is_safe: boolean;
@@ -56,6 +59,7 @@ const EXAMPLE_PATCHES = [
 
 export default function GovernancePage() {
     const router = useRouter();
+    const { user } = useAuth();
     const [connectionString, setConnectionString] = useState<string | null>(null);
     const [mounted, setMounted] = useState(false);
     const [sqlPatch, setSqlPatch] = useState('');
@@ -65,11 +69,18 @@ export default function GovernancePage() {
     const [applying, setApplying] = useState(false);
     const [result, setResult] = useState<SafetyResult | null>(null);
     const [applySuccess, setApplySuccess] = useState(false);
+    const [submittedForApproval, setSubmittedForApproval] = useState(false);
     const [creatingPr, setCreatingPr] = useState(false);
     const [prInfo, setPrInfo] = useState<{url: string, branch: string} | null>(null);
     const [history, setHistory] = useState<HistoryItem[]>([]);
     const [showHistory, setShowHistory] = useState(false);
     const [showExamples, setShowExamples] = useState(false);
+    const [showAuditLog, setShowAuditLog] = useState(false);
+    // Collaboration: track whether user is the project owner
+    const [ownerUid, setOwnerUid] = useState<string | null>(null);
+    const [projectId, setProjectId] = useState<string | null>(null);
+    const [projectName, setProjectName] = useState<string>('');
+    const isOwner = !ownerUid || ownerUid === user?.uid;
 
     useEffect(() => {
         const cs = localStorage.getItem('db_connection_string');
@@ -77,6 +88,11 @@ export default function GovernancePage() {
         setConnectionString(cs);
         const saved = localStorage.getItem('governance_history');
         if (saved) setHistory(JSON.parse(saved));
+        // Load collaboration context from localStorage
+        setProjectName(localStorage.getItem('project_name') || '');
+        // ownerUid is stored when a shared project is loaded (set by the sidebar)
+        setOwnerUid(localStorage.getItem('project_owner_uid') || null);
+        setProjectId(localStorage.getItem('project_id') || null);
         setMounted(true);
     }, []);
 
@@ -142,6 +158,29 @@ export default function GovernancePage() {
         if (!connectionString || !result?.is_safe) return;
         setApplying(true);
         try {
+            // ── COLLABORATOR: route through approval queue ──────────────────────
+            if (!isOwner && ownerUid && projectId) {
+                const resp = await submitPendingChange({
+                    ownerUid,
+                    projectId,
+                    projectName,
+                    submittedByUid:   user?.uid || '',
+                    submittedByEmail: user?.email || '',
+                    sqlPatch,
+                    description:      nlDescription,
+                    connectionString,
+                });
+                if (resp.status === 'submitted') {
+                    setSubmittedForApproval(true);
+                    setSqlPatch('');
+                    setResult(null);
+                } else {
+                    alert('Failed to submit change for approval. Try again.');
+                }
+                return;
+            }
+
+            // ── OWNER: apply directly ──────────────────────────────────────────
             const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/governance/apply-patch`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -235,6 +274,12 @@ export default function GovernancePage() {
                         >
                             <Clock size={13} /> Deployment Ledger {history.length > 0 && `(${history.length})`}
                         </button>
+                        <button
+                            onClick={() => setShowAuditLog(true)}
+                            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-violet-50 border border-violet-200 text-violet-700 text-xs font-bold transition-all hover:bg-violet-100 shadow-sm"
+                        >
+                            <Shield size={13} /> Audit Log
+                        </button>
                     </div>
                 </div>
 
@@ -265,6 +310,41 @@ export default function GovernancePage() {
                                         </a>
                                     </div>
                                 )}
+                            </div>
+                        )}
+
+                        {/* Submitted-for-Approval Banner (collaborator) */}
+                        {submittedForApproval && (
+                            <motion.div
+                                initial={{ opacity: 0, y: -10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                className="flex items-start gap-3 px-5 py-4 bg-amber-50 border border-amber-200 rounded-2xl shadow-sm text-amber-800 mb-4"
+                            >
+                                <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center text-amber-500 shadow-sm shrink-0">
+                                    <Users size={18} />
+                                </div>
+                                <div>
+                                    <p className="font-bold text-sm">Change submitted for admin approval</p>
+                                    <p className="text-xs text-amber-700 mt-0.5">
+                                        Your SQL patch has been sent to the project owner for review. It will be applied once they approve it.
+                                    </p>
+                                    <button
+                                        onClick={() => setSubmittedForApproval(false)}
+                                        className="mt-2 text-[10px] font-black uppercase tracking-widest text-amber-600 hover:text-amber-800 transition-colors"
+                                    >
+                                        Dismiss
+                                    </button>
+                                </div>
+                            </motion.div>
+                        )}
+
+                        {/* Collaborator notice (non-owner) */}
+                        {!isOwner && (
+                            <div className="flex items-center gap-3 px-4 py-3 bg-indigo-50 border border-indigo-200 rounded-xl text-indigo-700 mb-4">
+                                <Users size={15} className="shrink-0" />
+                                <p className="text-[12px] font-bold">
+                                    You are a <strong>collaborator</strong> on this project. Applying schema changes will send them to the project owner for approval.
+                                </p>
                             </div>
                         )}
 
@@ -598,6 +678,13 @@ export default function GovernancePage() {
                         </div>
                     )}
                 </div>
+                {/* Audit Log Panel */}
+                <AuditLogPanel
+                    projectId={projectId || ''}
+                    projectName={projectName}
+                    isOpen={showAuditLog}
+                    onClose={() => setShowAuditLog(false)}
+                />
             </div>
         </DashboardShell>
     );
