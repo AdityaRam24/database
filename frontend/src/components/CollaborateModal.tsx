@@ -12,6 +12,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, UserPlus, Trash2, Loader2, Mail, Users, CheckCircle, AlertCircle } from 'lucide-react';
 import { inviteCollaborator, getProjectMembers, removeCollaborator } from '@/lib/projectStorage';
 import { useAuth } from '@/context/AuthContext';
+import { useTheme } from 'next-themes';
 
 interface Member {
     invite_id: string;
@@ -37,6 +38,27 @@ export default function CollaborateModal({ open, onClose, project }: Collaborate
     const [inviting, setInviting] = useState(false);
     const [toast, setToast] = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
     const [mounted, setMounted] = useState(false);
+    const { resolvedTheme } = useTheme();
+
+    const isDark = resolvedTheme === 'dark';
+    const uiTheme = {
+        bg: isDark ? 'linear-gradient(145deg, #1a1a2e 0%, #16213e 55%, #0f3460 100%)' : '#ffffff',
+        border: isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.06)',
+        textBright: isDark ? 'white' : '#0f172a',
+        textMuted: isDark ? '#94a3b8' : '#64748b',
+        textSubtle: isDark ? '#cbd5e1' : '#334155',
+        iconBg: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
+        iconBgHover: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)',
+        inputBg: isDark ? 'rgba(255,255,255,0.06)' : '#f8fafc',
+        inputBorder: isDark ? 'rgba(255,255,255,0.1)' : '#e2e8f0',
+        inputFocusShadow: isDark ? '0 0 0 3px rgba(124,58,237,0.15)' : '0 0 0 3px rgba(99,102,241,0.15)',
+        listBg: isDark ? 'rgba(255,255,255,0.04)' : '#f8fafc',
+        listBorder: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)',
+        shadow: isDark ? '0 32px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.08)' : '0 24px 60px rgba(0,0,0,0.1), 0 0 0 1px rgba(0,0,0,0.05)',
+        buttonBg: isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.04)',
+        buttonBgHover: isDark ? 'rgba(255,255,255,0.12)' : 'rgba(0,0,0,0.08)',
+        buttonBorder: isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)',
+    };
 
     // Portal target — must be client-only
     useEffect(() => { setMounted(true); }, []);
@@ -155,36 +177,36 @@ export default function CollaborateModal({ open, onClose, project }: Collaborate
                                 width: '100%',
                                 maxWidth: '440px',
                                 borderRadius: '20px',
-                                boxShadow: '0 32px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.08)',
+                                boxShadow: uiTheme.shadow,
                                 overflow: 'hidden',
-                                background: 'linear-gradient(145deg, #1a1a2e 0%, #16213e 55%, #0f3460 100%)',
+                                background: uiTheme.bg,
                             }}
                         >
                             {/* Header */}
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 24px 18px', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '20px 24px 18px', borderBottom: `1px solid ${uiTheme.border}` }}>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                                     <div style={{
                                         width: 38, height: 38, borderRadius: 12,
                                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                        background: 'linear-gradient(135deg, #7c3aed, #4f46e5)',
-                                        boxShadow: '0 4px 16px rgba(124,58,237,0.45)',
+                                        background: isDark ? 'linear-gradient(135deg, #7c3aed, #4f46e5)' : 'linear-gradient(135deg, #3b82f6, #4f46e5)',
+                                        boxShadow: isDark ? '0 4px 16px rgba(124,58,237,0.45)' : '0 4px 14px 0 rgba(79, 70, 229, 0.39)',
                                     }}>
                                         <Users size={17} color="white" strokeWidth={2.5} />
                                     </div>
                                     <div>
-                                        <h2 style={{ margin: 0, fontSize: 14, fontWeight: 900, color: 'white', lineHeight: 1.2 }}>
+                                        <h2 style={{ margin: 0, fontSize: 14, fontWeight: 900, color: uiTheme.textBright, lineHeight: 1.2 }}>
                                             Manage Collaborators
                                         </h2>
-                                        <p style={{ margin: 0, fontSize: 11, color: '#94a3b8', fontWeight: 500, marginTop: 2, maxWidth: 210, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                        <p style={{ margin: 0, fontSize: 11, color: uiTheme.textMuted, fontWeight: 500, marginTop: 2, maxWidth: 210, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                             {project.projectName}
                                         </p>
                                     </div>
                                 </div>
                                 <button
                                     onClick={onClose}
-                                    style={{ padding: '8px', borderRadius: 12, background: 'rgba(255,255,255,0.06)', border: 'none', cursor: 'pointer', color: '#94a3b8', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s' }}
-                                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.12)'; (e.currentTarget as HTMLElement).style.color = 'white'; }}
-                                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.06)'; (e.currentTarget as HTMLElement).style.color = '#94a3b8'; }}
+                                    style={{ padding: '8px', borderRadius: 12, background: uiTheme.iconBg, border: 'none', cursor: 'pointer', color: uiTheme.textMuted, display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s' }}
+                                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = uiTheme.iconBgHover; (e.currentTarget as HTMLElement).style.color = uiTheme.textBright; }}
+                                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = uiTheme.iconBg; (e.currentTarget as HTMLElement).style.color = uiTheme.textMuted; }}
                                 >
                                     <X size={15} />
                                 </button>
@@ -234,12 +256,12 @@ export default function CollaborateModal({ open, onClose, project }: Collaborate
                                                     width: '100%', boxSizing: 'border-box',
                                                     paddingLeft: 36, paddingRight: 12, paddingTop: 10, paddingBottom: 10,
                                                     borderRadius: 12, fontSize: 13, fontWeight: 500,
-                                                    color: 'white', background: 'rgba(255,255,255,0.06)',
-                                                    border: '1px solid rgba(255,255,255,0.1)',
+                                                    color: uiTheme.textBright, background: uiTheme.inputBg,
+                                                    border: `1px solid ${uiTheme.inputBorder}`,
                                                     outline: 'none', fontFamily: 'inherit',
                                                 }}
-                                                onFocus={e => { e.currentTarget.style.borderColor = 'rgba(124,58,237,0.6)'; e.currentTarget.style.boxShadow = '0 0 0 3px rgba(124,58,237,0.15)'; }}
-                                                onBlur={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'; e.currentTarget.style.boxShadow = 'none'; }}
+                                                onFocus={e => { e.currentTarget.style.borderColor = isDark ? 'rgba(124,58,237,0.6)' : 'rgba(99,102,241,0.6)'; e.currentTarget.style.boxShadow = uiTheme.inputFocusShadow; }}
+                                                onBlur={e => { e.currentTarget.style.borderColor = uiTheme.inputBorder; e.currentTarget.style.boxShadow = 'none'; }}
                                             />
                                         </div>
                                         <button
@@ -249,10 +271,14 @@ export default function CollaborateModal({ open, onClose, project }: Collaborate
                                             style={{
                                                 display: 'flex', alignItems: 'center', gap: 6,
                                                 padding: '10px 18px', borderRadius: 12,
-                                                fontSize: 12, fontWeight: 900, color: 'white',
-                                                background: 'linear-gradient(135deg, #7c3aed, #4f46e5)',
+                                                fontSize: 12, fontWeight: 900, 
+                                                color: resolvedTheme === 'dark' ? 'white' : '#ffffff',
+                                                background: resolvedTheme === 'dark' 
+                                                    ? 'linear-gradient(135deg, #7c3aed, #4f46e5)'
+                                                    : 'linear-gradient(135deg, #3b82f6, #4f46e5)',
                                                 border: 'none', cursor: inviting || !email.trim() ? 'not-allowed' : 'pointer',
                                                 opacity: inviting || !email.trim() ? 0.5 : 1,
+                                                boxShadow: resolvedTheme === 'light' ? '0 4px 14px 0 rgba(79, 70, 229, 0.39)' : 'none',
                                                 transition: 'all 0.15s', whiteSpace: 'nowrap',
                                             }}
                                         >
@@ -260,7 +286,7 @@ export default function CollaborateModal({ open, onClose, project }: Collaborate
                                             Invite
                                         </button>
                                     </div>
-                                    <p style={{ margin: '8px 0 0 4px', fontSize: 11, color: '#475569' }}>
+                                    <p style={{ margin: '8px 0 0 4px', fontSize: 11, color: uiTheme.textMuted }}>
                                         Collaborators can view & query this project. Critical schema changes need your approval.
                                     </p>
                                 </div>
@@ -271,14 +297,14 @@ export default function CollaborateModal({ open, onClose, project }: Collaborate
                                         <label style={{ fontSize: 10, fontWeight: 900, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
                                             Current Collaborators
                                         </label>
-                                        {loading && <Loader2 size={12} style={{ color: '#475569', animation: 'spin 1s linear infinite' }} />}
+                                        {loading && <Loader2 size={12} style={{ color: uiTheme.textMuted, animation: 'spin 1s linear infinite' }} />}
                                     </div>
 
                                     {!loading && members.length === 0 ? (
                                         <div style={{ padding: '28px 0', textAlign: 'center' }}>
-                                            <Users size={28} style={{ color: '#334155', margin: '0 auto 10px' }} />
-                                            <p style={{ margin: 0, fontSize: 13, color: '#475569', fontWeight: 600 }}>No collaborators yet</p>
-                                            <p style={{ margin: '4px 0 0', fontSize: 11, color: '#334155' }}>Invite someone above to get started</p>
+                                            <Users size={28} style={{ color: uiTheme.textSubtle, margin: '0 auto 10px' }} />
+                                            <p style={{ margin: 0, fontSize: 13, color: uiTheme.textMuted, fontWeight: 600 }}>No collaborators yet</p>
+                                            <p style={{ margin: '4px 0 0', fontSize: 11, color: uiTheme.textSubtle }}>Invite someone above to get started</p>
                                         </div>
                                     ) : (
                                         <div style={{ display: 'flex', flexDirection: 'column', gap: 8, maxHeight: 200, overflowY: 'auto' }}>
@@ -286,13 +312,13 @@ export default function CollaborateModal({ open, onClose, project }: Collaborate
                                                 <div
                                                     key={m.invite_id}
                                                     className="group"
-                                                    style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 12, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }}
+                                                    style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 12, background: uiTheme.listBg, border: `1px solid ${uiTheme.listBorder}` }}
                                                 >
-                                                    <div style={{ width: 30, height: 30, borderRadius: '50%', background: 'linear-gradient(135deg,rgba(124,58,237,0.2),rgba(79,70,229,0.2))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 900, color: '#a78bfa', flexShrink: 0 }}>
+                                                    <div style={{ width: 30, height: 30, borderRadius: '50%', background: isDark ? 'linear-gradient(135deg,rgba(124,58,237,0.2),rgba(79,70,229,0.2))' : 'linear-gradient(135deg,rgba(59,130,246,0.1),rgba(79,70,229,0.1))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12, fontWeight: 900, color: isDark ? '#a78bfa' : '#4f46e5', flexShrink: 0 }}>
                                                         {m.invited_email[0].toUpperCase()}
                                                     </div>
-                                                    <span style={{ flex: 1, fontSize: 12, fontWeight: 500, color: '#cbd5e1', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.invited_email}</span>
-                                                    <span style={{ fontSize: 9, fontWeight: 900, color: '#a78bfa', background: 'rgba(124,58,237,0.15)', padding: '2px 8px', borderRadius: 20, textTransform: 'uppercase', letterSpacing: '0.08em', flexShrink: 0 }}>
+                                                    <span style={{ flex: 1, fontSize: 12, fontWeight: 500, color: uiTheme.textSubtle, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.invited_email}</span>
+                                                    <span style={{ fontSize: 9, fontWeight: 900, color: isDark ? '#a78bfa' : '#4f46e5', background: isDark ? 'rgba(124,58,237,0.15)' : 'rgba(79,70,229,0.1)', padding: '2px 8px', borderRadius: 20, textTransform: 'uppercase', letterSpacing: '0.08em', flexShrink: 0 }}>
                                                         Collaborator
                                                     </span>
                                                     <button
@@ -312,12 +338,12 @@ export default function CollaborateModal({ open, onClose, project }: Collaborate
                             </div>
 
                             {/* Footer */}
-                            <div style={{ padding: '14px 24px 20px', borderTop: '1px solid rgba(255,255,255,0.06)', display: 'flex', justifyContent: 'flex-end' }}>
+                            <div style={{ padding: '14px 24px 20px', borderTop: `1px solid ${uiTheme.border}`, display: 'flex', justifyContent: 'flex-end' }}>
                                 <button
                                     onClick={onClose}
-                                    style={{ padding: '9px 22px', borderRadius: 12, fontSize: 12, fontWeight: 900, color: '#cbd5e1', background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.08)', cursor: 'pointer', transition: 'all 0.15s' }}
-                                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.12)'; (e.currentTarget as HTMLElement).style.color = 'white'; }}
-                                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.07)'; (e.currentTarget as HTMLElement).style.color = '#cbd5e1'; }}
+                                    style={{ padding: '9px 22px', borderRadius: 12, fontSize: 12, fontWeight: 900, color: uiTheme.textSubtle, background: uiTheme.buttonBg, border: `1px solid ${uiTheme.buttonBorder}`, cursor: 'pointer', transition: 'all 0.15s' }}
+                                    onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = uiTheme.buttonBgHover; (e.currentTarget as HTMLElement).style.color = uiTheme.textBright; }}
+                                    onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = uiTheme.buttonBg; (e.currentTarget as HTMLElement).style.color = uiTheme.textSubtle; }}
                                 >
                                     Done
                                 </button>
