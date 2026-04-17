@@ -178,7 +178,7 @@ class IncidentEngine:
             "metrics": metrics
         }
 
-        baselines = _load_baselines()
+        baselines = _load_baselines(self.connection_string)
         baselines["snapshots"].append(snapshot)
         baselines["snapshots"] = _prune_old_snapshots(baselines["snapshots"])
         baselines["last_updated"] = snapshot["timestamp"]
@@ -188,7 +188,7 @@ class IncidentEngine:
 
     def detect_incidents(self) -> Dict[str, Any]:
         """Analyze latest metrics against baselines to produce Incidents."""
-        baselines = _load_baselines()
+        baselines = _load_baselines(self.connection_string)
         snapshots = baselines.get("snapshots", [])
 
         if len(snapshots) < 3:
