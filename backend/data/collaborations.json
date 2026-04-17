@@ -8,5 +8,15 @@
     "invited_email": "vrp.aditya@gmail.com",
     "status": "active",
     "created_at": "2026-04-17T18:09:10.661611Z"
+  },
+  "780a2e0e-4781-4dc0-8556-ea6424fce003": {
+    "owner_uid": "Aw1Acc0hwAQvLbXBH5NULZCdWmG3",
+    "project_id": "local_1775903430956",
+    "project_name": "f2",
+    "connection_string": "postgresql://postgres:root@127.0.0.1:5432/f2_36178215",
+    "connection_type": "file",
+    "invited_email": "theviralweed825@gmail.com",
+    "status": "pending",
+    "created_at": "2026-04-17T18:24:33.462414Z"
   }
 }
