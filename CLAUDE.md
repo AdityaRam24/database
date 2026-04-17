@@ -69,8 +69,14 @@ Each domain has a paired service + endpoint file:
 | MongoDB support | `services/mongodb_service.py` | — |
 | SQL dialect conversion | `services/dialect_converter.py` | — |
 | Synthetic data gen | `services/synthetic_data.py` | — |
-| Multi-agent council | `services/council_service.py` | — |
+| Multi-agent council | `services/council_service.py` | `endpoints/council.py` |
 | Firebase backend auth | `services/firebase_service.py` | — |
+| Neo4j graph store | `services/neo4j_service.py` | — |
+| GitHub integration | *(inline in endpoint)* | `endpoints/github.py` |
+| Lab / sandbox queries | *(inline in endpoint)* | `endpoints/lab.py` |
+| Schema snapshots | *(inline in endpoint)* | `endpoints/snapshots.py` |
+| Vision (image→SQL) | *(inline in endpoint)* | `endpoints/vision.py` |
+| Voice queries | *(inline in endpoint)* | `endpoints/voice.py` |
 
 All API routes are prefixed with `/api`. The router aggregator is `backend/app/api/__init__.py`. Settings (env vars + defaults) live in `backend/app/core/config.py` (uses `pydantic-settings`, reads `backend/.env`).
 
@@ -78,7 +84,8 @@ All API routes are prefixed with `/api`. The router aggregator is `backend/app/a
 - `frontend/src/app/dashboard/` — sub-routes per domain: `performance/`, `anomaly/`, `incidents/`, `security/`, `governance/`, `data/`, `semantic/`, `ai/`, `lab/`, `query-builder/`, `time-machine/`
 - `frontend/src/app/features/` — standalone feature pages (e.g. `projects/`)
 - `frontend/src/app/connect/` — DB connection flow; `frontend/src/app/login/` — login page
-- `frontend/src/components/` — shared components: `SchemaGraph.tsx` (React Flow visualization), `AskAIPanel.tsx` (AI Q&A panel), `DashboardShell.tsx` (layout wrapper), `OptimizationReport.tsx`, `ProjectsSidebar.tsx`, `VisionUploader.tsx` (image→SQL via vision model), `VoiceOrb.tsx` (voice query UI with council transcript)
+- `frontend/src/components/` — shared components: `SchemaGraph.tsx` (React Flow visualization), `AskAIPanel.tsx` (AI Q&A panel), `SchemaIntelligencePanel.tsx` (schema insight overlay), `DashboardShell.tsx` (layout wrapper), `OptimizationReport.tsx`, `ProjectsSidebar.tsx`, `VisionUploader.tsx` (image→SQL via vision model), `VoiceOrb.tsx` (voice query UI with council transcript), `HeroScene3D.tsx` (3-D landing scene)
+- `frontend/src/components/landing/` and `frontend/src/components/hero/` — animated landing page sections (not part of dashboard)
 - `frontend/src/context/AuthContext.tsx` — Firebase auth context (mock user enabled in dev at line 23)
 - `frontend/src/lib/projectStorage.ts` — project persistence via localStorage; `firebase.ts` — Firebase client init
 - **Path alias:** `@/*` → `frontend/src/*`
