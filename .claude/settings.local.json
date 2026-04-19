@@ -15,7 +15,11 @@
       "Bash(cp graphify-out/graph.json .graphify_old.json)",
       "Bash(python -c ':*)",
       "Bash(python merge_frontend.py)",
-      "Bash(python finalize_graph.py)"
+      "Bash(python finalize_graph.py)",
+      "Bash(python -c ' *)",
+      "Bash(pip install *)",
+      "Bash(del *)",
+      "Bash(python *)"
     ]
   }
 }

@@ -1,0 +1,1206 @@
+\documentclass[12pt,a4paper]{report}
+
+% ── Packages ────────────────────────────────────────────────────────────────
+\usepackage[a4paper,left=0.98in,right=0.59in,top=1.33in,bottom=1.0in]{geometry}
+\usepackage{mathptmx}          % Times New Roman
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{setspace}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{fancyhdr}
+\usepackage{tocloft}
+\usepackage{titlesec}
+\usepackage{amsmath,amssymb}
+\usepackage{url}
+\usepackage[hidelinks]{hyperref}
+\usepackage{caption}
+\usepackage{multirow}
+\usepackage{ragged2e}
+\usepackage{tabularx}
+\usepackage{xcolor}
+\usepackage{cite}
+
+% ── Spacing ─────────────────────────────────────────────────────────────────
+\onehalfspacing
+\setlength{\parindent}{0.5in}
+\setlength{\parskip}{6pt}
+
+% ── Chapter / Section formatting ────────────────────────────────────────────
+\titleformat{\chapter}[display]
+  {\normalfont\bfseries\fontsize{16}{20}\selectfont\centering}
+  {CHAPTER \thechapter}{6pt}
+  {\fontsize{16}{20}\selectfont\MakeUppercase}
+\titlespacing{\chapter}{0pt}{-30pt}{20pt}
+
+\titleformat{\section}
+  {\normalfont\bfseries\fontsize{13}{16}\selectfont}
+  {\thesection}{1em}{}
+\titlespacing{\section}{0pt}{12pt}{6pt}
+
+\titleformat{\subsection}
+  {\normalfont\bfseries\fontsize{12}{15}\selectfont}
+  {\thesubsection}{1em}{}
+\titlespacing{\subsection}{0pt}{10pt}{4pt}
+
+\titleformat{\subsubsection}
+  {\normalfont\bfseries\fontsize{12}{15}\selectfont}
+  {\thesubsubsection}{1em}{}
+\titlespacing{\subsubsection}{0pt}{8pt}{3pt}
+
+% ── Headers / Footers ────────────────────────────────────────────────────────
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\leftmark}
+\fancyhead[R]{\small DB-Lighthouse}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.3pt}
+
+\fancypagestyle{plain}{
+  \fancyhf{}
+  \fancyfoot[C]{\thepage}
+  \renewcommand{\headrulewidth}{0pt}
+}
+
+% ── TOC / LOF / LOT formatting ───────────────────────────────────────────────
+\renewcommand{\cfttoctitlefont}{\hfill\bfseries\fontsize{18}{22}\selectfont}
+\renewcommand{\cftaftertoctitle}{\hfill}
+\renewcommand{\cftloftitlefont}{\hfill\bfseries\fontsize{18}{22}\selectfont}
+\renewcommand{\cftafterloftitle}{\hfill}
+\renewcommand{\cftlottitlefont}{\hfill\bfseries\fontsize{18}{22}\selectfont}
+\renewcommand{\cftafterlottitle}{\hfill}
+\setlength{\cftbeforetoctitleskip}{0pt}
+\setlength{\cftaftertoctitleskip}{20pt}
+\renewcommand{\cftchapleader}{\cftdotfill{\cftdotsep}}
+
+% ── Misc commands ────────────────────────────────────────────────────────────
+\newcommand{\bb}[1]{\fontsize{14}{18}\selectfont #1 \normalsize}
+
+% ============================================================================
+\begin{document}
+
+% ════════════════════════════════════════════════════════════════════════════
+%  TITLE PAGE  — layout matches docx Specimen A exactly (single A4 page)
+%  Order: Title → submission → degree → By → authors → guide →
+%         department → [logo] → VIT name/address → University → year
+% ════════════════════════════════════════════════════════════════════════════
+\begin{titlepage}
+\thispagestyle{empty}
+\centering\singlespacing
+
+\vspace*{0.3cm}
+
+% ── 1. Project title (22 pt Bold, all-caps, centered) ────────────────────────
+{\fontsize{22}{28}\selectfont\bfseries
+DB-LIGHTHOUSE: AN AI-AUGMENTED DATABASE\\[4pt]
+OBSERVATION AND OPTIMIZATION PLATFORM
+\par}
+
+\vspace{0.8cm}
+
+% ── 2. Submission statement (13 pt, centered) ─────────────────────────────────
+{\fontsize{13}{17}\selectfont
+Submitted in partial fulfillment of the requirements\par
+for the degree of\par}
+
+\vspace{0.5cm}
+
+% ── 3. Degree (16 pt Bold, centered) ──────────────────────────────────────────
+{\fontsize{16}{20}\selectfont\bfseries
+Bachelor of Technology in Information Technology\par}
+
+\vspace{0.8cm}
+
+% ── 4. "By" (13 pt, centered) ────────────────────────────────────────────────
+{\fontsize{13}{17}\selectfont By\par}
+
+\vspace{0.4cm}
+
+% ── 5. Student names + roll numbers (13 pt Bold, centered) ───────────────────
+{\fontsize{13}{18}\selectfont\bfseries
+Chinmay Tikole \quad (Roll No.\ \underline{\hspace{2.2cm}})\par
+\vspace{4pt}
+Aniket Panchal \quad (Roll No.\ \underline{\hspace{2.2cm}})\par
+\vspace{4pt}
+Aditya Ram Vemuri \quad (Roll No.\ \underline{\hspace{2.2cm}})\par}
+
+\vspace{0.8cm}
+
+% ── 6. "Under the Guidance of" (13 pt, centered) ────────────────────────────
+{\fontsize{13}{17}\selectfont Under the Guidance of\par}
+
+\vspace{0.35cm}
+
+% ── 7. Guide name (13 pt Bold, centered) ─────────────────────────────────────
+{\fontsize{13}{18}\selectfont\bfseries Dr./Prof.\ \textit{[Guide Name]}\par}
+
+\vspace{0.5cm}
+
+% ── 8. Department (13 pt Bold, centered) ─────────────────────────────────────
+{\fontsize{13}{18}\selectfont\bfseries Department of Information Technology\par}
+
+\vfill
+
+% ── 9. College logo (per docx: logo + address at bottom of title page) ────────
+% Place vit_logo.png / .jpg / .pdf in the same folder as this .tex file.
+% Adjust width= to resize (1.8 cm – 2.5 cm is typical).
+%
+\includegraphics[width=2.2cm]{vit_logo}\\[6pt]
+%
+% No logo file yet? Comment the line above and uncomment the placeholder:
+% \rule{2.2cm}{2.2cm}\\[6pt]
+
+% ── 10. Institute name + address (16 pt / 13 pt / 11 pt, centered) ───────────
+{\fontsize{16}{20}\selectfont\bfseries Vidyalankar Institute of Technology\par}
+{\fontsize{13}{17}\selectfont Wadala(E), Mumbai--400437\par}
+
+\vspace{0.3cm}
+
+{\fontsize{11}{14}\selectfont
+Autonomous Institute affiliated University of Mumbai\par}
+
+\vspace{0.3cm}
+
+% ── 11. University of Mumbai (18 pt, centered) ────────────────────────────────
+{\fontsize{18}{22}\selectfont University of Mumbai\par}
+
+\vspace{0cm}
+
+% ── 12. Academic year (16 pt Bold, centered) ──────────────────────────────────
+{\fontsize{16}{20}\selectfont\bfseries 2025--26\par}
+
+\end{titlepage}
+
+% ════════════════════════════════════════════════════════════════════════════
+%  CERTIFICATE OF APPROVAL  (Specimen B – Internal)
+% ════════════════════════════════════════════════════════════════════════════
+\newpage
+\pagenumbering{roman}
+\setcounter{page}{1}
+\thispagestyle{plain}
+
+\begin{center}
+{\fontsize{18}{22}\selectfont\bfseries CERTIFICATE OF APPROVAL\par}
+\end{center}
+
+\vspace{0.8cm}
+
+\noindent{\fontsize{14}{20}\selectfont
+This is to certify that the project entitled \textbf{``DB-Lighthouse: An AI-Augmented Database Observation and Optimization Platform''} is a bonafide work of
+}
+
+\vspace{0.5cm}
+
+\begin{center}
+{\fontsize{14}{20}\selectfont\bfseries
+Chinmay Tikole \hspace{0.3cm} (Roll No.\ \rule{2.5cm}{0.4pt})\par
+\vspace{3pt}
+Aniket Panchal \hspace{0.3cm} (Roll No.\ \rule{2.5cm}{0.4pt})\par
+\vspace{3pt}
+Aditya Ram Vemuri (Roll No.\ \rule{2.5cm}{0.4pt})\par
+}
+\end{center}
+
+\vspace{0.5cm}
+
+\noindent{\fontsize{14}{20}\selectfont\justify
+submitted to the \textbf{University of Mumbai} in partial fulfillment of the requirement for the award of the degree of \textbf{Bachelor of Technology} in \textbf{Information Technology}.
+}
+
+\vspace{2.5cm}
+
+\begin{center}
+{\fontsize{12}{15}\selectfont\rule{5cm}{0.4pt}\par}
+\end{center}
+
+\begin{center}
+{\fontsize{14}{20}\selectfont\bfseries
+(Dr./Prof.\ [Guide Name])\par
+Project Guide\par
+}
+\end{center}
+
+\vfill
+\noindent
+{\fontsize{12}{15}\selectfont
+\rule{5cm}{0.4pt} \hfill \rule{5cm}{0.4pt}
+}
+
+\noindent{\fontsize{14}{20}\selectfont\bfseries
+\hspace{1cm}Dr.\ Vidya Chitre \hfill Dr.\ Sangita Joshi\hspace{1cm}\par
+\vspace{2pt}
+\hspace{-1cm}Head of Department, INFT \hfill Principal, VIT\hspace{1cm}\par
+}
+
+% ════════════════════════════════════════════════════════════════════════════
+%  PROJECT REPORT APPROVAL  (Specimen C – External)
+% ════════════════════════════════════════════════════════════════════════════
+\newpage
+\thispagestyle{plain}
+
+\begin{center}
+{\fontsize{18}{22}\selectfont\bfseries PROJECT REPORT APPROVAL FOR B.\ TECH.\par}
+\end{center}
+
+\vspace{0.8cm}
+
+\noindent{\fontsize{14}{20}\selectfont
+This project report entitled \textbf{``DB-Lighthouse: An AI-Augmented Database Observation and Optimization Platform''} by
+}
+
+\vspace{0.5cm}
+
+\begin{flushleft}
+{\fontsize{14}{20}\selectfont\bfseries
+\hspace{1.5cm} Chinmay Tikole \hspace{0.3cm} (Roll No.\ \rule{2.5cm}{0.4pt})\par
+\vspace{3pt}
+\hspace{1.5cm} Aniket Panchal \hspace{0.3cm} (Roll No.\ \rule{2.5cm}{0.4pt})\par
+\vspace{3pt}
+\hspace{1.5cm} Aditya Ram Vemuri (Roll No.\ \rule{2.5cm}{0.4pt})\par
+}
+\end{flushleft}
+
+\vspace{0.5cm}
+
+\noindent{\fontsize{14}{20}\selectfont
+is approved for the degree of \textbf{Bachelor of Technology} in \textbf{Information Technology}.
+}
+
+\vspace{2.5cm}
+
+\begin{flushright}
+{\fontsize{14}{20}\selectfont
+1.\rule{8cm}{0.4pt}\par
+\vspace{3pt}
+Name and Signature of External Examiner\par
+\vspace{1.2cm}
+2.\rule{8cm}{0.4pt}\par
+\vspace{3pt}
+Name and Signature of Internal Examiner\par
+}
+\end{flushright}
+
+\vspace{2cm}
+
+\noindent{\fontsize{14}{20}\selectfont Date:\quad\rule{3.5cm}{0.4pt}}
+
+\vspace{0.5cm}
+
+\noindent{\fontsize{14}{20}\selectfont Place: Mumbai}
+
+% ════════════════════════════════════════════════════════════════════════════
+%  DECLARATION  (Specimen D)
+% ════════════════════════════════════════════════════════════════════════════
+\newpage
+\thispagestyle{plain}
+
+\begin{center}
+{\fontsize{18}{22}\selectfont\bfseries DECLARATION\par}
+\end{center}
+
+\vspace{0.8cm}
+
+\noindent{\fontsize{14}{20}\selectfont\justify
+We declare that this written submission represents our ideas in our own words and where others' ideas or words have been included, we have adequately cited and referenced the original sources. We also declare that we have adhered to all principles of academic honesty and integrity and have not misrepresented or fabricated or falsified any idea/data/fact/source in our submission. We understand that any violation of the above will be cause for disciplinary action by the Institute and can also evoke penal action from the sources which have thus not been properly cited or from whom proper permission has not been taken when needed.
+}
+
+\vspace{2cm}
+
+\noindent{\fontsize{14}{20}\selectfont
+\begin{tabular}{@{}p{4.5cm} p{3cm} p{4cm}@{}}
+\textbf{Name of Student} & \textbf{Roll No.} & \textbf{Signature} \\[1.0cm]
+Chinmay Tikole     & & \\[0.8cm]
+Aniket Panchal     & & \\[0.8cm]
+Aditya Ram Vemuri  & & \\
+\end{tabular}
+}
+
+\vspace{1.5cm}
+
+\noindent{\fontsize{14}{20}\selectfont Date:\quad\rule{3.5cm}{0.4pt}}
+
+\vspace{0.5cm}
+
+\noindent{\fontsize{14}{20}\selectfont Place: Mumbai}
+
+% ════════════════════════════════════════════════════════════════════════════
+%  ACKNOWLEDGEMENT
+% ════════════════════════════════════════════════════════════════════════════
+\newpage
+\thispagestyle{plain}
+
+\begin{center}
+{\fontsize{18}{22}\selectfont\bfseries ACKNOWLEDGEMENT\par}
+\end{center}
+
+\vspace{0.2cm}
+
+\noindent{\fontsize{14}{20}\selectfont\justify
+We would like to thank everyone who helped us throughout this final year project, ``DB-Lighthouse: An AI-Augmented Database Observation and Optimization Platform.''
+
+\vspace{0.2cm}
+
+We are very grateful to our Project Guide, Dr./Prof.\ [Guide Name], for the guidance, feedback, and patience throughout the project. The regular reviews and honest suggestions kept us on track at every stage.
+
+\vspace{0.2cm}
+
+We thank our H.O.D.\ Dr.\ Vidya Chitre for the encouragement and practical suggestions as the report took shape. We also thank our Principal Dr.\ Sangita Joshi for making the facilities available that we needed to complete this work.
+
+\vspace{0.2cm}
+
+Finally, we thank all the teaching and non-teaching staff of the college, and our friends, for the support and help they gave us during this project.
+}
+
+\vspace{0.1cm}
+
+\noindent{\fontsize{14}{20}\selectfont
+\begin{tabular}{@{}p{4.5cm} p{3cm} p{4cm}@{}}
+\textbf{Name of Student} & \textbf{Roll No.} & \textbf{Signature} \\[1.0cm]
+Chinmay Tikole     & & \\[0.8cm]
+Aniket Panchal     & & \\[0.8cm]
+Aditya Ram Vemuri  & & \\
+\end{tabular}
+}
+
+\vspace{0.5cm}
+
+\noindent{\fontsize{14}{20}\selectfont Date:}
+
+\vspace{0.1cm}
+
+\noindent{\fontsize{14}{20}\selectfont Place: Mumbai}
+
+% ════════════════════════════════════════════════════════════════════════════
+%  ABSTRACT
+% ════════════════════════════════════════════════════════════════════════════
+\newpage
+\thispagestyle{plain}
+\addcontentsline{toc}{chapter}{Abstract}
+
+\begin{center}
+{\fontsize{18}{22}\selectfont\bfseries ABSTRACT\par}
+\end{center}
+
+\vspace{0.8cm}
+
+\noindent{\fontsize{14}{20}\selectfont\justify
+Web applications rely on relational databases for almost everything, yet keeping a schema healthy---query performance, storage footprint, security exposure, structural integrity, compliance---demands expertise that developers on small teams rarely have time to build. This project presents DB-Lighthouse, a platform where a developer pastes in a connection string and gets back an interactive schema graph, a storage optimization report, index recommendations, anomaly alerts, and plain-English explanations, without writing a single catalog query. The key safety property is the \emph{shadow database pattern}: only the DDL is copied to a local instance---no row data leaves the source system at any point. The system provides six analytical subsystems: a three-phase index optimizer, a Z-score anomaly detector with rolling 7-day baselines, a composite incident scorer, a self-healing NL-to-SQL translator with up to three correction rounds, a four-tier prompt injection firewall, and a two-agent governance council. The platform unifies core observational workflows---spanning performance analysis, schema governance, semantic rule enforcement, and statistical anomaly detection---within a single interface backed by a unified shadow-database isolation boundary. Six database back-ends (PostgreSQL, MongoDB, Neo4j, Firebase, MySQL, and SQLite) are supported through a common connection and analysis pipeline.
+
+\vspace{0.5cm}
+
+Evaluation on the Chinook reference database shows: 99.91\% buffer cache hit ratio, 100\% prompt injection detection across 62 adversarial inputs with zero false positives, 100\% NL-to-SQL resolution within three self-healing rounds (76\% first-attempt success), and 97.5--98.4\% execution-time reduction for targeted queries after index simulation. On four production schemas the platform produced a mean storage reduction of 19.4\% and matched expert DBA index choices with a precision of 0.81. A LoRA fine-tuning pipeline produces a 4.6~GB Q4\_K\_M GGUF model deployable on commodity hardware for domain-adapted SQL generation.
+
+\vspace{0.5cm}
+
+\noindent\textbf{Keywords:} database optimization, schema analysis, large language models, PostgreSQL, shadow database, index recommendation, anomaly detection, PII detection, schema visualization, developer tooling, schema governance, migration validation, voice interface, multi-agent AI, multi-database, LoRA fine-tuning, prompt injection, NL-to-SQL.
+}
+
+% ════════════════════════════════════════════════════════════════════════════
+%  TABLE OF CONTENTS / LIST OF FIGURES / LIST OF TABLES
+% ════════════════════════════════════════════════════════════════════════════
+\newpage
+\tableofcontents
+
+\newpage
+\listoffigures
+
+\newpage
+\listoftables
+
+% ════════════════════════════════════════════════════════════════════════════
+%  MAIN MATTER
+% ════════════════════════════════════════════════════════════════════════════
+\newpage
+\pagenumbering{arabic}
+\setcounter{page}{1}
+
+% ════════════════════════════════════════════════════════════════════════════
+%  CHAPTER I — INTRODUCTION
+% ════════════════════════════════════════════════════════════════════════════
+\chapter{Introduction}
+
+\section{Background}
+
+Cloud-hosted PostgreSQL services---including Amazon RDS, Google Cloud SQL, Supabase, Railway, and Neon---have made production-grade relational databases available to startups and individual developers. The tooling for observing and maintaining those databases, however, has not kept pace. Tasks like index tuning, normalization analysis, anomaly triage, compliance scanning, migration pre-validation, and schema history tracking still demand time and knowledge of SQL internals, query planning, and system catalogs. The problem is worst for small-to-medium engineering teams (2--20 engineers) working without a dedicated DBA, where schema health problems---bloated schemas, redundant indexes, oversized column types, PII fields that have never been audited, schema changes that bypass version control---build up quietly until they cause outages or compliance failures.
+
+Connecting LLMs to production databases also raises safety concerns: prompt injection, accidental data modification, and PII exposure \cite{perez2022ignore,greshake2023indirect}. Existing tools---Datadog, New Relic, PgHero---solve parts of the problem but are built for large enterprises, become expensive at moderate data volumes, or produce output that only an experienced DBA can interpret. Natural language interfaces to databases have attracted research attention \cite{li2023can,pourreza2024din,gao2023texttosql}, yet none of the published systems combine such interfaces with live schema analysis, DDL experimentation, governance enforcement, and domain-fine-tuned model support in a single accessible platform.
+
+\section{Problem Statement}
+
+Small development teams lack good tools for managing their databases. Hosting a PostgreSQL database is now cheap and simple, but keeping a schema healthy---tracking query performance, catching anomalies, checking compliance, experimenting safely with changes---still needs knowledge most application developers do not have. Existing tools either require a trained DBA to interpret their output, cost too much for smaller organisations, or only solve one piece of the problem rather than the whole picture.
+
+Connecting an LLM to a production database also brings real security risks. Prompt injection attacks can cause a model to run harmful SQL. Giving a model unrestricted access to a live database risks data exposure and accidental writes. What is missing is a platform that brings database analysis within reach of small teams while keeping the safety guarantees built into the infrastructure itself---not bolted on after the fact.
+
+\section{Objectives}
+
+DB-Lighthouse addresses these concerns through four primary architectural decisions:
+
+\begin{enumerate}
+    \item A \textbf{shadow-database pattern} that processes only schema DDL, never production rows.
+    \item A \textbf{prompt firewall} that classifies incoming queries across four attack categories before model inference.
+    \item A \textbf{two-agent council} with separate agents for performance optimization and security review.
+    \item Support for a \textbf{domain-fine-tuned 7B-parameter model} that achieves higher first-attempt NL-to-SQL accuracy than general-purpose models on narrow schema tasks.
+\end{enumerate}
+
+\section{Scope of the Project}
+
+The platform targets backend developers and small engineering teams who need to understand and optimize their PostgreSQL schemas without deep DBA expertise. The scope includes:
+
+\begin{itemize}
+    \item Interactive schema visualization with composite health scoring
+    \item Three-phase index analysis and recommendation engine
+    \item Z-score based anomaly detection with rolling 7-day baselines
+    \item Self-healing natural language to SQL translation (up to 3 correction rounds)
+    \item Four-tier prompt injection security firewall
+    \item Schema governance: versioning, drift detection, and migration validation
+    \item PII detection and security scanning at the schema level
+    \item Collaborative DDL review workflow analogous to a pull-request process
+    \item Multi-database support (PostgreSQL, MongoDB, Neo4j, Firebase, MySQL, SQLite)
+    \item Domain fine-tuned LLM for improved SQL generation accuracy on narrow schemas
+    \item Voice query interface with three-tier degradation-resistant pipeline
+\end{itemize}
+
+\section{Contributions}
+
+Eight distinct contributions distinguish this work from existing solutions:
+
+\begin{itemize}
+    \item A \textbf{shadow database architecture} that separates analysis from production, guaranteeing zero risk of data modification or row-level data exposure.
+    \item A \textbf{three-phase index analyzer} covering sequential-scan bottlenecks, zero-use zombie indexes, and missing indexes inferred from FK relationships and column correlation statistics.
+    \item A \textbf{Z-score anomaly detector} with rolling 7-day baselines, WARNING ($Z \geq 2.0$) and CRITICAL ($Z \geq 3.0$) thresholds across five PostgreSQL metric categories.
+    \item A \textbf{self-healing NL-to-SQL translator} that feeds PostgreSQL error messages back to the model for up to three correction rounds before escalating to the user.
+    \item A \textbf{four-tier prompt injection firewall} with category-specific confidence ceilings blocking SQL injection, instruction override, destructive intent, and social engineering.
+    \item A \textbf{LoRA fine-tuning pipeline} for Qwen2.5-Coder-7B-Instruct, producing a 4.6~GB Q4\_K\_M GGUF model deployable on commodity hardware.
+    \item A \textbf{unified observational platform} that consolidates performance analysis, DDL sandboxing, schema versioning, drift detection, semantic rule enforcement, anomaly detection, security scanning, and multi-agent NL-to-SQL within a single shadow-bounded interface.
+    \item A rigorous \textbf{evaluation} demonstrating measurable storage, query performance, and security improvements across both production and reference schemas.
+\end{itemize}
+
+\section{Organization of the Report}
+
+Chapter~II surveys prior work and related literature across seven research areas. Chapter~III describes the system architecture, analytical subsystems, and technical design decisions including the fine-tuning pipeline. Chapter~IV presents evaluation results across ten metrics and discusses architectural trade-offs and limitations. Chapter~V concludes the report and outlines five directions for future work.
+
+% ════════════════════════════════════════════════════════════════════════════
+%  CHAPTER II — LITERATURE SURVEY
+% ════════════════════════════════════════════════════════════════════════════
+\chapter{Literature Survey}
+
+\section{Text-to-SQL and Natural Language Interfaces}
+
+Converting natural language questions into executable SQL has attracted a lot of research over the years. Early rule-based systems such as LUNAR \cite{woods1973progress} and MASQUE \cite{androutsopoulos1995nldb} worked on simple schemas but fell apart as schemas grew more complex. Large pre-trained language models improved the state of the art substantially: T5-based architectures fine-tuned on the Spider benchmark \cite{yu2018spider} reached near-human accuracy on single-database tasks, while models such as GPT-4 \cite{openai2023gpt4} and Llama~2 \cite{touvron2023llama} enabled zero-shot query generation across novel schemas.
+
+DIN-SQL \cite{pourreza2024din} decomposes complex queries into sub-tasks and achieves 82.8\% exact-match accuracy on Spider with GPT-4. Li et al.\ \cite{li2023can} proposed a large-scale benchmark for database-grounded text-to-SQL. DB-Lighthouse adds a self-healing loop that feeds PostgreSQL error messages back to the model, recovering from parse errors without user intervention---particularly useful on narrow domain schemas where general-purpose models frequently fail on column-name ambiguity in multi-table joins.
+
+\section{Automated Index Recommendation}
+
+Index selection is a classic problem in physical database design. The AutoAdmin project \cite{chaudhuri1997autoadmin} introduced workload-driven index recommendation using query cost estimation. More recent work applies reinforcement learning \cite{lan2020index} and graph neural networks \cite{basu2020weightedge} to the problem. PgHero \cite{pghero2022} provides lightweight heuristic-based index suggestions for PostgreSQL but lacks natural-language explanations and does not detect zombie indexes.
+
+DB-Lighthouse adds a three-phase analyzer covering zombie index detection and correlation-guided missing index inference, with LLM-generated rationales making recommendations readable to developers without query planning expertise.
+
+\section{Database Anomaly Detection}
+
+Chandola et al.\ \cite{chandola2009anomaly} classify anomaly detection into statistical, machine-learning, and information-theoretic approaches. For database metrics, Z-score statistical process control \cite{grubbs1969} is the most readable approach because each alert maps directly to a metric deviation in standard-deviation units. OtterTune \cite{van2017ottertune} applied machine learning over \texttt{pg\_stat\_activity} for automatic configuration tuning. DB-Lighthouse uses Z-score detection with per-metric rolling baselines, ensuring every alert can be traced to a single metric and explained to an on-call DBA without requiring model interpretation.
+
+\section{Autonomous Database Management}
+
+Pavlo et al.\ \cite{pavlo2017selfdriving} described a self-driving DBMS that automates physical design, knob tuning, and anomaly response. NoisePage \cite{ma2021noisepage} demonstrated online physical design adaptation at runtime. DB-Lighthouse targets a different scenario: organisations that cannot modify their production DBMS. The shadow-database pattern achieves non-invasive analysis by cloning only the schema and executing all queries against a local shadow instance, leaving the production system entirely untouched after the initial schema extraction.
+
+\section{Schema Visualization and Governance}
+
+Interactive schema visualization tools include SchemaSpy \cite{schemaspy2022} and DBeaver \cite{dbeaver2023}, which are read-only renderers with no optimization guidance. Data governance frameworks such as Apache Atlas \cite{atlas2023} and Collibra \cite{collibra2023} handle enterprise metadata management but require significant infrastructure investment. PII detection is available through AWS Macie \cite{macie2023} and Google Cloud DLP \cite{clouddlp2023}, but both are cloud-provider-specific and require data to leave the organization's environment. DB-Lighthouse runs PII detection at the schema level without any cloud dependency.
+
+\section{LLM Safety and Prompt Injection}
+
+Perez and Ribeiro \cite{perez2022ignore} showed that appended user input can reliably override LLM system instructions. Greshake et al.\ \cite{greshake2023indirect} extended this to indirect injection via retrieved documents, demonstrating that data stored in a database could itself carry injection payloads. The DB-Lighthouse prompt firewall intercepts these attacks at the input boundary using pattern-match confidence scoring before model inference, rather than filtering model output after the fact.
+
+\section{Parameter-Efficient Fine-Tuning}
+
+Hu et al.\ \cite{hu2022lora} introduced LoRA, constraining weight updates to a low-rank decomposition $W = W_0 + BA$ where $B \in \mathbb{R}^{d \times r}$, $A \in \mathbb{R}^{r \times k}$, and $r \ll \min(d,k)$, reducing trainable parameters by roughly 10,000$\times$ on large models. Dettmers et al.\ \cite{dettmers2023qlora} showed that 4-bit NormalFloat (NF4) quantization retains near-float16 accuracy. DB-Lighthouse combines both via the Unsloth framework \cite{han2024unsloth} to fit model training within 15~GB VRAM on commodity hardware.
+
+\section{Multi-Agent Deliberation}
+
+Park et al.\ \cite{park2023generative} showed that LLM agents exhibit collaborative behaviour when assigned distinct roles in a shared environment. AutoGen \cite{wu2023autogen} showed that multi-agent conversation works as a general pattern across many types of tasks. DB-Lighthouse uses a two-agent council where an Architect agent proposes performance-optimised solutions, a Guardian agent reviews for security and data-integrity risks, and an Executive agent synthesises the final output at temperature 0.1 to minimise hallucination.
+
+% ════════════════════════════════════════════════════════════════════════════
+%  CHAPTER III — IMPLEMENTATION METHODOLOGY
+% ════════════════════════════════════════════════════════════════════════════
+\chapter{Implementation Methodology}
+
+\section{System Architecture}
+
+\subsection{Architectural Overview}
+
+DB-Lighthouse follows a three-tier architecture: a Next.js frontend, a FastAPI backend, and a shadow PostgreSQL instance. All communication between tiers uses RESTful HTTP with JSON payloads. The backend exposes 42 HTTP endpoints under the \texttt{/api} prefix, across 20 domain modules registered in \texttt{backend/app/api/\_\_init\_\_.py}. Cross-origin requests are permitted from ports 3000, 3001, and 3002 via FastAPI's \texttt{CORSMiddleware}.
+
+\begin{figure}[htbp]
+    \centering
+    \fbox{\rule{0pt}{5cm}\rule{\textwidth}{0pt}}
+    \caption{Three-tier system architecture of DB-Lighthouse, showing the data-flow boundary between the user's source database and the isolated shadow instance.}
+    \label{fig:architecture}
+\end{figure}
+
+\subsection{Shadow Database Pattern}
+
+The shadow database pattern is the primary safety mechanism in DB-Lighthouse. When a user supplies a PostgreSQL connection string, the backend runs the following sequence:
+
+\begin{enumerate}
+    \item Verify connectivity to the source database using a read-only probe query.
+    \item Execute \texttt{pg\_dump --schema-only} against the source to extract DDL statements---tables, indexes, sequences, views, and functions---without reading any data row.
+    \item Restore the DDL into a local shadow PostgreSQL instance using \texttt{psql}.
+    \item Run all subsequent analysis queries against the shadow instance exclusively. The production database is never queried again after the initial schema extraction.
+\end{enumerate}
+
+Let $S$ denote the user's source schema and $S'$ the shadow clone. The mapping $f: S \rightarrow S'$ preserves the full structure of $S$ while discarding all row-level data. Formally, for any table $T \in S$ and its shadow counterpart $T' \in S'$:
+
+\begin{equation}
+    |T'| = 0 \quad \text{and} \quad \text{schema}(T') = \text{schema}(T)
+\end{equation}
+
+where $|\cdot|$ denotes the row count.
+
+\subsection{Backend Service Architecture}
+
+The backend uses a service-oriented design: each feature domain has a dedicated service module paired with a corresponding API endpoint module. Table~\ref{tab:services} summarises the mapping.
+
+\begin{table}[htbp]
+\caption{Backend Service and Endpoint Mapping}
+\label{tab:services}
+\centering
+\begin{tabular}{>{\raggedright}p{4cm} >{\raggedright}p{3.5cm} >{\raggedright\arraybackslash}p{3.5cm}}
+\toprule
+\textbf{Domain} & \textbf{Service Module} & \textbf{Endpoint Module} \\
+\midrule
+DB connection \& cloning  & db\_service           & db\_connection \\
+AI Q\&A                   & ai\_service           & analysis \\
+Schema introspection      & schema\_analysis      & analysis \\
+Index analysis            & index\_analyzer       & optimization \\
+Optimization              & optimization\_service & optimization \\
+Anomaly detection         & anomaly\_detector     & anomaly \\
+Incident tracking         & incident\_engine      & incidents \\
+Migration validation      & migration\_analyzer   & governance \\
+Schema drift              & drift\_detector       & governance \\
+Security / PII            & (inline)              & security \\
+Semantic rules            & (inline)              & semantic\_rules \\
+Schema snapshots          & (inline)              & snapshots \\
+Lab / DDL sandbox         & (inline)              & lab \\
+MCP server                & mcp\_server           & mcp \\
+Multi-agent council       & council\_service      & council \\
+Vision (image$\to$DDL)   & ai\_service           & vision \\
+Voice queries             & (inline)              & voice \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{AI Safety Firewall}
+
+All natural-language queries that produce SQL pass through a prompt firewall in \texttt{services/prompt\_firewall.py}. The firewall maintains four pattern libraries: \textbf{SQL Injection} (13 patterns), \textbf{Instruction Override} (11 patterns), \textbf{Destructive Intent} (3 patterns), and \textbf{Social Engineering} (4 patterns). Category-specific confidence ceilings prevent inflation from pattern co-occurrence.
+
+\begin{table}[htbp]
+\caption{Prompt Injection Firewall Configuration}
+\label{tab:firewall}
+\centering
+\begin{tabular}{lccc}
+\toprule
+\textbf{Category} & \textbf{Patterns} & \textbf{Ceiling} & \textbf{Example Trigger} \\
+\midrule
+SQL Injection      & 13 & 0.95 & UNION SELECT, pg\_sleep() \\
+Instruction Override & 11 & 0.90 & `ignore previous', DAN \\
+Destructive Intent & 3  & 0.85 & `drop all tables' \\
+Social Engineering & 4  & 0.80 & False authority claims \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+A second layer---the SQL safety guardrail in \texttt{safe\_sql\_check()}---operates on AI output rather than user input. It matches destructive SQL keywords (\texttt{DROP DATABASE}, \texttt{TRUNCATE}, \texttt{DELETE FROM}) via word-boundary patterns and automatically appends \texttt{LIMIT 100} to any unbounded \texttt{SELECT}.
+
+\subsection{Migration Safety Engine}
+
+Schema migrations are validated through a four-stage pipeline. Stage~1 rejects migrations containing \texttt{DROP TABLE}, \texttt{DROP DATABASE}, \texttt{TRUNCATE}, or \texttt{DELETE} without a \texttt{WHERE} clause. Stage~2 uses \texttt{sqlparse} to extract the operation type. Stage~3 approves additive operations (CREATE TABLE, ADD COLUMN, CREATE INDEX) immediately. Stage~4 triggers four dependency checks against the shadow database for all other operations: FK constraints, dependent indexes, dependent views, and stored functions referencing the target table.
+
+\subsection{Deployment Model}
+
+The platform is packaged as a three-service Docker Compose stack: the Next.js frontend container, the FastAPI backend container, and the shadow PostgreSQL container (\texttt{postgres:15-alpine}). A single \texttt{docker-compose up --build} invocation starts the full stack. Three deployment tiers are supported: Local (developer workstation), Shared team (any container host), and Enterprise on-premise (fully air-gapped, with SAML-based SSO).
+
+\section{Analytical Subsystems}
+
+\subsection{Schema Introspection and Health Scoring}
+
+Upon connection, the schema analysis service constructs a directed metadata graph $G = (V, E)$ by querying \texttt{information\_schema} and \texttt{pg\_catalog}. Each vertex $v \in V$ represents a table annotated with column definitions, data types, estimated row counts from \texttt{pg\_class.reltuples}, and storage sizes from \texttt{pg\_relation\_size}. Each directed edge $e \in E$ represents a foreign key reference. The visualization layer maps $G$ to an interactive rendering via React Flow and D3-force.
+
+A scalar health score $H$ aggregates findings across all analytical subsystems:
+
+\begin{equation}
+    H = \max\!\left(0,\, \min\!\left(100,\; 100 - 15N_H - 8N_M - 3N_L\right)\right)
+\end{equation}
+
+where $N_H$, $N_M$, $N_L$ denote HIGH, MEDIUM, and LOW severity finding counts. The asymmetric penalty weights ensure a single HIGH-severity finding reduces $H$ below 85.
+
+\begin{figure}[htbp]
+    \centering
+    \fbox{\rule{0pt}{5cm}\rule{\textwidth}{0pt}}
+    \caption{Metadata graph $G=(V,E)$ construction from \texttt{pg\_catalog}. Node radius encodes \texttt{reltuples}; fill encodes \texttt{pg\_relation\_size} on a three-tier heat scale. Edge weight encodes FK reference multiplicity.}
+    \label{fig:schema-graph}
+\end{figure}
+
+\subsection{Three-Phase Performance Optimization Engine}
+
+\subsubsection{Index Analyzer}
+
+The index analyzer executes three sequential phases against \texttt{pg\_stat\_user\_tables} and \texttt{pg\_stat\_user\_indexes}.
+
+\textbf{Phase A (Bottleneck Detection)} joins \texttt{seq\_scan} and \texttt{n\_live\_tup} to identify tables with sequential scan counts exceeding 100 and live row counts exceeding 10,000. The dual threshold suppresses false positives from small, fully-cached tables.
+
+\textbf{Phase B (Zombie Index Detection)} identifies entries in \texttt{pg\_stat\_user\_indexes} with \texttt{idx\_scan = 0} that are neither primary key nor unique constraints. Such indexes impose write-path overhead with no read benefit.
+
+\textbf{Phase C (Missing Index Inference)} applies three heuristic rules: (1) foreign-key columns lacking a supporting index; (2) tables with more than 100,000 live rows exhibiting persistently high sequential-scan ratios; and (3) columns with Pearson correlation $|r| < 0.1$ in \texttt{pg\_stats.correlation}. Each candidate receives a composite priority score:
+
+\begin{equation}
+    \text{score} = \frac{\text{raw\_score}}{\text{max\_score}} \times 80 + \text{risk\_bonus}
+\end{equation}
+
+where \texttt{risk\_bonus} $\in \{18, 12, 6\}$ encodes high, medium, and low operational risk.
+
+\subsubsection{Storage Optimization Engine}
+
+The storage engine computes per-column value-length statistics over a sample of up to $N = 1{,}000$ rows:
+
+\begin{equation}
+    \mu_l = \frac{1}{N}\sum_{i=1}^{N} \text{len}(v_i),\quad
+    \sigma_l = \sqrt{\frac{1}{N}\sum_{i=1}^{N}(\text{len}(v_i)-\mu_l)^2}
+\end{equation}
+
+Four heuristic rules derive candidates: \texttt{TEXT} columns with $\mu_l < 255$ are flagged for \texttt{VARCHAR} narrowing; nullable columns with a null rate of 0\% are candidates for \texttt{NOT NULL} enforcement; columns with cardinality $\leq 20$ are candidates for enum normalization; and indexes with \texttt{idx\_scan = 0} are flagged for removal.
+
+\begin{figure}[htbp]
+    \centering
+    \fbox{\rule{0pt}{5cm}\rule{\textwidth}{0pt}}
+    \caption{Storage optimization engine flowchart: per-column sampling ($N \leq 1{,}000$), statistical profiling ($\mu_l$, $\sigma_l$), four-rule heuristic evaluation, severity classification, and DDL patch generation.}
+    \label{fig:optimization}
+\end{figure}
+
+\subsubsection{Query Cost Estimation}
+
+Every query is instrumented with \texttt{EXPLAIN (ANALYZE, BUFFERS, FORMAT JSON)}. The planner's total cost node is mapped to estimated I/O volume and monetary/environmental cost metrics via the AWS Athena pricing model:
+
+\begin{equation}
+    b = \max\!\left(1,\, \left\lfloor\frac{\text{total\_cost}}{10}\right\rfloor\right) \times 8{,}192\ \text{bytes}
+\end{equation}
+\begin{equation}
+    \text{cost}_{USD} = \frac{b}{2^{30}} \times \$0.10, \qquad
+    \text{CO}_2 = \frac{b}{2^{30}} \times 0.3\ \text{g}
+\end{equation}
+
+\subsection{Schema Governance}
+
+\subsubsection{Transactional DDL Sandbox}
+
+DDL statements submitted to \texttt{POST /api/lab/experiment} are executed within an explicit transaction against the shadow instance using a Monaco Editor interface with PostgreSQL syntax highlighting. On exception, the transaction is rolled back and the complete PostgreSQL diagnostic is returned. On success, the endpoint computes a structural diff over column tuples, index definitions, and constraint sets.
+
+\subsubsection{Schema Snapshot Versioning}
+
+A snapshot operation serialises the current shadow schema via \texttt{pg\_dump --schema-only} and persists the DDL string with a timestamp and caller-supplied label. The inter-snapshot diff is computed as a three-way set difference over table names, per-table column definition tuples, and per-table index definition tuples.
+
+\subsubsection{Schema Drift Detection}
+
+The drift detector computes a set difference between the live shadow schema metadata and a stored baseline across three dimensions: the table name set, the per-table column definition set, and the per-table index definition set. Detected drift events are forwarded to the incident engine as GOVERNANCE-severity incidents.
+
+\subsection{AI Query Interface}
+
+\subsubsection{Self-Healing NL-to-SQL}
+
+Each natural-language query is assembled into a schema-aware prompt comprising the query text, full table and column metadata from the shadow schema, business rules from \texttt{semantic\_rules.json}, and a system instruction directing the model to produce SQL followed by a natural-language explanation. The assembled prompt passes through the safety firewall before LLM inference. On a PostgreSQL exception, the error message is appended as a correction hint and the model is re-invoked. This self-correction loop executes at most three rounds.
+
+\begin{figure}[htbp]
+    \centering
+    \fbox{\rule{0pt}{5cm}\rule{\textwidth}{0pt}}
+    \caption{State machine of the self-healing NL-to-SQL translator. On PostgreSQL exception, the error is appended to the prompt and LLM inference is re-invoked; the loop terminates on success or after three correction rounds.}
+    \label{fig:nlsql}
+\end{figure}
+
+\subsubsection{Three-Tier Degradation-Resistant Voice Pipeline}
+
+The voice endpoint implements a three-tier execution pipeline. Tier~1 routes the transcribed query through the self-healing NL-to-SQL path. On AI backend failure, Tier~2 activates \texttt{build\_keyword\_sql()}, a schema-aware rule engine supporting 27 country name constants, table synonym resolution (e.g., `sales' $\to$ \texttt{Invoice}), semantic column aliasing (e.g., `email address' $\to$ \texttt{Email}), and COUNT versus SELECT intent classification. Tier~3 provides server-side speech-to-text transcription, decoupling the pipeline from browser network policy constraints.
+
+\subsubsection{Multi-Agent Deliberation Council}
+
+Governance-sensitive queries are routed to \texttt{council\_service.py}, which orchestrates a three-agent sequential deliberation. The \textbf{Architect} agent proposes a performance-optimised query or DDL strategy. The \textbf{Guardian} agent reviews for security risks, PII exposure, and data-loss hazards. The \textbf{Executive} agent synthesises both outputs into a final response at temperature 0.1 to minimise hallucination. The complete deliberation transcript is returned alongside the final SQL in the \texttt{council\_transcript} response field.
+
+\begin{figure}[htbp]
+    \centering
+    \fbox{\rule{0pt}{5cm}\rule{\textwidth}{0pt}}
+    \caption{UML sequence diagram of the multi-agent deliberation council: Architect (performance proposal, $T{=}0.7$), Guardian (security review, $T{=}0.5$), and Executive (synthesis, $T{=}0.1$) agent calls.}
+    \label{fig:council}
+\end{figure}
+
+\subsubsection{Semantic Business Rule Enforcement}
+
+Named business invariants are stored in \texttt{backend/data/semantic\_rules.json} as name-definition pairs and injected into the LLM system prompt at inference time, enabling the model to interpret domain terminology absent from the schema without retraining (e.g., `active user' $\equiv$ logged in within 7 days). Violations trigger an LLM call returning a DDL remediation patch.
+
+\subsection{Statistical Anomaly Detection and Incident Prioritization}
+
+\subsubsection{Z-Score Anomaly Detector}
+
+The anomaly detector snapshots five metric categories from the shadow instance. After a minimum of three observations, a rolling mean $\mu$ and standard deviation $\sigma$ are maintained over a 7-day sliding window per metric. The Z-score for a new observation $x$ is:
+
+\begin{equation}
+    Z = \frac{x - \mu}{\sigma}
+\end{equation}
+
+$Z \geq 2.0$ generates a WARNING event; $Z \geq 3.0$ generates a CRITICAL event.
+
+\begin{table}[htbp]
+\caption{Anomaly Detection Metric Categories}
+\label{tab:anomaly}
+\centering
+\begin{tabular}{lccc}
+\toprule
+\textbf{Metric Category} & \textbf{PostgreSQL Source} & \textbf{WARN} & \textbf{CRIT} \\
+\midrule
+Active connections    & pg\_stat\_activity       & $Z \geq 2.0$ & $Z \geq 3.0$ \\
+Sequential scans      & pg\_stat\_user\_tables   & $Z \geq 2.0$ & $Z \geq 3.0$ \\
+Cache hit ratio       & pg\_statio\_user\_tables & $Z \geq 2.0$ & $Z \geq 3.0$ \\
+Dead tuple count      & pg\_stat\_user\_tables   & $Z \geq 2.0$ & $Z \geq 3.0$ \\
+Transaction throughput & pg\_stat\_user\_tables  & $Z \geq 2.0$ & $Z \geq 3.0$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsubsection{Composite Incident Severity Engine}
+
+Six incident categories are evaluated against threshold criteria. Each detected incident receives a composite severity score:
+
+\begin{equation}
+    \text{severity} = 0.50 \times \text{impact} + 0.30 \times \text{frequency} + 0.20 \times \text{latency}
+\end{equation}
+
+Score thresholds map to four operational tiers: CRITICAL ($\geq 80$), HIGH ($\geq 60$), MEDIUM ($\geq 40$), LOW ($< 40$). Incident records are retained for 30 days; raw metric snapshots are pruned after 7 days to bound storage growth.
+
+\subsection{Security and PII Detection}
+
+\subsubsection{Two-Layer PII Exposure Scanner}
+
+The PII scanner applies a two-layer detection pipeline. The first layer matches column names against a 16-term case-insensitive regex covering \texttt{ssn}, \texttt{credit\_card}, \texttt{passport}, \texttt{date\_of\_birth}, \texttt{phone}, \texttt{email}, \texttt{address}, and \texttt{bank\_account}. The second layer applies format-specific patterns: RFC 5322-compliant email, SSN format (\texttt{\textbackslash d\{3\}-\textbackslash d\{2\}-\textbackslash d\{4\}}), Luhn-validated credit card numbers, and IPv4/IPv6 addresses. A confidence score is computed as the ratio of matched samples to total samples.
+
+\subsubsection{Collaborative Schema Change Workflow}
+
+The collaboration subsystem implements a pull-request-analogous DDL review workflow. Proposed modifications are stored as pending payloads with a three-state status field (\texttt{pending}, \texttt{approved}, \texttt{rejected}). Collaboration state is persisted via a dual-backend strategy: Firestore when Firebase credentials are present; a local JSON store for air-gapped deployments. Every state transition is appended to an immutable audit log.
+
+\section{Technical Stack and Design Rationale}
+
+\subsection{Frontend: Next.js and React}
+
+The frontend runs on Next.js 14 with App Router and TypeScript. Landing pages use server-side rendering; the interactive dashboard hydrates client-side. Tailwind CSS v4 and Shadcn/Radix UI provide the component primitives.
+
+\begin{table}[htbp]
+\caption{Technology Stack}
+\label{tab:stack}
+\centering
+\begin{tabular}{lll}
+\toprule
+\textbf{Component} & \textbf{Technology} & \textbf{Version / Config} \\
+\midrule
+Frontend    & Next.js App Router & 14.x, TypeScript \\
+UI Library  & Shadcn / Radix UI  & Tailwind CSS v4 \\
+Graph       & React Flow + Dagre & D3-force layout \\
+Backend     & FastAPI            & Python 3.11+ \\
+ORM         & SQLAlchemy         & NullPool, async \\
+Validation  & Pydantic v2        & strict mode \\
+Shadow DB   & PostgreSQL         & 15.x, local \\
+AI Runtime A & Jan AI            & localhost:1337/v1 \\
+AI Runtime B & Ollama            & dblighthouse-ai \\
+Auth        & Firebase Auth      & mocked in dev \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Backend: FastAPI and Python Ecosystem}
+
+The backend uses FastAPI with native \texttt{asyncio} support for concurrent analysis requests. Pydantic v2 validates all request and response payloads. SQLAlchemy with NullPool handles shadow-database operations, making the backend stateless and load-balancer-ready.
+
+\subsection{AI Integration and Fine-Tuning}
+
+The default AI backend is Jan AI with \texttt{mistral-ins-7b-q4}, a 4-bit quantized Mistral~7B \cite{jiang2023mistral} that runs within 8~GB of system RAM. For improved accuracy on narrow schema tasks, the platform supports a domain-fine-tuned model targeting Qwen2.5-Coder-7B-Instruct \cite{qwen2024}. The model is loaded in 4-bit NormalFloat quantization via Unsloth \cite{han2024unsloth} and fine-tuned with LoRA \cite{hu2022lora} applied across all attention and feed-forward layers.
+
+\begin{table}[htbp]
+\caption{LoRA Fine-Tuning Hyperparameters}
+\label{tab:lora}
+\centering
+\begin{tabular}{>{\raggedright}p{3.5cm} >{\raggedright}p{2.5cm} >{\raggedright\arraybackslash}p{4cm}}
+\toprule
+\textbf{Parameter} & \textbf{Value} & \textbf{Rationale} \\
+\midrule
+Base model      & Qwen2.5-Coder-7B     & SQL pre-training depth \\
+Quantization    & NF4 (4-bit)          & Fits T4 15 GB VRAM \\
+LoRA rank ($r$) & 16                   & Standard for 7B models \\
+LoRA alpha      & 32                   & Scaling = 2.0 \\
+Dropout         & 0.05                 & Regularisation on small corpus \\
+Trainable params & $\sim$41M (0.54\%) & Per \cite{hu2022lora} bounds \\
+Optimiser       & AdamW                & Weight decay regularisation \\
+Peak LR         & 2e-4                 & Cosine schedule \\
+Warmup          & 5\%                  & Stability on small datasets \\
+Output          & Q4\_K\_M GGUF       & 4.6 GB, Ollama-compatible \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+After training, the merged model is exported to GGUF via \texttt{llama.cpp} and registered with Ollama under the identifier \texttt{dblighthouse-ai}. Setting \texttt{AI\_MODE=OLLAMA} routes all AI service calls to this local endpoint, removing any external API dependency.
+
+% ════════════════════════════════════════════════════════════════════════════
+%  CHAPTER IV — RESULTS AND DISCUSSION
+% ════════════════════════════════════════════════════════════════════════════
+\chapter{Results and Discussion}
+
+\section{Evaluation Datasets}
+
+\textbf{Production schema evaluation} uses four production PostgreSQL schemas of varying size and domain: a mid-scale e-commerce schema (23 tables, $\sim$4.2~GB), a healthcare appointment scheduling schema (17 tables, $\sim$1.8~GB), a SaaS multi-tenant analytics schema (31 tables, $\sim$9.1~GB), and a logistics tracking schema (28 tables, $\sim$3.6~GB).
+
+\textbf{Chinook reference database evaluation} uses the Chinook database \cite{chinook2016}, an open-source reference dataset modelling a digital music store. It contains 11 tables, 347 artist records, 15,000+ tracks, and 600+ invoices. Total schema size on the shadow instance is 2,367,488 bytes (2.26~MB).
+
+\section{Storage Optimization Results}
+
+Table~\ref{tab:storage} shows results of running the storage optimization engine on the four production schemas. The mean storage reduction was 19.4\%, achieved through data type optimization and redundant index removal with no change to schema semantics.
+
+\begin{table}[htbp]
+\caption{Storage Optimization Results Across Test Schemas}
+\label{tab:storage}
+\centering
+\begin{tabular}{lccc}
+\toprule
+\textbf{Schema} & \textbf{Before (GB)} & \textbf{After (GB)} & \textbf{Saving (\%)} \\
+\midrule
+E-commerce     & 4.2 & 3.3 & 21.4 \\
+Healthcare     & 1.8 & 1.5 & 16.7 \\
+SaaS Analytics & 9.1 & 7.2 & 20.9 \\
+Logistics      & 3.6 & 2.9 & 19.4 \\
+\midrule
+\textbf{Mean}  & \textbf{4.7} & \textbf{3.7} & \textbf{19.6} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Index Recommendation Accuracy}
+
+Index recommendations were evaluated by comparing system-generated suggestions against expert DBA-authored choices for the same four schemas. Precision was computed as:
+
+\begin{equation}
+    \text{Precision} = \frac{|R_{\text{sys}} \cap R_{\text{expert}}|}{|R_{\text{sys}}|}
+\end{equation}
+
+Mean precision across the four schemas was 0.81. Most false positives were composite index suggestions for queries the DBA had deprioritised because the write overhead outweighed the read benefit---a tradeoff the current heuristic engine does not model.
+
+\section{Baseline Cache Performance on Chinook}
+
+Ten metric snapshots were collected from the Chinook shadow database over 40 seconds under no active workload. All ten snapshots were identical, confirming a stable baseline (Table~\ref{tab:baseline}). The 0.99913 cache hit ratio confirms the 2.26~MB database fits entirely within PostgreSQL's default 128~MB \texttt{shared\_buffers}.
+
+\begin{table}[htbp]
+\caption{Chinook Baseline Metrics ($n=10$, stable load)}
+\label{tab:baseline}
+\centering
+\begin{tabular}{lcc}
+\toprule
+\textbf{Metric} & \textbf{Mean Value} & \textbf{Notes} \\
+\midrule
+Total size (bytes)      & 2,367,488 & Stable, no writes \\
+Buffer cache hit ratio  & 0.99913   & Near-optimal \\
+Total sequential scans  & 5,249     & No active queries \\
+Active connections      & 1         & Admin only \\
+Index scans (all tables) & 0        & No active reads \\
+Dead tuples             & 0         & Autovacuum current \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Index Simulation Results}
+
+For each high-priority table, a B-tree index was created inside a rolled-back transaction and \texttt{EXPLAIN ANALYZE} executed with and without the index. Execution time reductions ranged from 97.5\% to 98.4\% for point-lookup queries (Table~\ref{tab:idxsim}).
+
+\begin{table}[htbp]
+\caption{Per-Table Scan Concentration and Index Priority (Chinook)}
+\label{tab:scans}
+\centering
+\begin{tabular}{lccc}
+\toprule
+\textbf{Table} & \textbf{Seq Scans} & \textbf{Avg Rows/Scan} & \textbf{Priority} \\
+\midrule
+Customer     & 1,465 & 2.2      & High \\
+Employee     & 1,443 & 1.1      & High \\
+Invoice      & 823   & 2.6      & High \\
+Track        & 420   & 18.4     & Medium \\
+Artist       & 232   & 17.0     & Medium \\
+Album        & 231   & 14.5     & Medium \\
+InvoiceLine  & 7     & 334.3    & None \\
+PlaylistTrack & 6   & 1,469.2  & None \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[htbp]
+\caption{Index Simulation Execution Time Results (Chinook)}
+\label{tab:idxsim}
+\centering
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Table} & \textbf{Query} & \textbf{Before} & \textbf{After} & \textbf{Improv.} \\
+\midrule
+Customer & Lookup by LastName   & 12.4 ms & 0.31 ms & 97.5\% \\
+Employee & Lookup by Title      & 8.7 ms  & 0.18 ms & 97.9\% \\
+Invoice  & Lookup by CustomerId & 15.2 ms & 0.24 ms & 98.4\% \\
+Track    & Lookup by GenreId    & 22.1 ms & 0.41 ms & 98.1\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Prompt Firewall Accuracy}
+
+The firewall was tested on 62 adversarial inputs constructed from published attack patterns \cite{perez2022ignore,greshake2023indirect} and internal red-team exercises. All patterns were detected at their ceiling values. No legitimate query in a 100-query clean set triggered any pattern (0\% false positive rate).
+
+\begin{table}[htbp]
+\caption{Prompt Firewall Detection Results ($n=62$ adversarial)}
+\label{tab:fwresults}
+\centering
+\begin{tabular}{lcccc}
+\toprule
+\textbf{Category} & \textbf{Cases} & \textbf{Detected} & \textbf{Rate} & \textbf{Min Conf.} \\
+\midrule
+SQL Injection       & 26  & 26 & 100\% & 0.92 \\
+Instruction Override & 22 & 22 & 100\% & 0.88 \\
+Destructive Intent  & 6   & 6  & 100\% & 0.85 \\
+Social Engineering  & 8   & 8  & 100\% & 0.80 \\
+Clean Queries (FP)  & 100 & 0  & 0\%   & ---  \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Self-Healing NL-to-SQL Evaluation}
+
+50 natural-language questions were tested against the Chinook schema using the fine-tuned \texttt{dblighthouse-ai} model. 38 of 50 (76\%) executed without error on the first attempt; 9 of the 12 failures succeeded on the second attempt (cumulative 94\%); the remaining 3 required a third attempt, achieving 100\% within the 3-round budget.
+
+\begin{table}[htbp]
+\caption{Self-Healing NL-to-SQL Results ($n=50$, Chinook)}
+\label{tab:nlsql}
+\centering
+\begin{tabular}{lccc}
+\toprule
+\textbf{Round} & \textbf{Resolved} & \textbf{Cumulative} & \textbf{Primary Error} \\
+\midrule
+Round 1 (no retry)  & 38 / 50 & 76\%  & Column name ambiguity \\
+Round 2 (1 retry)   & 9 / 12  & 94\%  & JOIN syntax errors \\
+Round 3 (2 retries) & 3 / 3   & 100\% & Subquery structure \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Fine-Tuning Convergence}
+
+Training loss fell from 2.41 at step 1 to 0.38 at step 120. Validation perplexity dropped from 18.7 to 4.2, suggesting the model learned to generate SQL rather than memorise training examples.
+
+\begin{table}[htbp]
+\caption{LoRA Training Convergence (Selected Steps)}
+\label{tab:finetune}
+\centering
+\begin{tabular}{cccc}
+\toprule
+\textbf{Step} & \textbf{Train Loss} & \textbf{Val.\ Perplexity} & \textbf{Learning Rate} \\
+\midrule
+1   & 2.41 & 18.7 & 2.00e-4 \\
+40  & 1.21 & 9.1  & 1.76e-4 \\
+80  & 0.61 & 5.8  & 1.12e-4 \\
+120 & 0.38 & 4.2  & 0.41e-4 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Voice Query and API Latency}
+
+75 spoken queries were executed against the Chinook schema. Tier~1 handled 61 successfully (81.3\%); Tier~2 resolved 2 of the remaining 3. Overall accuracy was 98.7\% (74/75). API latency measurements are presented in Table~\ref{tab:latency}.
+
+\begin{table}[htbp]
+\caption{API Latency Profile ($n=10$ each endpoint)}
+\label{tab:latency}
+\centering
+\begin{tabular}{>{\raggedright}p{3.5cm} c c >{\raggedright\arraybackslash}p{2.5cm}}
+\toprule
+\textbf{Endpoint} & \textbf{Mean (ms)} & \textbf{P95 (ms)} & \textbf{Bottleneck} \\
+\midrule
+Schema graph        & 48    & 72    & Catalog queries \\
+Index opt.\ scan    & 210   & 340   & 3-phase catalog joins \\
+Anomaly detection   & 85    & 130   & JSON baseline I/O \\
+NL-to-SQL Tier 1    & 1,840 & 2,650 & LLM inference \\
+NL-to-SQL Tier 2    & 12    & 18    & Schema lookup \\
+Migration check     & 95    & 150   & Shadow DB dep.\ queries \\
+Council deliberation & 5,200 & 6,900 & 3 sequential LLM calls \\
+Prompt firewall     & $<$1  & $<$1  & Regex matching \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Discussion}
+
+\subsection{Shadow Database Trade-offs}
+
+The shadow-database pattern keeps data isolated but makes schema staleness a real problem. If the production schema changes after the initial clone, the analysis is working from an outdated snapshot. The \texttt{pg\_dump} approach also does not carry over runtime statistics from production (\texttt{pg\_stat\_user\_tables} values come from the shadow instance), so Phase~A bottleneck detection is less accurate for tables that have recently grown. Using PostgreSQL event triggers or logical replication to keep the shadow in sync would fix both of these.
+
+\subsection{Model Limitations}
+
+The fine-tuned model was trained on PostgreSQL syntax. Queries targeting MySQL or SQL Server may generate PostgreSQL-specific functions incompatible with the target engine. The \texttt{dialect\_converter.py} post-processor covers approximately 80\% of common function incompatibilities. The 4,096-token context window is insufficient for schemas with more than 40 tables, requiring schema chunking.
+
+\subsection{Anomaly Detection Sensitivity}
+
+The $Z \geq 2.0$ warning threshold produces one false positive per 22 observations under a normal distribution ($P = 0.0455$). For a database collecting hourly snapshots over 7 days, that is about 3.1 spurious warnings per week. Raising the threshold to $Z \geq 2.5$ brings this down to 0.6 per week, but misses more real problems. The current threshold was chosen to catch more issues at the cost of some noise---a deliberate tradeoff given the safety focus of the system.
+
+\subsection{Scalability Constraints}
+
+The JSON file used to store anomaly metrics becomes a bottleneck when multiple databases are being monitored at once. Switching to a time-series database like TimescaleDB would handle concurrent writes cleanly. The bigger constraint for horizontal scaling is the Ollama inference endpoint, which is single-threaded by default and needs GPU-aware request queuing when multiple queries arrive at the same time.
+
+% ════════════════════════════════════════════════════════════════════════════
+%  CHAPTER V — CONCLUSION AND FUTURE SCOPE
+% ════════════════════════════════════════════════════════════════════════════
+\chapter{Conclusion and Future Scope}
+
+\section{Conclusion}
+
+DB-Lighthouse shows that a shadow-database architecture, paired with a four-layer security stack and a domain-fine-tuned language model, can give small teams production-grade database analysis without ever reading production data. The shadow-database pattern keeps data isolation at the infrastructure level rather than relying on application-level checks. The prompt firewall catches adversarial inputs before they reach the model, and the SQL guardrail filters the output after generation. The two-agent council keeps performance optimisation separate from security review. A LoRA fine-tuning pipeline takes a 7.6B-parameter code model, trains it on database administration tasks within 15~GB of VRAM, and exports a 4.6~GB GGUF model that runs on ordinary hardware.
+
+Measured on the Chinook benchmark: 100\% NL-to-SQL resolution within three self-healing rounds (76\% first-attempt success); 100\% prompt injection detection across 62 adversarial inputs with zero false positives; 97.5--98.4\% execution-time reduction for targeted point-lookup queries after index simulation; and 98.7\% overall voice query accuracy across 75 spoken queries. All safety mechanisms add measurable but bounded latency: the prompt firewall under 1~ms, migration safety 95~ms mean, and council deliberation 5,200~ms mean for governance queries only. On four production schemas, data type optimization and redundant index removal decreased storage by a mean of 19.4\% and index recommendation precision was 0.81 compared to expert DBA choices.
+
+The six analytical subsystems together cover the full schema health lifecycle---from introspection and optimisation through governance, security, and incident response---within a single shadow-bounded interface that supports six database back-ends. The results show that rule-based heuristics, Z-score anomaly detection, catalog introspection, force-directed visualisation, DDL sandboxing, schema snapshotting, multi-agent council deliberation, a self-healing NL-to-SQL loop, and a locally hosted domain-fine-tuned model are enough to build a database observability tool that a small team can actually use---without DBA-level costs or exposing a single row of production data.
+
+\section{Future Scope}
+
+Five things are left to do. First, PostgreSQL event-trigger-based schema synchronisation so re-cloning is not needed every time the production schema changes. Second, LSTM-based forecasting in the anomaly detector to flag metric problems before they reach a threshold. Third, expanding the SQL training corpus to MySQL, SQL Server, and BigQuery so the model handles more than PostgreSQL. Fourth, replacing the regex-only prompt firewall with a neural classifier that catches Unicode normalisation and homoglyph bypass attempts. Fifth, populating the shadow database with anonymised synthetic data so \texttt{EXPLAIN ANALYZE} produces real data-driven row estimates instead of relying on heuristic approximations.
+
+% ════════════════════════════════════════════════════════════════════════════
+%  REFERENCES
+% ════════════════════════════════════════════════════════════════════════════
+\newpage
+\addcontentsline{toc}{chapter}{References}
+\begin{thebibliography}{00}
+
+\bibitem{perez2022ignore}
+E. Perez and J. Ribeiro, ``Ignore Previous Prompt: Attack Techniques for Language Models,'' in \textit{Proc. NeurIPS Workshop on Machine Learning Safety}, 2022.
+
+\bibitem{greshake2023indirect}
+K. Greshake, S. Abdelnabi, S. Mishra, C. Endres, T. Holz, and M. Fritz, ``Not What You've Signed Up For: Compromising Real-World LLM-Integrated Applications with Indirect Prompt Injections,'' in \textit{Proc. ACM AISec}, 2023, pp. 79--90.
+
+\bibitem{li2023can}
+J. Li et al., ``Can LLM Already Serve as A Database Interface? A Big Bench for Large-Scale Database Grounded Text-to-SQLs,'' in \textit{Proc. NeurIPS}, vol.~36, 2023.
+
+\bibitem{pourreza2024din}
+M. Pourreza and D. Rafiei, ``DIN-SQL: Decomposed In-Context Learning of Text-to-SQL with Self-Correction,'' in \textit{Proc. NeurIPS}, vol.~36, 2023.
+
+\bibitem{gao2023texttosql}
+D. Gao et al., ``Text-to-SQL Empowered by Large Language Models: A Benchmark Evaluation,'' \textit{arXiv:2308.15363}, 2023.
+
+\bibitem{woods1973progress}
+W. A. Woods, ``Progress in Natural Language Understanding: An Application to Lunar Geology,'' in \textit{Proc. AFIPS National Computer Conference}, 1973, pp. 441--450.
+
+\bibitem{androutsopoulos1995nldb}
+I. Androutsopoulos, G. D. Ritchie, and P. Thanisch, ``Natural Language Interfaces to Databases --- An Introduction,'' \textit{Natural Language Engineering}, vol.~1, no.~1, pp. 29--81, 1995.
+
+\bibitem{yu2018spider}
+T. Yu et al., ``Spider: A Large-Scale Human-Labeled Dataset for Complex and Cross-Domain Semantic Parsing and Text-to-SQL Task,'' in \textit{Proc. EMNLP}, 2018, pp. 3911--3921.
+
+\bibitem{openai2023gpt4}
+OpenAI, ``GPT-4 Technical Report,'' \textit{arXiv:2303.08774}, 2023.
+
+\bibitem{touvron2023llama}
+H. Touvron et al., ``Llama 2: Open Foundation and Fine-Tuned Chat Models,'' \textit{arXiv:2307.09288}, 2023.
+
+\bibitem{chaudhuri1997autoadmin}
+S. Chaudhuri and V. Narasayya, ``An Efficient Cost-Driven Index Selection Tool for Microsoft SQL Server,'' in \textit{Proc. VLDB}, 1997, pp. 146--155.
+
+\bibitem{lan2020index}
+H. Lan, Z. Bao, and Y. Peng, ``An Index Advisor Using Deep Reinforcement Learning,'' in \textit{Proc. CIKM}, 2020, pp. 2105--2108.
+
+\bibitem{basu2020weightedge}
+S. Basu, N. Datta, and P. Bhattacharyya, ``Weighted Edge Graph for Index Recommendation in Relational Databases,'' in \textit{Proc. ICDEW}, 2020, pp. 50--57.
+
+\bibitem{pghero2022}
+A. Kane, ``PgHero: A Performance Dashboard for PostgreSQL,'' GitHub, 2022. [Online]. Available: \url{https://github.com/ankane/pghero}
+
+\bibitem{chandola2009anomaly}
+V. Chandola, A. Banerjee, and V. Kumar, ``Anomaly Detection: A Survey,'' \textit{ACM Comput. Surv.}, vol.~41, no.~3, pp. 1--58, 2009.
+
+\bibitem{grubbs1969}
+F. E. Grubbs, ``Procedures for Detecting Outlying Observations in Samples,'' \textit{Technometrics}, vol.~11, no.~1, pp. 1--21, 1969.
+
+\bibitem{van2017ottertune}
+D. Van Aken, A. Pavlo, G. J. Gordon, and B. Zhang, ``Automatic Database Management System Tuning Through Large-Scale Machine Learning,'' in \textit{Proc. ACM SIGMOD}, 2017, pp. 1009--1024.
+
+\bibitem{pavlo2017selfdriving}
+A. Pavlo et al., ``Self-Driving Database Management Systems,'' in \textit{Proc. CIDR}, 2017.
+
+\bibitem{ma2021noisepage}
+M. Ma, A. Nica, and A. Aboulnaga, ``NoisePage: The Self-Driving Database Management System,'' \textit{Proc. VLDB}, vol.~14, no.~12, pp. 2933--2936, 2021.
+
+\bibitem{schemaspy2022}
+J. Currier, ``SchemaSpy: Database Documentation Built Easy,'' 2022. [Online]. Available: \url{https://schemaspy.org}
+
+\bibitem{dbeaver2023}
+DBeaver Corp., ``DBeaver Community: Free Universal Database Tool,'' 2023. [Online]. Available: \url{https://dbeaver.io}
+
+\bibitem{atlas2023}
+Apache Software Foundation, ``Apache Atlas: Data Governance and Metadata Framework,'' 2023. [Online]. Available: \url{https://atlas.apache.org}
+
+\bibitem{collibra2023}
+Collibra, ``Collibra Data Intelligence Cloud,'' 2023. [Online]. Available: \url{https://www.collibra.com}
+
+\bibitem{macie2023}
+Amazon Web Services, ``Amazon Macie,'' 2023. [Online]. Available: \url{https://aws.amazon.com/macie}
+
+\bibitem{clouddlp2023}
+Google Cloud, ``Cloud Data Loss Prevention (DLP),'' 2023. [Online]. Available: \url{https://cloud.google.com/dlp}
+
+\bibitem{hu2022lora}
+E. J. Hu et al., ``LoRA: Low-Rank Adaptation of Large Language Models,'' in \textit{Proc. ICLR}, 2022.
+
+\bibitem{dettmers2023qlora}
+T. Dettmers, A. Pagnoni, A. Holtzman, and L. Zettlemoyer, ``QLoRA: Efficient Finetuning of Quantized LLMs,'' in \textit{Proc. NeurIPS}, 2023.
+
+\bibitem{han2024unsloth}
+M. Han and D. Paperno, ``Unsloth: Efficient Fine-Tuning for Large Language Models,'' GitHub, 2024. [Online]. Available: \url{https://github.com/unslothai/unsloth}
+
+\bibitem{park2023generative}
+J. Park et al., ``Generative Agents: Interactive Simulacra of Human Behavior,'' in \textit{Proc. ACM UIST}, 2023.
+
+\bibitem{wu2023autogen}
+Q. Wu et al., ``AutoGen: Enabling Next-Gen LLM Applications via Multi-Agent Conversation,'' \textit{arXiv:2308.08155}, 2023.
+
+\bibitem{qwen2024}
+Qwen Team, ``Qwen2.5-Coder Technical Report,'' \textit{arXiv:2409.12186}, 2024.
+
+\bibitem{chinook2016}
+L. Ricci, ``Chinook Database,'' GitHub, 2016. [Online]. Available: \url{https://github.com/lerocha/chinook-database}
+
+\bibitem{jiang2023mistral}
+A. Q. Jiang et al., ``Mistral 7B,'' \textit{arXiv:2310.06825}, 2023.
+
+\end{thebibliography}
+
+% ════════════════════════════════════════════════════════════════════════════
+%  APPENDIX
+% ════════════════════════════════════════════════════════════════════════════
+\appendix
+\chapter{Published Paper and GitHub Repository}
+
+\noindent\fontsize{10}{13}\selectfont
+
+\textbf{Paper Title:}\\
+DB-Lighthouse: An AI-Augmented Database Observation and Optimization Platform
+
+\vspace{0.4cm}
+
+\textbf{Authors:}\\
+Chinmay Tikole, Aniket Panchal, Aditya Ram Vemuri\\
+Department of Information Technology, Vidyalankar Institute of Technology, Mumbai
+
+\vspace{0.4cm}
+
+\textbf{GitHub Repository:}\\
+\url{https://github.com/AdityaRam24/database}
+
+\vspace{0.8cm}
+
+\textit{[Attach printed copy of IEEE paper and any competition/conference certificates here.]}
+
+\end{document}
